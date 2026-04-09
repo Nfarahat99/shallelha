@@ -2,11 +2,10 @@ import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true, // Required on Vercel — sits behind a proxy, headers include x-forwarded-host
   // No Prisma adapter — Vercel cannot reach postgres.railway.internal.
   // JWT sessions are self-contained; no DB read needed per request.
   // Google sub ID is used as the stable userId (unique per Google account).
-  // Magic link (Resend) requires VerificationToken DB storage — add in a later phase
-  // once DB is accessible from Vercel (Prisma Accelerate or Neon).
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
