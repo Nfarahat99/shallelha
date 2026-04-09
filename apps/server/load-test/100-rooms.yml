@@ -1,0 +1,50 @@
+# Artillery load test: 100 simultaneous rooms
+# Usage: npx artillery run load-test/100-rooms.yml --target <SERVER_URL>
+#
+# Expected results (INFRA-02):
+# - 0 connection errors
+# - p99 latency for room:join response < 200ms
+# - ~400 concurrent WebSocket connections (100 hosts + 3 players each)
+
+config:
+  target: "{{ $processEnvironment.TARGET_URL }}"
+  phases:
+    - name: "Ramp up to 100 rooms"
+      duration: 30
+      arrivalRate: 10
+  engines:
+    socketio-v3:
+      transports:
+        - websocket
+  socketio:
+    transports:
+      - websocket
+    auth:
+      # Unique userId per virtual host so server auth middleware accepts it
+      userId: "load-test-host-{{ $uuid }}"
+
+scenarios:
+  - name: "Host creates room, 3 players join, hold 30s"
+    engine: socketio-v3
+    flow:
+      # Step 1: Host socket creates a room and captures the room code
+      - emit:
+          channel: "room:create"
+          data: {}
+          response:
+            channel: "room:created"
+            data:
+              roomCode: "{{ roomCode }}"
+      # Step 2: Simulate 3 players joining the captured room code
+      - loop:
+          - emit:
+              channel: "room:join"
+              data:
+                roomCode: "{{ roomCode }}"
+                name: "لاعب {{ $loopCount }}"
+                emoji: "🦁"
+              response:
+                channel: "room:joined"
+        count: 3
+      # Step 3: Hold all connections for 30s to simulate an active room
+      - think: 30

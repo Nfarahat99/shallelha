@@ -7,16 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Phase 1 skeleton — just enough to confirm connection via health check.
-// Full schema (questions, categories, rooms) added in Phase 2+.
-model Category {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// NextAuth.js v5 required models (Phase 2)
+// NextAuth.js v5 required models — same tables as apps/server schema.
+// apps/web uses these for OAuth account linking and magic link tokens.
 model Account {
   id                String  @id @default(cuid())
   userId            String

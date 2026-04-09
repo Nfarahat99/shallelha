@@ -22,6 +22,11 @@ const io = new SocketServer(httpServer, {
     methods: ['GET', 'POST'],
   },
   transports: ['websocket'], // Force WebSocket — Railway has no sticky sessions
+  connectionStateRecovery: {
+    // Allow clients to reconnect and recover missed events within 10s
+    maxDisconnectionDuration: 10_000,
+    skipMiddlewares: true,
+  },
 })
 
 // Security + parsing middleware

@@ -28,4 +28,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 EXPOSE 4000
 
-CMD ["node", "dist/index.js"]
+# Run prisma db push on every deploy to apply schema changes, then start server.
+# prisma binary is in production deps so it's available in this stage.
+CMD ["sh", "-c", "node_modules/.bin/prisma db push && node dist/index.js"]
