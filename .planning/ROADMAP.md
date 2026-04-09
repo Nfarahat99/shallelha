@@ -22,9 +22,9 @@
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — DevOps: monorepo scaffold, Railway/Vercel config, env var management
-- [ ] 01-02-PLAN.md — Backend scaffold: Express + Socket.io + Prisma 6 + ioredis + health check
-- [ ] 01-03-PLAN.md — Frontend scaffold: Next.js 14, Tailwind RTL, Cairo font, socket singleton
+- [x] 01-01-PLAN.md — DevOps: monorepo scaffold, Railway/Vercel config, env var management
+- [x] 01-02-PLAN.md — Backend scaffold: Express + Socket.io + Prisma 6 + ioredis + health check
+- [x] 01-03-PLAN.md — Frontend scaffold: Next.js 14, Tailwind RTL, Cairo font, socket singleton
 
 ---
 
