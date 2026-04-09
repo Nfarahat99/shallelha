@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * RTL CONVENTION (enforced project-wide):
+ * Use Tailwind logical properties throughout — they auto-flip with dir="rtl".
+ *
+ * CORRECT:  ms-4  me-4  ps-4  pe-4  text-start  text-end
+ * WRONG:    ml-4  mr-4  pl-4  pr-4  text-left   text-right
+ *
+ * The HTML element has dir="rtl" (set in layout.tsx).
+ * With dir="rtl", ms- = right, me- = left in the rendered output.
+ */
