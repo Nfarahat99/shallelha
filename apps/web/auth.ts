@@ -1,29 +1,25 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
-import Resend from 'next-auth/providers/resend'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { prisma } from '@/lib/prisma'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  // No Prisma adapter — Vercel cannot reach postgres.railway.internal.
+  // JWT sessions are self-contained; no DB read needed per request.
+  // Google sub ID is used as the stable userId (unique per Google account).
+  // Magic link (Resend) requires VerificationToken DB storage — add in a later phase
+  // once DB is accessible from Vercel (Prisma Accelerate or Neon).
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
-    Resend({
-      apiKey: process.env.AUTH_RESEND_KEY,
-      from: "شعللها <noreply@shallelha.com>",
-    }),
   ],
-  // JWT strategy: Vercel cannot reach postgres.railway.internal (private network).
-  // JWT sessions avoid a DB read on every session check.
-  // Prisma adapter still required for OAuth account linking + magic link tokens.
   session: { strategy: 'jwt' },
   callbacks: {
-    // ⚠️ JWT strategy uses {token, user} — NOT {session, user} (that's database strategy)
-    jwt({ token, user }) {
-      if (user) token.id = user.id
+    jwt({ token, account, profile }) {
+      // On first sign-in, capture the Google sub ID as stable userId
+      if (account?.providerAccountId) {
+        token.id = account.providerAccountId
+      }
       return token
     },
     session({ session, token }) {
