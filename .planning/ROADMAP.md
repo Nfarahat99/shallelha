@@ -42,6 +42,14 @@ Plans:
 - WebSocket connection recovery on brief disconnects
 - Tested at 100 simultaneous rooms
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — NextAuth v5 setup: Prisma schema (User/Account/Session/VerificationToken), JWT sessions, Google + Resend providers, middleware route protection
+- [ ] 02-02-PLAN.md — Room service + Socket.io handlers: Redis room CRUD, atomic joins, reconnect, host controls, connectionStateRecovery
+- [ ] 02-03-PLAN.md — Frontend pages: landing, /host, /host/[roomCode], /join, /join/[roomCode], auth pages, emoji picker, live lobby, sessionStorage reconnect
+- [ ] 02-04-PLAN.md — Load test: Artillery config for 100 concurrent rooms, socketio-v3 engine
+
 ---
 
 ## Phase 3: Arabic UI — Host Display & Player Controller
@@ -145,4 +153,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-09*
-*Last updated: 2026-04-09 — Phase 1 plans created (3 plans, 2 waves)*
+*Last updated: 2026-04-10 — Phase 2 plans created (4 plans, 2 waves)*
