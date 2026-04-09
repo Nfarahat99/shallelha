@@ -19,6 +19,13 @@
 - CI-ready project structure with environment variable management
 - Arabic font (Cairo) loaded and RTL base styles confirmed
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — DevOps: monorepo scaffold, Railway/Vercel config, env var management
+- [ ] 01-02-PLAN.md — Backend scaffold: Express + Socket.io + Prisma 6 + ioredis + health check
+- [ ] 01-03-PLAN.md — Frontend scaffold: Next.js 14, Tailwind RTL, Cairo font, socket singleton
+
 ---
 
 ## Phase 2: Room System & Real-Time Core
@@ -138,4 +145,4 @@
 ---
 
 *Roadmap created: 2026-04-09*
-*Last updated: 2026-04-09 after initialization*
+*Last updated: 2026-04-09 — Phase 1 plans created (3 plans, 2 waves)*
