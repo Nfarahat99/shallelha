@@ -22,7 +22,7 @@ created: 2026-04-11
 | Preset | not applicable |
 | Component library | none (Radix not used; Tailwind + motion/react ^12.38.0) |
 | Icon library | none — emoji glyphs used in-game (e.g., 🎵, ✓) |
-| Font | Cairo (Google Fonts via next/font) — weights 400, 600, 700, 900 — variable: `--font-cairo` |
+| Font | Cairo (Google Fonts via next/font) — variable: `--font-cairo` |
 
 Source: codebase scan — `apps/web/tailwind.config.ts`, `apps/web/app/layout.tsx`, `apps/web/app/globals.css`.
 
@@ -58,19 +58,18 @@ Source: codebase read — `AnswerOptions.tsx`, `HostGameScreen.tsx`, `HostInGame
 All type is Cairo font via `font-[family-name:var(--font-cairo)]` (or `font-sans` which resolves to Cairo via Tailwind config).
 RTL text is right-aligned via `dir="rtl"` on `<html>` — no `text-right` class ever used.
 
+Exactly 4 sizes. Exactly 2 weights.
+
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
-| Body | 14px (text-sm) | 400 (regular) | 1.5 | Waiting copy, helper text, secondary labels (e.g., "في انتظار اللاعبين…", option letter labels) |
-| Label | 16px (text-base) | 600 (semibold) | 1.5 | Option button text, free text submit button, voting answer card text, host control button labels |
-| Heading | 24px (text-2xl) | 700 (bold) | 1.2 | Question counter ("سؤال N من T"), free text question text on player phone |
-| Display | 48px (text-5xl) | 900 (black) | 1.1 | Question text on host screen |
+| Body | 14px (`text-sm`) | 600 (semibold) | 1.5 | Waiting copy, helper text, secondary labels (e.g., "في انتظار اللاعبين…", option letter labels) |
+| Label | 16px (`text-base`) | 600 (semibold) | 1.5 | Option button text, free text submit button, voting answer card text, host control button labels |
+| Heading | 32px (`text-[32px]`) | 700 (bold) | 1.2 | Question counter ("سؤال N من T"), free text question text on player phone, audio badge "استمع وخمّن", host option text in 2×2 layout, answer feed answer text on host screen |
+| Display | 48px (`text-5xl`) | 700 (bold) | 1.1 | Question text on host screen |
 
-Additional sizes in use (from codebase — maintain consistency):
-- Audio badge text: 32px (text-4xl or text-3xl), weight 700 — "استمع وخمّن"
-- Host option text in 2x2: 32px (text-[32px]), weight 700 — existing QuestionDisplay.tsx pattern
-- Answer feed answer text on host: 20px (text-xl), weight 600 — large enough to read from across the room
+Weight pair: 600 and 700 only. No 400 or 900 weights used.
 
-Source: codebase read — `QuestionDisplay.tsx`, `AnswerOptions.tsx`, `WaitingScreen.tsx`, `HostGameScreen.tsx`. Layout.tsx confirms Cairo weights 400/600/700/900.
+Source: codebase read — `QuestionDisplay.tsx`, `AnswerOptions.tsx`, `WaitingScreen.tsx`, `HostGameScreen.tsx`. Revised per checker: 4-slot scale, 2-weight pair.
 
 ---
 
@@ -185,7 +184,7 @@ Implementation: inline `style` attribute on wrapper `<div>`, not Tailwind class.
 | State | Visual |
 |-------|--------|
 | Timer running | `FreeTextFeed` visible; answers stream in via `freetext:answers` events |
-| Each answer row | Emoji avatar (1.5rem) + answer text (text-xl/600) + entry animation via `motion/react` AnimatePresence slide-in |
+| Each answer row | Emoji avatar (1.5rem) + answer text (32px/600) + entry animation via `motion/react` AnimatePresence slide-in |
 | Feed order | Shuffled before display (server-side per D-08) |
 | Max per answer | 80 chars (client enforced) |
 
