@@ -92,7 +92,8 @@ function sendQuestion(
 
   io.to(roomCode).emit('question:start', payload)
 
-  // Reset answeredCurrentQ for all players
+  // Reset per-question flags
+  gameState.revealedCurrentQ = false
   for (const id of Object.keys(gameState.playerStates)) {
     gameState.playerStates[id].answeredCurrentQ = false
   }
@@ -116,9 +117,13 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
   clearAutoRevealTimer(roomCode)
 
   const gameState = await getGameState(roomCode)
-  if (!gameState || gameState.phase !== 'question') return
+  // Guard: skip if not in question phase or if this question was already revealed
+  // (catches the TOCTOU race between auto-reveal timer and manual question:reveal)
+  if (!gameState || gameState.phase !== 'question' || gameState.revealedCurrentQ) return
 
+  // Flip both the phase and the idempotency flag atomically before broadcasting
   gameState.phase = 'reveal'
+  gameState.revealedCurrentQ = true
   await saveGameState(roomCode, gameState)
 
   const questionData = questionCache.get(roomCode)?.[gameState.currentQuestionIndex]

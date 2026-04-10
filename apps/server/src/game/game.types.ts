@@ -19,6 +19,8 @@ export interface GameState {
   timerDuration: number
   playerStates: Record<string, PlayerGameState>
   hostSettings: HostSettings
+  /** Idempotency guard — true once question:revealed has been emitted for the current question. */
+  revealedCurrentQ?: boolean
 }
 
 export interface LeaderboardEntry {
