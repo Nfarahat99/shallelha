@@ -8,6 +8,7 @@ import { PlayerGameScreen } from './game/PlayerGameScreen'
 import { AnswerOptions } from './game/AnswerOptions'
 import { PlayerTimerBar } from './game/PlayerTimerBar'
 import { WaitingScreen } from './game/WaitingScreen'
+import { MediaQuestion } from '@/app/host/[roomCode]/game/MediaQuestion'
 
 interface Player {
   id: string
@@ -49,6 +50,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     text: string
     options: string[]
     timerDuration: number
+    type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+    mediaUrl?: string
   } | null>(null)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [hostSettings, setHostSettings] = useState<{
@@ -108,7 +111,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       questionIndex: qi,
       hostSettings: hs,
     }: {
-      question: { text: string; options: string[]; timerDuration: number }
+      question: { text: string; options: string[]; timerDuration: number; type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'; mediaUrl?: string }
       questionIndex: number
       total: number
       hostSettings: { layout: '2x2' | '4-column' | 'vertical'; timerStyle: 'bar' | 'circle' | 'number'; revealMode: 'auto' | 'manual' }
@@ -285,6 +288,24 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             {currentQuestion.text}
           </h2>
         </div>
+
+        {/* Media guessing: blurred image above answer options */}
+        {currentQuestion.type === 'MEDIA_GUESSING' && currentQuestion.mediaUrl && (
+          <div className="h-[40vh] px-4 pb-2">
+            <MediaQuestion
+              mediaUrl={currentQuestion.mediaUrl}
+              revealed={playerPhase === 'revealed'}
+              timerDuration={currentQuestion.timerDuration}
+            />
+          </div>
+        )}
+
+        {/* FREE_TEXT placeholder for Plan 03 */}
+        {currentQuestion.type === 'FREE_TEXT' && (
+          <div className="px-4 pb-2 text-center text-gray-400 text-sm">
+            سيتم تفعيلها قريبا
+          </div>
+        )}
 
         {/* Answer options or waiting screen */}
         {playerPhase === 'waiting' && myAnswer !== null ? (

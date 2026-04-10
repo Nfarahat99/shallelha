@@ -34,6 +34,8 @@ interface CurrentQuestion {
   text: string
   options: string[]
   timerDuration: number
+  type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+  mediaUrl?: string
 }
 
 type GamePhase = 'question' | 'reveal' | 'leaderboard' | 'podium'
@@ -305,6 +307,9 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
               correctIndex={correctIndex}
               questionIndex={questionIndex}
               total={questionTotal}
+              type={currentQuestion.type}
+              mediaUrl={currentQuestion.mediaUrl}
+              timerDuration={currentQuestion.timerDuration}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center">

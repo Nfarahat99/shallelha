@@ -2,6 +2,7 @@
 
 import * as m from 'motion/react-m'
 import { useReducedMotion } from 'motion/react'
+import { MediaQuestion } from './MediaQuestion'
 
 interface QuestionDisplayProps {
   text: string
@@ -11,6 +12,9 @@ interface QuestionDisplayProps {
   correctIndex: number | null
   questionIndex: number
   total: number
+  type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+  mediaUrl?: string
+  timerDuration?: number
 }
 
 const OPTION_COLORS = [
@@ -48,6 +52,9 @@ export function QuestionDisplay({
   correctIndex,
   questionIndex,
   total,
+  type,
+  mediaUrl,
+  timerDuration,
 }: QuestionDisplayProps) {
   const reducedMotion = useReducedMotion() ?? false
 
@@ -95,6 +102,71 @@ export function QuestionDisplay({
     )
   }
 
+  // MEDIA_GUESSING branch
+  if (type === 'MEDIA_GUESSING' && mediaUrl) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Question counter */}
+        <div className="px-8 pt-4 pb-2 shrink-0">
+          <span className="text-2xl font-semibold text-gray-300">
+            سؤال {questionIndex + 1} من {total}
+          </span>
+        </div>
+
+        {/* Media zone — takes up top area */}
+        <div className="flex-1 flex items-center justify-center px-8 py-4 min-h-0">
+          <MediaQuestion
+            mediaUrl={mediaUrl}
+            revealed={revealed}
+            timerDuration={timerDuration ?? 20}
+          />
+        </div>
+
+        {/* Question text as hint below media */}
+        <div className="px-8 pb-2 shrink-0">
+          <p className="text-2xl font-bold text-white/80 text-start leading-snug">{text}</p>
+        </div>
+
+        {/* Options — same as MC */}
+        {layout === '2x2' && (
+          <div className="grid grid-cols-2 gap-4 px-8 pb-4 shrink-0">
+            {options.map((option, i) => renderOption(option, i))}
+          </div>
+        )}
+        {layout === '4-column' && (
+          <div className="flex flex-row gap-3 px-8 pb-4 shrink-0">
+            {options.map((option, i) => renderOption(option, i))}
+          </div>
+        )}
+        {layout === 'vertical' && (
+          <div className="flex flex-row px-8 pb-4 gap-6 shrink-0">
+            <div className="w-1/3 flex flex-col gap-3 justify-center">
+              {options.map((option, i) => renderOption(option, i))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // FREE_TEXT placeholder (Plan 03 will replace this)
+  if (type === 'FREE_TEXT') {
+    return (
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* Question counter */}
+        <div className="px-8 pt-4 pb-2 shrink-0">
+          <span className="text-2xl font-semibold text-gray-300">
+            سؤال {questionIndex + 1} من {total}
+          </span>
+        </div>
+        <div className="flex-1 flex items-center justify-center px-16 py-8 min-h-0">
+          <h2 className="text-5xl font-black text-white text-start leading-tight">{text}</h2>
+        </div>
+      </div>
+    )
+  }
+
+  // MULTIPLE_CHOICE (default)
   return (
     <div className="flex-1 flex flex-col min-h-0">
       {/* Question counter */}
