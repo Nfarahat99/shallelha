@@ -99,7 +99,7 @@ Plans:
 - [x] 05-01-PLAN.md — Data layer: Prisma schema (QuestionType enum + mediaUrl), type extensions, calculateFreeTextScore, seed data, Cloudinary allowlist
 - [x] 05-02-PLAN.md — Media Guessing end-to-end: server payload extension, MediaQuestion component (CSS blur + audio), QuestionDisplay/HostDashboard/PlayerJoin wiring
 - [x] 05-03-PLAN.md — Free Text end-to-end: server freetext handlers + voting timer, FreeTextFeed/VotingDisplay/FreeTextInput/VotingUI components, state machine wiring
-- [ ] 05-04-PLAN.md — End-to-end verification: build checks, seed, visual/functional checkpoint
+- [x] 05-04-PLAN.md — End-to-end verification: build checks, seed, visual/functional checkpoint
 
 ---
 
