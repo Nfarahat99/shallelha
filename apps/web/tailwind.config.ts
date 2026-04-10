@@ -11,7 +11,7 @@ const config: Config = {
       fontFamily: {
         // Cairo is exposed as --font-cairo CSS variable from layout.tsx
         // font-sans now renders Cairo automatically throughout the app
-        sans: ['var(--font-cairo)', 'sans-serif'],
+        sans: ['var(--font-cairo)', 'Geeza Pro', 'Arabic Typesetting', 'sans-serif'],
       },
     },
   },

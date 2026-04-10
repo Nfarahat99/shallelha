@@ -1,9 +1,18 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { AnimatePresence } from 'motion/react'
 import { getSocket } from '@/lib/socket'
 import { PlayerCard } from '@/components/ui/PlayerCard'
 import { HostControls } from '@/components/ui/HostControls'
+import { HostPreGame, type HostSettings } from './game/HostPreGame'
+import { HostGameScreen } from './game/HostGameScreen'
+import { QuestionDisplay } from './game/QuestionDisplay'
+import { TimerDisplay } from './game/TimerDisplay'
+import { PlayerIndicators } from './game/PlayerIndicators'
+import { HostInGameControls } from './game/HostInGameControls'
+import { LeaderboardOverlay } from './game/LeaderboardOverlay'
+import { PodiumScreen } from './game/PodiumScreen'
 
 interface Player {
   id: string
@@ -12,6 +21,23 @@ interface Player {
   socketId: string
 }
 
+interface LeaderboardEntry {
+  id: string
+  name: string
+  emoji: string
+  score: number
+  rank: number
+  streak: number
+}
+
+interface CurrentQuestion {
+  text: string
+  options: string[]
+  timerDuration: number
+}
+
+type GamePhase = 'question' | 'reveal' | 'leaderboard' | 'podium'
+
 interface HostDashboardProps {
   roomCode: string
   userId: string
@@ -19,8 +45,25 @@ interface HostDashboardProps {
 
 export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
   const [players, setPlayers] = useState<Player[]>([])
-  const [status, setStatus] = useState<'lobby' | 'playing' | 'ended'>('lobby')
+  const [status, setStatus] = useState<'lobby' | 'pre-game' | 'playing' | 'ended'>('lobby')
   const [connected, setConnected] = useState(false)
+
+  // Game state
+  const [hostSettings, setHostSettings] = useState<HostSettings>({
+    layout: '2x2',
+    timerStyle: 'bar',
+    revealMode: 'manual',
+  })
+  const [gamePhase, setGamePhase] = useState<GamePhase>('question')
+  const [currentQuestion, setCurrentQuestion] = useState<CurrentQuestion | null>(null)
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [questionTotal, setQuestionTotal] = useState(1)
+  const [questionStartedAt, setQuestionStartedAt] = useState(0)
+  const [correctIndex, setCorrectIndex] = useState<number | null>(null)
+  const [answeredPlayerIds, setAnsweredPlayerIds] = useState<Set<string>>(new Set())
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [podium, setPodium] = useState<LeaderboardEntry[]>([])
 
   const joinUrl =
     typeof window !== 'undefined'
@@ -35,7 +78,6 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
       socket.connect()
     }
 
-    // Rejoin existing room — does NOT create a new room on refresh
     socket.emit('room:rejoin', { roomCode })
 
     socket.on('connect', () => setConnected(true))
@@ -49,7 +91,73 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
       console.error('[Host] Socket error:', message)
     })
 
-    socket.on('game:started', () => setStatus('playing'))
+    socket.on('game:started', () => {
+      setStatus('playing')
+      setGamePhase('question')
+    })
+
+    socket.on('game:configured', ({ hostSettings: settings }: { hostSettings: HostSettings }) => {
+      setHostSettings(settings)
+    })
+
+    socket.on(
+      'question:start',
+      ({
+        question,
+        questionIndex: qi,
+        total,
+      }: {
+        question: CurrentQuestion
+        questionIndex: number
+        total: number
+        hostSettings: HostSettings
+      }) => {
+        setCurrentQuestion(question)
+        setQuestionIndex(qi)
+        setQuestionTotal(total)
+        setQuestionStartedAt(Date.now())
+        setCorrectIndex(null)
+        setAnsweredPlayerIds(new Set())
+        setGamePhase('question')
+        setShowLeaderboard(false)
+      }
+    )
+
+    socket.on(
+      'question:progress',
+      ({ answeredIds }: { answeredCount: number; totalPlayers: number; answeredIds: string[] }) => {
+        setAnsweredPlayerIds(new Set(answeredIds))
+      }
+    )
+
+    socket.on(
+      'question:revealed',
+      ({
+        correctAnswerIndex,
+      }: {
+        correctAnswerIndex: number
+        playerResults: Array<{ id: string; score: number; streak: number }>
+      }) => {
+        setCorrectIndex(correctAnswerIndex)
+        setGamePhase('reveal')
+      }
+    )
+
+    socket.on(
+      'leaderboard:update',
+      ({ players: lb }: { players: LeaderboardEntry[] }) => {
+        setLeaderboard(lb)
+      }
+    )
+
+    socket.on(
+      'game:podium',
+      ({ top3 }: { top3: LeaderboardEntry[] }) => {
+        setPodium(top3)
+        setGamePhase('podium')
+      }
+    )
+
     socket.on('game:ended', () => setStatus('ended'))
 
     return () => {
@@ -58,63 +166,184 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
       socket.off('lobby:update')
       socket.off('room:error')
       socket.off('game:started')
+      socket.off('game:configured')
+      socket.off('question:start')
+      socket.off('question:progress')
+      socket.off('question:revealed')
+      socket.off('leaderboard:update')
+      socket.off('game:podium')
       socket.off('game:ended')
     }
   }, [roomCode, userId])
 
-  const handleStart = useCallback(() => {
-    getSocket().emit('room:start')
+  // Lobby handlers
+  const handleLobbyStart = useCallback(() => {
+    setStatus('pre-game')
   }, [])
+
+  const handlePreGameStart = useCallback(
+    (settings: HostSettings) => {
+      setHostSettings(settings)
+      getSocket().emit('game:configure', settings)
+      getSocket().emit('game:start', {})
+    },
+    []
+  )
 
   const handleEnd = useCallback(() => {
     getSocket().emit('room:end')
   }, [])
 
-  return (
-    <div className="min-h-screen flex flex-col p-6 gap-6 max-w-lg mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">غرفة اللعب</h1>
-        <div className="flex items-center gap-2">
-          <div className={`h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-300'}`} />
-          <span className="text-xs text-gray-500">{connected ? 'متصل' : 'غير متصل'}</span>
+  // In-game control handlers
+  const handleReveal = useCallback(() => {
+    getSocket().emit('question:reveal')
+  }, [])
+
+  const handleNext = useCallback(() => {
+    getSocket().emit('question:next')
+    setShowLeaderboard(false)
+  }, [])
+
+  const handleLeaderboard = useCallback(() => {
+    getSocket().emit('leaderboard:show')
+    setShowLeaderboard(true)
+    setGamePhase('leaderboard')
+  }, [])
+
+  // --- Render ---
+
+  if (status === 'lobby') {
+    return (
+      <div className="min-h-screen flex flex-col p-6 gap-6 max-w-lg mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">غرفة اللعب</h1>
+          <div className="flex items-center gap-2">
+            <div className={`h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-300'}`} />
+            <span className="text-xs text-gray-500">{connected ? 'متصل' : 'غير متصل'}</span>
+          </div>
+        </div>
+
+        {/* Room code display */}
+        <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-6 text-center space-y-2">
+          <p className="text-sm text-indigo-600 font-medium">كود الغرفة</p>
+          <p className="text-5xl font-bold tracking-widest text-indigo-700 font-mono">{roomCode}</p>
+          <p className="text-xs text-indigo-400 break-all">{joinUrl}</p>
+        </div>
+
+        {/* Players list */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold text-gray-500">اللاعبون ({players.length}/8)</h2>
+          {players.length === 0 ? (
+            <p className="text-center text-gray-400 py-8 text-sm">في انتظار اللاعبين…</p>
+          ) : (
+            <div className="space-y-2">
+              {players.map((player) => (
+                <PlayerCard key={player.id} name={player.name} emoji={player.emoji} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Host controls */}
+        <div className="mt-auto">
+          <HostControls
+            onStart={handleLobbyStart}
+            onEnd={handleEnd}
+            playerCount={players.length}
+            status="lobby"
+          />
         </div>
       </div>
+    )
+  }
 
-      {/* Room code display */}
-      <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-6 text-center space-y-2">
-        <p className="text-sm text-indigo-600 font-medium">كود الغرفة</p>
-        <p className="text-5xl font-bold tracking-widest text-indigo-700 font-mono">{roomCode}</p>
-        <p className="text-xs text-indigo-400 break-all">{joinUrl}</p>
-      </div>
+  if (status === 'pre-game') {
+    return (
+      <HostPreGame
+        onStart={handlePreGameStart}
+        playerCount={players.length}
+      />
+    )
+  }
 
-      {/* Players list */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-gray-500">
-          اللاعبون ({players.length}/8)
-        </h2>
-        {players.length === 0 ? (
-          <p className="text-center text-gray-400 py-8 text-sm">
-            في انتظار اللاعبين…
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {players.map((player) => (
-              <PlayerCard key={player.id} name={player.name} emoji={player.emoji} />
-            ))}
-          </div>
-        )}
-      </div>
+  if (status === 'playing') {
+    // Podium phase
+    if (gamePhase === 'podium') {
+      return (
+        <HostGameScreen roomCode={roomCode}>
+          <PodiumScreen top3={podium} />
+        </HostGameScreen>
+      )
+    }
 
-      {/* Host controls — only host sees start/end */}
-      <div className="mt-auto">
-        <HostControls
-          onStart={handleStart}
-          onEnd={handleEnd}
-          playerCount={players.length}
-          status={status}
-        />
-      </div>
+    // Active game phase (question / reveal / leaderboard)
+    return (
+      <HostGameScreen roomCode={roomCode}>
+        <div className="flex-1 flex flex-col min-h-0 relative">
+          {/* Timer — bar variant sits at top, others are overlaid */}
+          {currentQuestion && (
+            <TimerDisplay
+              timerStyle={hostSettings.timerStyle}
+              duration={currentQuestion.timerDuration}
+              startedAt={questionStartedAt}
+              active={gamePhase === 'question'}
+            />
+          )}
+
+          {/* Question and options */}
+          {currentQuestion ? (
+            <QuestionDisplay
+              text={currentQuestion.text}
+              options={currentQuestion.options}
+              layout={hostSettings.layout}
+              revealed={gamePhase === 'reveal' || gamePhase === 'leaderboard'}
+              correctIndex={correctIndex}
+              questionIndex={questionIndex}
+              total={questionTotal}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-white text-2xl animate-pulse">جارٍ تحميل الأسئلة…</div>
+            </div>
+          )}
+
+          {/* Player indicators */}
+          <PlayerIndicators
+            players={players}
+            answeredPlayerIds={answeredPlayerIds}
+          />
+
+          {/* In-game controls */}
+          <HostInGameControls
+            gamePhase={gamePhase}
+            onReveal={handleReveal}
+            onNext={handleNext}
+            onLeaderboard={handleLeaderboard}
+            onEnd={handleEnd}
+          />
+
+          {/* Leaderboard overlay */}
+          <AnimatePresence>
+            {showLeaderboard && (
+              <LeaderboardOverlay
+                players={leaderboard}
+                onClose={() => setShowLeaderboard(false)}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </HostGameScreen>
+    )
+  }
+
+  // ended
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+      <p className="text-2xl font-bold text-gray-700">انتهت اللعبة</p>
+      <a href="/host" className="text-indigo-600 hover:underline">
+        العودة إلى الرئيسية
+      </a>
     </div>
   )
 }

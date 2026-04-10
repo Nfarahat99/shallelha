@@ -1,0 +1,37 @@
+'use client'
+
+import * as m from 'motion/react-m'
+
+interface PlayerIndicatorsProps {
+  players: Array<{ id: string; name: string; emoji: string }>
+  answeredPlayerIds: Set<string>
+}
+
+export function PlayerIndicators({ players, answeredPlayerIds }: PlayerIndicatorsProps) {
+  return (
+    <div className="flex flex-row items-center justify-center gap-3 px-6 py-3 shrink-0">
+      {players.map((player) => {
+        const hasAnswered = answeredPlayerIds.has(player.id)
+        return (
+          <m.div
+            key={player.id}
+            animate={
+              hasAnswered
+                ? { scale: 1.1, opacity: 1 }
+                : { scale: 1, opacity: 0.6 }
+            }
+            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            className={`flex flex-col items-center gap-1 rounded-full p-2 transition-colors ${
+              hasAnswered
+                ? 'ring-2 ring-indigo-400 bg-indigo-950'
+                : 'bg-gray-800'
+            }`}
+            aria-label={hasAnswered ? `${player.name} — أجاب` : player.name}
+          >
+            <span className="text-2xl">{player.emoji}</span>
+          </m.div>
+        )
+      })}
+    </div>
+  )
+}
