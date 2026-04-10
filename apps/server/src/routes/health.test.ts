@@ -6,6 +6,9 @@ import request from 'supertest'
 vi.mock('../db/prisma', () => ({
   prisma: {
     $queryRaw: vi.fn(),
+    question: {
+      count: vi.fn(),
+    },
   },
 }))
 
