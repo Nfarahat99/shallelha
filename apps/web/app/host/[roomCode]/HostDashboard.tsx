@@ -194,6 +194,10 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
     getSocket().emit('room:end')
   }, [])
 
+  const handleGameEnd = useCallback(() => {
+    getSocket().emit('game:end')
+  }, [])
+
   // In-game control handlers
   const handleReveal = useCallback(() => {
     getSocket().emit('question:reveal')
@@ -320,7 +324,7 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
             onReveal={handleReveal}
             onNext={handleNext}
             onLeaderboard={handleLeaderboard}
-            onEnd={handleEnd}
+            onEnd={handleGameEnd}
           />
 
           {/* Leaderboard overlay */}
