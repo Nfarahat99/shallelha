@@ -88,10 +88,18 @@ Plans:
 
 **Covers:** GAME-02, GAME-03
 **Delivers:**
-- Media Guessing: progressively un-blurring image (Cloudinary transform) or audio clip playback
+- Media Guessing: progressively un-blurring image (CSS blur transition) or audio clip playback
 - Free Text Entry: player types answer on phone → displayed anonymously on host screen for group voting
-- Voting mechanism: players vote on displayed answers, most-voted wins
-- Cloudinary integration for image and audio hosting
+- Voting mechanism: players vote on displayed answers, most-voted wins (800 pts author, 200 pts voters)
+- Cloudinary image rendering via next/image remotePatterns
+
+**Plans:** 4 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Data layer: Prisma schema (QuestionType enum + mediaUrl), type extensions, calculateFreeTextScore, seed data, Cloudinary allowlist
+- [ ] 05-02-PLAN.md — Media Guessing end-to-end: server payload extension, MediaQuestion component (CSS blur + audio), QuestionDisplay/HostDashboard/PlayerJoin wiring
+- [ ] 05-03-PLAN.md — Free Text end-to-end: server freetext handlers + voting timer, FreeTextFeed/VotingDisplay/FreeTextInput/VotingUI components, state machine wiring
+- [ ] 05-04-PLAN.md — End-to-end verification: build checks, seed, visual/functional checkpoint
 
 ---
 
@@ -153,4 +161,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-09*
-*Last updated: 2026-04-10 — Phase 2 plans created (4 plans, 2 waves)*
+*Last updated: 2026-04-11 — Phase 5 plans created (4 plans, 4 waves)*
