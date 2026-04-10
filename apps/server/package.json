@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
+  "prisma": {
+    "seed": "ts-node --project tsconfig.json prisma/seed.ts"
+  },
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",

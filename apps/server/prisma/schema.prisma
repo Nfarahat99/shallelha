@@ -7,13 +7,34 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum QuestionStatus {
+  draft
+  approved
+  live
+}
+
 // Phase 1 skeleton — just enough to confirm connection via health check.
-// Full schema (questions, categories, rooms) added in Phase 2+.
+// Extended in Phase 3+4 to include Category (slug + questions) and Question models.
 model Category {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  slug      String     @unique
+  questions Question[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Question {
+  id             String         @id @default(cuid())
+  text           String
+  options        String[]
+  correctIndex   Int
+  timerDuration  Int            @default(20)
+  status         QuestionStatus @default(draft)
+  category       Category       @relation(fields: [categoryId], references: [id])
+  categoryId     String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 }
 
 // NextAuth.js v5 required models (Phase 2)
