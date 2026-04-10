@@ -246,13 +246,20 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
     return
   }
 
+  // Guard: cache miss means we cannot determine the correct answer — abort reveal
+  // rather than silently broadcasting correctIndex:0 which would award points incorrectly.
+  if (!questionData) {
+    console.warn(`[Game] handleReveal: question cache miss for room ${roomCode} index ${gameState.currentQuestionIndex}`)
+    return
+  }
+
   // Flip both the phase and the idempotency flag atomically before broadcasting
   gameState.phase = 'reveal'
   gameState.revealedCurrentQ = true
   await saveGameState(roomCode, gameState)
 
   io.to(roomCode).emit('question:revealed', {
-    correctAnswerIndex: questionData?.correctIndex ?? 0,
+    correctAnswerIndex: questionData.correctIndex,
     playerResults: Object.entries(gameState.playerStates).map(([id, state]) => ({
       id,
       score: state.score,
