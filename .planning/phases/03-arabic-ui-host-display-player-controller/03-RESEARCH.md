@@ -599,22 +599,16 @@ export function calculateScore(
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Question category for game start**
-   - What we know: Questions have a `categoryId`; GameState stores `questionIds`
-   - What's unclear: Does the host pick a category before starting, or does the game mix all approved questions?
-   - Recommendation: For Phase 3+4, implement category selection on the pre-game screen. Fetch all `approved` questions from a selected category. Randomize order server-side.
+1. **Question category for game start** — RESOLVED
+   - Resolution: Host picks a category on the pre-game settings screen. Server fetches all `approved` questions from that category, randomizes order server-side. Plans implement `game:configure` payload with `categoryId`, and `game:start` loads questions from that category.
 
-2. **Timer auto-reveal server timeout reliability**
-   - What we know: Server sets `setTimeout` for `timerDuration` when question starts; fires `question:reveal` if revealMode === 'auto'
-   - What's unclear: Node.js timers are not durable — a server restart (Railway redeploy) during a question loses the timeout
-   - Recommendation: Accept this for MVP. Document in a code comment. Phase 8 can add Redis TTL-based timer or Bull queue for durability.
+2. **Timer auto-reveal server timeout reliability** — RESOLVED (accepted for MVP)
+   - Resolution: Node.js `setTimeout` is accepted as-is for MVP. Code comment documents the durability gap. Phase 8 can add Redis TTL-based timer or Bull queue. Plans include this as a documented limitation.
 
-3. **How many questions per game session**
-   - What we know: Host selects a category; DB has 20–30 questions in seed
-   - What's unclear: Does the host pick a count, or does the game use all questions in the category?
-   - Recommendation: Default to all approved questions in the category (up to 20). Add an optional count selector on the pre-game screen (10 / 15 / 20).
+3. **How many questions per game session** — RESOLVED
+   - Resolution: Default to all approved questions in selected category (cap at 20). Plan 02 `game:start` handler implements `questionIds = shuffle(approved).slice(0, 20)`.
 
 ---
 
