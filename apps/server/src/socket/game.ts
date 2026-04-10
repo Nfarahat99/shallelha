@@ -166,7 +166,7 @@ async function startVotingPhase(io: Server, roomCode: string): Promise<void> {
   })
   shuffle(answers)
 
-  io.to(roomCode).emit('freetext:lock', { answers })
+  io.to(roomCode).emit('freetext:lock', { answers, votingDeadline: gameState.votingDeadline })
 
   // Auto-close voting after 15s
   clearVotingTimer(roomCode)

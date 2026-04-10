@@ -141,9 +141,9 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
       setFreeTextAnswers(answers)
     })
 
-    socket.on('freetext:lock', ({ answers }: { answers: Array<{ id: string; emoji: string; text: string }> }) => {
+    socket.on('freetext:lock', ({ answers, votingDeadline }: { answers: Array<{ id: string; emoji: string; text: string }>; votingDeadline?: number }) => {
       setVotingAnswers(answers)
-      setVotingDeadline(Date.now() + 15_000)
+      setVotingDeadline(votingDeadline ?? Date.now() + 15_000)
       setGamePhase('voting')
     })
 
