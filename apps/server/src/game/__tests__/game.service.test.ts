@@ -1,4 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// Mock Redis client before importing the service (prevents REDIS_URL env var requirement)
+vi.mock('../../redis/client', () => {
+  const mockRedis = {
+    hset: vi.fn(),
+    hget: vi.fn(),
+  }
+  return { redis: mockRedis }
+})
+
 import { calculateScore, getLeaderboard, createInitialPlayerStates } from '../game.service'
 import type { Player } from '../../room/room'
 
