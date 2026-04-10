@@ -611,8 +611,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await updateRoomStatus(roomCode, 'ended')
 
       clearAutoRevealTimer(roomCode)
-      clearVotingTimer(roomCode)
-      votingTimers.delete(roomCode)
+      clearVotingTimer(roomCode)      // internally calls votingTimers.delete(roomCode)
       questionCache.delete(roomCode)
 
       io.to(roomCode).emit('game:podium', { top3 })
