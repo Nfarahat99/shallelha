@@ -21,6 +21,8 @@ interface QuestionData {
   options: string[]
   correctIndex: number
   timerDuration: number
+  type: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+  mediaUrl?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +86,8 @@ function sendQuestion(
       text: question.text,
       options: question.options,
       timerDuration: question.timerDuration,
+      type: question.type,
+      mediaUrl: question.mediaUrl,
     },
     questionIndex: gameState.currentQuestionIndex,
     total: gameState.questionIds.length,
@@ -226,6 +230,8 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           options: true,
           correctIndex: true,
           timerDuration: true,
+          type: true,
+          mediaUrl: true,
         },
       })
 
@@ -242,6 +248,8 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           options: q.options as string[],
           correctIndex: q.correctIndex,
           timerDuration: q.timerDuration,
+          type: q.type as QuestionData['type'],
+          mediaUrl: q.mediaUrl ?? undefined,
         })),
       ).slice(0, 20)
 
