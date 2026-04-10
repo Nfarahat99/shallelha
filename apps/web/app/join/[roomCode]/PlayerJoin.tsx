@@ -4,6 +4,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { getSocket } from '@/lib/socket'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { PlayerCard } from '@/components/ui/PlayerCard'
+import { PlayerGameScreen } from './game/PlayerGameScreen'
+import { AnswerOptions } from './game/AnswerOptions'
+import { PlayerTimerBar } from './game/PlayerTimerBar'
+import { WaitingScreen } from './game/WaitingScreen'
 
 interface Player {
   id: string
@@ -14,6 +18,17 @@ interface Player {
 
 type JoinPhase = 'form' | 'lobby' | 'playing' | 'ended'
 
+/** Player phase during a question lifecycle */
+type PlayerPhase = 'answering' | 'waiting' | 'revealed'
+
+/** Answer option Tailwind color classes — must match AnswerOptions and host QuestionDisplay (D-04) */
+const ANSWER_COLORS = [
+  'bg-red-500 text-white',        // A
+  'bg-blue-500 text-white',       // B
+  'bg-yellow-400 text-gray-900',  // C
+  'bg-green-500 text-white',      // D
+] as const
+
 const RECONNECT_KEY = (code: string) => `shllahaReconnectToken_${code}`
 
 interface PlayerJoinProps {
@@ -21,6 +36,7 @@ interface PlayerJoinProps {
 }
 
 export function PlayerJoin({ roomCode }: PlayerJoinProps) {
+  // ── Core join state ────────────────────────────────────────────────────────
   const [phase, setPhase] = useState<JoinPhase>('form')
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🦁')
@@ -28,7 +44,26 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [error, setError] = useState<string | null>(null)
   const [myToken, setMyToken] = useState<string | null>(null)
 
-  // Attempt reconnect on mount if token exists in sessionStorage
+  // ── Game state ─────────────────────────────────────────────────────────────
+  const [currentQuestion, setCurrentQuestion] = useState<{
+    text: string
+    options: string[]
+    timerDuration: number
+  } | null>(null)
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const [hostSettings, setHostSettings] = useState<{
+    layout: '2x2' | '4-column' | 'vertical'
+    timerStyle: 'bar' | 'circle' | 'number'
+    revealMode: 'auto' | 'manual'
+  }>({ layout: '2x2', timerStyle: 'bar', revealMode: 'manual' })
+  const [myAnswer, setMyAnswer] = useState<number | null>(null)
+  const [correctIndex, setCorrectIndex] = useState<number | null>(null)
+  const [playerPhase, setPlayerPhase] = useState<PlayerPhase>('answering')
+  const [questionStartedAt, setQuestionStartedAt] = useState(0)
+  const [myScore, setMyScore] = useState(0)
+  const [myStreak, setMyStreak] = useState(0)
+
+  // ── Reconnect on mount ─────────────────────────────────────────────────────
   useEffect(() => {
     const storedToken = sessionStorage.getItem(RECONNECT_KEY(roomCode))
     if (!storedToken) return
@@ -45,7 +80,6 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     })
 
     socket.once('room:error', () => {
-      // Token expired — show the join form instead
       sessionStorage.removeItem(RECONNECT_KEY(roomCode))
       socket.off('room:joined')
     })
@@ -56,7 +90,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     }
   }, [roomCode])
 
-  // Listen for lobby/game updates after joining
+  // ── Lobby + game event listeners ───────────────────────────────────────────
   useEffect(() => {
     if (phase === 'form') return
 
@@ -68,13 +102,61 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     socket.on('game:started', () => setPhase('playing'))
     socket.on('game:ended', () => setPhase('ended'))
 
+    // question:start — received when host starts each new question (D-07)
+    socket.on('question:start', ({
+      question,
+      questionIndex: qi,
+      hostSettings: hs,
+    }: {
+      question: { text: string; options: string[]; timerDuration: number }
+      questionIndex: number
+      total: number
+      hostSettings: { layout: '2x2' | '4-column' | 'vertical'; timerStyle: 'bar' | 'circle' | 'number'; revealMode: 'auto' | 'manual' }
+    }) => {
+      setCurrentQuestion(question)
+      setQuestionIndex(qi)
+      setHostSettings(hs)
+      setMyAnswer(null)
+      setCorrectIndex(null)
+      setPlayerPhase('answering')
+      setQuestionStartedAt(Date.now())
+      setPhase('playing')
+    })
+
+    // question:revealed — host revealed the correct answer (D-07)
+    socket.on('question:revealed', ({
+      correctAnswerIndex,
+      playerResults,
+    }: {
+      correctAnswerIndex: number
+      playerResults: Array<{ id: string; score: number; streak: number }>
+    }) => {
+      setCorrectIndex(correctAnswerIndex)
+      setPlayerPhase('revealed')
+      // Find my score from playerResults using myToken
+      const myResult = playerResults.find((p) => p.id === myToken)
+      if (myResult) {
+        setMyScore(myResult.score)
+        setMyStreak(myResult.streak)
+      }
+    })
+
+    // game:podium — game finished, show ended screen
+    socket.on('game:podium', () => {
+      setPhase('ended')
+    })
+
     return () => {
       socket.off('lobby:update')
       socket.off('game:started')
       socket.off('game:ended')
+      socket.off('question:start')
+      socket.off('question:revealed')
+      socket.off('game:podium')
     }
-  }, [phase])
+  }, [phase, myToken])
 
+  // ── Join handler ───────────────────────────────────────────────────────────
   const handleJoin = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
@@ -100,6 +182,15 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     [roomCode, name, emoji],
   )
 
+  // ── Answer handler ─────────────────────────────────────────────────────────
+  const handleAnswer = useCallback((answerIndex: number) => {
+    if (myAnswer !== null) return  // already answered — T-03-10 client guard
+    setMyAnswer(answerIndex)
+    setPlayerPhase('waiting')
+    getSocket().emit('player:answer', { answerIndex })
+  }, [myAnswer])
+
+  // ── Render: form ───────────────────────────────────────────────────────────
   if (phase === 'form') {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
@@ -149,6 +240,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     )
   }
 
+  // ── Render: lobby ──────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     const myPlayer = players.find(p => p.id === myToken)
     return (
@@ -174,23 +266,83 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     )
   }
 
-  if (phase === 'playing') {
+  // ── Render: playing ────────────────────────────────────────────────────────
+  if (phase === 'playing' && currentQuestion) {
+    return (
+      <PlayerGameScreen>
+        <PlayerTimerBar
+          duration={currentQuestion.timerDuration}
+          startedAt={questionStartedAt}
+          active={playerPhase === 'answering'}
+        />
+
+        {/* Question header */}
+        <div className="px-4 pt-4 pb-2">
+          <p className="text-xs text-gray-400 text-start">
+            سؤال {questionIndex + 1}
+          </p>
+          <h2 className="text-xl font-bold text-gray-900 text-start leading-relaxed mt-1">
+            {currentQuestion.text}
+          </h2>
+        </div>
+
+        {/* Answer options or waiting screen */}
+        {playerPhase === 'waiting' && myAnswer !== null ? (
+          <WaitingScreen
+            selectedAnswer={currentQuestion.options[myAnswer]}
+            selectedIndex={myAnswer}
+            selectedColor={ANSWER_COLORS[myAnswer]}
+          />
+        ) : (
+          <div className="flex-1 flex flex-col justify-end">
+            <AnswerOptions
+              options={currentQuestion.options}
+              layout={hostSettings.layout}
+              selectedIndex={myAnswer}
+              correctIndex={playerPhase === 'revealed' ? correctIndex : null}
+              revealed={playerPhase === 'revealed'}
+              onSelect={handleAnswer}
+              disabled={playerPhase !== 'answering'}
+            />
+          </div>
+        )}
+
+        {/* Score and feedback after reveal */}
+        {playerPhase === 'revealed' && (
+          <div className="text-center py-4 space-y-1">
+            <p className="text-lg font-bold text-gray-900">
+              {myAnswer === correctIndex ? 'إجابة صحيحة!' : 'إجابة خاطئة'}
+            </p>
+            <p className="text-sm text-gray-500">النقاط: {myScore}</p>
+            {myStreak >= 3 && (
+              <p className="text-xs text-yellow-500 font-semibold">سلسلة ×1.5</p>
+            )}
+          </div>
+        )}
+      </PlayerGameScreen>
+    )
+  }
+
+  // ── Render: ended ──────────────────────────────────────────────────────────
+  if (phase === 'ended') {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
-          <p className="text-4xl">🎮</p>
-          <h2 className="text-2xl font-bold">اللعبة بدأت!</h2>
+          <p className="text-4xl">🏁</p>
+          <h2 className="text-2xl font-bold">انتهت اللعبة</h2>
+          <p className="text-lg text-gray-600">النقاط: {myScore}</p>
+          <a href="/join" className="text-indigo-600 text-sm underline">العب مرة أخرى</a>
         </div>
       </main>
     )
   }
 
+  // Fallback — playing phase with no question yet loaded (between game:started and first question:start)
   return (
     <main className="min-h-screen flex items-center justify-center">
       <div className="text-center space-y-4">
-        <p className="text-4xl">🏁</p>
-        <h2 className="text-2xl font-bold">انتهت اللعبة</h2>
-        <a href="/join" className="text-indigo-600 text-sm underline">العب مرة أخرى</a>
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mx-auto" />
+        <p className="text-sm text-gray-400">جارٍ تحميل السؤال…</p>
       </div>
     </main>
   )
