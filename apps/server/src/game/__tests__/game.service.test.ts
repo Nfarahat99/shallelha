@@ -9,7 +9,7 @@ vi.mock('../../redis/client', () => {
   return { redis: mockRedis }
 })
 
-import { calculateScore, getLeaderboard, createInitialPlayerStates } from '../game.service'
+import { calculateScore, getLeaderboard, createInitialPlayerStates, calculateFreeTextScore } from '../game.service'
 import type { Player } from '../../room/room'
 
 describe('calculateScore', () => {
@@ -119,5 +119,80 @@ describe('createInitialPlayerStates', () => {
   it('returns an empty object for an empty player list', () => {
     const states = createInitialPlayerStates([])
     expect(states).toEqual({})
+  })
+})
+
+describe('calculateFreeTextScore', () => {
+  it('single winner with 3 votes: author gets 800, all 3 voters get 200', () => {
+    const answers = {
+      p1: { text: 'الصحراء', votes: ['p2', 'p3', 'p4'] },
+      p2: { text: 'البحر', votes: [] },
+    }
+    const result = calculateFreeTextScore(answers)
+    expect(result.winnerIds).toEqual(['p1'])
+    expect(result.authorScores['p1']).toBe(800)
+    expect(result.authorScores['p2']).toBe(0)
+    expect(result.voterScores['p2']).toBe(200)
+    expect(result.voterScores['p3']).toBe(200)
+    expect(result.voterScores['p4']).toBe(200)
+  })
+
+  it('two tied winners (2 votes each): both authors get 800, all 4 voters get 200', () => {
+    const answers = {
+      p1: { text: 'الصحراء', votes: ['p3', 'p4'] },
+      p2: { text: 'البحر', votes: ['p5', 'p6'] },
+    }
+    const result = calculateFreeTextScore(answers)
+    expect(result.winnerIds).toContain('p1')
+    expect(result.winnerIds).toContain('p2')
+    expect(result.authorScores['p1']).toBe(800)
+    expect(result.authorScores['p2']).toBe(800)
+    expect(result.voterScores['p3']).toBe(200)
+    expect(result.voterScores['p4']).toBe(200)
+    expect(result.voterScores['p5']).toBe(200)
+    expect(result.voterScores['p6']).toBe(200)
+  })
+
+  it('zero votes: no winners, all scores 0, winnerText empty', () => {
+    const answers = {
+      p1: { text: 'الصحراء', votes: [] },
+      p2: { text: 'البحر', votes: [] },
+    }
+    const result = calculateFreeTextScore(answers)
+    expect(result.winnerIds).toEqual([])
+    expect(result.authorScores['p1']).toBe(0)
+    expect(result.authorScores['p2']).toBe(0)
+    expect(result.winnerText).toBe('')
+  })
+
+  it('single voter: that answer wins, author gets 800, voter gets 200', () => {
+    const answers = {
+      p1: { text: 'الصحراء', votes: ['p2'] },
+    }
+    const result = calculateFreeTextScore(answers)
+    expect(result.winnerIds).toEqual(['p1'])
+    expect(result.authorScores['p1']).toBe(800)
+    expect(result.voterScores['p2']).toBe(200)
+  })
+
+  it('player with no votes does not appear in winnerIds and gets authorScore 0', () => {
+    const answers = {
+      p1: { text: 'الصحراء', votes: ['p3'] },
+      p2: { text: 'البحر', votes: [] },
+    }
+    const result = calculateFreeTextScore(answers)
+    expect(result.winnerIds).not.toContain('p2')
+    expect(result.authorScores['p2']).toBe(0)
+  })
+
+  it('voters for non-winning answers do not receive voter bonus', () => {
+    const answers = {
+      p1: { text: 'الصحراء', votes: ['p3', 'p4', 'p5'] },
+      p2: { text: 'البحر', votes: ['p6'] },
+    }
+    const result = calculateFreeTextScore(answers)
+    expect(result.winnerIds).toEqual(['p1'])
+    expect(result.voterScores['p6']).toBe(0)
+    expect(result.voterScores['p3']).toBe(200)
   })
 })

@@ -1,4 +1,4 @@
-import type { GameState, PlayerGameState, LeaderboardEntry } from './game.types'
+import type { GameState, PlayerGameState, LeaderboardEntry, FreeTextAnswer } from './game.types'
 import type { Player } from '../room/room'
 import { redis } from '../redis/client'
 
@@ -88,4 +88,78 @@ export async function getGameState(roomCode: string): Promise<GameState | null> 
  */
 export async function deleteGameState(roomCode: string): Promise<void> {
   await redis.hdel(`room:${roomCode}`, 'gameState')
+}
+
+export interface FreeTextResult {
+  authorScores: Record<string, number>
+  voterScores: Record<string, number>
+  winnerIds: string[]
+  winnerText: string
+}
+
+/**
+ * Calculate scores after the free text voting phase.
+ *
+ * Rules (per D-09):
+ * - Find max vote count across all answers.
+ * - If maxVotes === 0: no winners, all scores 0.
+ * - All answers with votes.length === maxVotes are winners.
+ * - Winner authors receive 800 points each.
+ * - Non-winner authors receive 0.
+ * - Voters who voted for ANY winning answer receive 200 bonus each.
+ * - Voters who only voted for losing answers receive 0.
+ * - Ties: all tied authors get 800, all their voters get 200.
+ *
+ * Security note (T-05-02): Pure function with no external state.
+ */
+export function calculateFreeTextScore(
+  freeTextAnswers: Record<string, FreeTextAnswer>,
+): FreeTextResult {
+  const authorScores: Record<string, number> = {}
+  const voterScores: Record<string, number> = {}
+  const winnerIds: string[] = []
+
+  const entries = Object.entries(freeTextAnswers)
+
+  // Initialise all authors to 0
+  for (const [authorId] of entries) {
+    authorScores[authorId] = 0
+  }
+
+  // Find max vote count
+  const maxVotes = entries.reduce((max, [, answer]) => Math.max(max, answer.votes.length), 0)
+
+  // Zero votes — no winners
+  if (maxVotes === 0) {
+    return { authorScores, voterScores, winnerIds, winnerText: '' }
+  }
+
+  // Identify winners and collect winning voter IDs
+  const winningVoterIds = new Set<string>()
+  let winnerText = ''
+
+  for (const [authorId, answer] of entries) {
+    if (answer.votes.length === maxVotes) {
+      winnerIds.push(authorId)
+      authorScores[authorId] = 800
+      if (winnerText === '') winnerText = answer.text
+      for (const voterId of answer.votes) {
+        winningVoterIds.add(voterId)
+      }
+    }
+  }
+
+  // Assign voter bonuses — only for voters who voted for a winning answer
+  for (const [, answer] of entries) {
+    for (const voterId of answer.votes) {
+      if (!(voterId in voterScores)) {
+        voterScores[voterId] = 0
+      }
+    }
+  }
+  for (const voterId of winningVoterIds) {
+    voterScores[voterId] = 200
+  }
+
+  return { authorScores, voterScores, winnerIds, winnerText }
 }
