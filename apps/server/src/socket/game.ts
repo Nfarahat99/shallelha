@@ -39,6 +39,13 @@ const votingTimers = new Map<string, NodeJS.Timeout>()
 /** Question cache keyed by roomCode — populated at game:start, cleared at game:end */
 const questionCache = new Map<string, QuestionData[]>()
 
+/**
+ * In-flight lock for freetext:answer — prevents TOCTOU duplicate submissions
+ * from rapid-fire emits before the first async write completes (T-05-15).
+ * Key format: `${roomCode}:${playerId}`
+ */
+const freeTextLocks = new Set<string>()
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -629,6 +636,14 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
     const roomCode: string = socket.data.roomCode
     if (!roomCode) return
 
+    // Per-socket in-memory lock: prevents TOCTOU duplicate submissions from
+    // rapid-fire emits before the first async write completes (T-05-15).
+    const playerId: string = socket.data.reconnectToken
+    if (!playerId) return
+    const lockKey = `${roomCode}:${playerId}`
+    if (freeTextLocks.has(lockKey)) return
+    freeTextLocks.add(lockKey)
+
     try {
       const gameState = await getGameState(roomCode)
       if (!gameState || gameState.phase !== 'question') return
@@ -643,8 +658,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       const trimmed = escapeHtml(text.trim().slice(0, 80))  // D-07: max 80 chars; escapeHtml: T-05-08
       if (trimmed.length === 0) return
 
-      const playerId: string = socket.data.reconnectToken
-      if (!playerId || !gameState.playerStates[playerId]) return
+      if (!gameState.playerStates[playerId]) return
 
       // One answer per player per question (deduplication)
       if (gameState.freeTextAnswers?.[playerId]) return
@@ -662,6 +676,8 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       io.to(roomCode).emit('freetext:answers', { answers })
     } catch (err) {
       console.error('[Game] freetext:answer error:', err)
+    } finally {
+      freeTextLocks.delete(lockKey)
     }
   })
 
