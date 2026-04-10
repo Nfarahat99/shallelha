@@ -26,12 +26,9 @@ async function main() {
     create: { name: 'ترفيه', slug: 'tarfeeh' },
   })
 
-  // Skip question creation if questions already exist (idempotent)
-  const existingCount = await prisma.question.count()
-  if (existingCount > 0) {
-    console.log(`Seed: ${existingCount} questions already present, skipping`)
-    return
-  }
+  // Seed MC questions only if none exist yet (idempotent)
+  const existingCount = await prisma.question.count({ where: { type: 'MULTIPLE_CHOICE' } })
+  if (existingCount === 0) {
 
   // ثقافة عامة — 10 questions
   const thaqafaQuestions = [
@@ -234,7 +231,97 @@ async function main() {
     })
   }
 
-  console.log('Seed complete: 3 categories, 30 questions')
+  console.log('Seed: 3 categories, 30 MC questions created')
+
+  } else {
+    console.log(`Seed: ${existingCount} MC questions already present, skipping MC seed`)
+  }
+
+  // Add MEDIA_GUESSING questions if not yet seeded (idempotent)
+  const mediaCount = await prisma.question.count({ where: { type: 'MEDIA_GUESSING' } })
+  if (mediaCount === 0) {
+    const mediaQuestions = [
+      {
+        text: 'ما هذا المعلم الشهير؟',
+        options: ['برج إيفل', 'برج خليفة', 'تاج محل', 'كولوسيوم'],
+        correctIndex: 0,
+        mediaUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      },
+      {
+        text: 'أي حيوان يظهر في الصورة؟',
+        options: ['أسد', 'نمر', 'فهد', 'ضبع'],
+        correctIndex: 0,
+        mediaUrl: 'https://res.cloudinary.com/demo/image/upload/cat.jpg',
+      },
+      {
+        text: 'ما هذه الفاكهة؟',
+        options: ['برتقال', 'ليمون', 'جريب فروت', 'يوسفي'],
+        correctIndex: 0,
+        mediaUrl: 'https://res.cloudinary.com/demo/image/upload/orange_sample.jpg',
+      },
+      {
+        text: 'ما هذه الرياضة التي تظهر في الصورة؟',
+        options: ['كرة القدم', 'كرة السلة', 'التنس', 'الغولف'],
+        correctIndex: 2,
+        mediaUrl: 'https://res.cloudinary.com/demo/image/upload/basketball_shot.jpg',
+      },
+      {
+        text: 'ما اسم هذه المدينة؟',
+        options: ['نيويورك', 'لندن', 'باريس', 'طوكيو'],
+        correctIndex: 2,
+        mediaUrl: 'https://res.cloudinary.com/demo/image/upload/cld-sample-5.jpg',
+      },
+    ]
+
+    const thaqafaForMedia = await prisma.category.findFirst({ where: { slug: 'thaqafa-amma' } })
+    for (const q of mediaQuestions) {
+      await prisma.question.create({
+        data: {
+          text: q.text,
+          options: q.options,
+          correctIndex: q.correctIndex,
+          timerDuration: 25,
+          status: 'approved',
+          type: 'MEDIA_GUESSING',
+          mediaUrl: q.mediaUrl,
+          categoryId: thaqafaForMedia.id,
+        },
+      })
+    }
+    console.log('Seed: 5 MEDIA_GUESSING questions created')
+  } else {
+    console.log(`Seed: ${mediaCount} MEDIA_GUESSING questions already present, skipping`)
+  }
+
+  // Add FREE_TEXT questions if not yet seeded (idempotent)
+  const freeTextCount = await prisma.question.count({ where: { type: 'FREE_TEXT' } })
+  if (freeTextCount === 0) {
+    const freeTextQuestions = [
+      { text: 'اكتب أول شيء يخطر ببالك عندما تسمع كلمة «الصحراء»' },
+      { text: 'أكمل الجملة: الصديق الحقيقي هو من...' },
+      { text: 'اكتب شيئاً واحداً لا تستطيع العيش بدونه' },
+      { text: 'ما هو أفضل طبق عربي في رأيك؟' },
+      { text: 'لو كان بإمكانك زيارة أي مكان في العالم، أين ستذهب؟' },
+    ]
+
+    const tarfeehForFT = await prisma.category.findFirst({ where: { slug: 'tarfeeh' } })
+    for (const q of freeTextQuestions) {
+      await prisma.question.create({
+        data: {
+          text: q.text,
+          options: [],
+          correctIndex: 0,
+          timerDuration: 30,
+          status: 'approved',
+          type: 'FREE_TEXT',
+          categoryId: tarfeehForFT.id,
+        },
+      })
+    }
+    console.log('Seed: 5 FREE_TEXT questions created')
+  } else {
+    console.log(`Seed: ${freeTextCount} FREE_TEXT questions already present, skipping`)
+  }
 }
 
 main()
