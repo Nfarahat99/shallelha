@@ -5,7 +5,7 @@ COPY apps/server/package*.json ./
 RUN npm ci --only=production
 # ts-node + typescript are now production deps (needed for seed at runtime)
 
-# Stage 2: Build
+# Stage 2: Build — cache-bust: 088c359
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY apps/server/package*.json ./
