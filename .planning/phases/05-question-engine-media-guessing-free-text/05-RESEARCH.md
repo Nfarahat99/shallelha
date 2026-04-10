@@ -773,22 +773,19 @@ export function FreeTextFeed({ answers }: FreeTextFeedProps) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **`shuffle()` visibility in game.ts**
+1. **`shuffle()` visibility in game.ts** — **RESOLVED: Keep in `game.ts` (module-private, same file)**
    - What we know: `shuffle()` is declared as a module-private function in `game.ts` — not exported. It's used internally for `questions`.
-   - What's unclear: Should it be moved to `game.service.ts` and exported, or duplicated for the free text use case?
-   - Recommendation: Move `shuffle()` to `game.service.ts` and export it; import in `game.ts`. This keeps utility functions testable.
+   - Decision: `shuffle()` stays as a module-private function in `game.ts`. The `startVotingPhase` handler (Plan 03) calls `shuffle(answers)` inside the same file — no export needed. This is consistent with the existing pattern and avoids unnecessary refactoring.
 
-2. **Host "اغلق الإجابات" button placement**
+2. **Host "اغلق الإجابات" button placement** — **RESOLVED: Replace "اكشف الإجابة" slot for FREE_TEXT questions**
    - What we know: `HostInGameControls.tsx` has a fixed set of buttons (`اكشف الإجابة`, `التالي`, `عرض النتائج`, `إنهاء اللعبة`).
-   - What's unclear: Should "اغلق الإجابات" (lock free text answers and start voting) replace "اكشف الإجابة" during free text questions, or be an additional button?
-   - Recommendation: Replace "اكشف الإجابة" with "اغلق الإجابات" when `currentQuestion.type === 'FREE_TEXT'` — same button slot, different label and action. This avoids UI complexity.
+   - Decision: When `currentQuestion.type === 'FREE_TEXT'`, the "اكشف الإجابة" button slot is replaced by "اغلق الإجابات". Same button position, different label and action. Avoids UI complexity. Implemented in Plan 03 Task 2 Part C.
 
-3. **Player phone during media guessing — blur the image on player too?**
-   - What we know: CONTEXT.md D-15 says player sees question text + text input for FREE_TEXT. For MEDIA_GUESSING, D-03 says player phone shows "the same blurred image" per the specifics section.
-   - What's unclear: The `QuestionPayload` now includes `mediaUrl` — does the player phone render the blurred image (which un-blurs as timer runs), or just the 4 answer options?
-   - Recommendation: Render the blurred image on player phone too (same CSS transition). This is more engaging and is specified in CONTEXT.md specifics: "Player and host screens use the same CSS filter". Keep the 4 answer buttons below the image.
+3. **Player phone during media guessing — blur the image on player too?** — **RESOLVED: Yes, player phone shows same blurred image**
+   - What we know: CONTEXT.md D-03 specifics: "Player and host screens use the same CSS filter". `QuestionPayload` includes `mediaUrl`.
+   - Decision: Player phone renders the blurred image with the same CSS `filter: blur()` transition — unblurs over timer duration. 4 answer buttons appear below the image. Implemented in Plan 02 Task 2 Part C.
 
 ---
 
