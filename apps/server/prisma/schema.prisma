@@ -13,6 +13,12 @@ enum QuestionStatus {
   live
 }
 
+enum QuestionType {
+  MULTIPLE_CHOICE
+  MEDIA_GUESSING
+  FREE_TEXT
+}
+
 // Phase 1 skeleton — just enough to confirm connection via health check.
 // Extended in Phase 3+4 to include Category (slug + questions) and Question models.
 model Category {
@@ -31,6 +37,8 @@ model Question {
   correctIndex   Int
   timerDuration  Int            @default(20)
   status         QuestionStatus @default(draft)
+  type           QuestionType   @default(MULTIPLE_CHOICE)
+  mediaUrl       String?
   category       Category       @relation(fields: [categoryId], references: [id])
   categoryId     String
   createdAt      DateTime       @default(now())

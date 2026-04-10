@@ -4,23 +4,38 @@ export interface HostSettings {
   revealMode: 'auto' | 'manual'
 }
 
+/** Mirrors the Prisma QuestionType enum for use in frontend/shared code without Prisma client dependency. */
+export type QuestionType = 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+
+/** A single player's free text answer with the list of voters who voted for it. */
+export interface FreeTextAnswer {
+  text: string
+  votes: string[]
+}
+
 export interface PlayerGameState {
   score: number
   streak: number
   answeredCurrentQ: boolean
   lastAnswerTime?: number
+  /** Free text voting deduplication guard — true once player has cast their vote. */
+  votedCurrentQ?: boolean
 }
 
 export interface GameState {
   questionIds: string[]
   currentQuestionIndex: number
-  phase: 'pre-game' | 'question' | 'reveal' | 'leaderboard' | 'ended'
+  phase: 'pre-game' | 'question' | 'reveal' | 'leaderboard' | 'ended' | 'voting'
   questionStartedAt: number
   timerDuration: number
   playerStates: Record<string, PlayerGameState>
   hostSettings: HostSettings
   /** Idempotency guard — true once question:revealed has been emitted for the current question. */
   revealedCurrentQ?: boolean
+  /** Free text answers keyed by answering player ID. Present during voting phase. */
+  freeTextAnswers?: Record<string, FreeTextAnswer>
+  /** Unix timestamp (ms) when the voting phase closes. */
+  votingDeadline?: number
 }
 
 export interface LeaderboardEntry {
@@ -36,4 +51,6 @@ export interface QuestionPayload {
   text: string
   options: string[]
   timerDuration: number
+  type: QuestionType
+  mediaUrl?: string
 }
