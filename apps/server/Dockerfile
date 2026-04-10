@@ -3,6 +3,7 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 COPY apps/server/package*.json ./
 RUN npm ci --only=production
+# ts-node + typescript are now production deps (needed for seed at runtime)
 
 # Stage 2: Build
 FROM node:22-alpine AS builder
@@ -24,10 +25,10 @@ ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 EXPOSE 4000
 
-# Run prisma db push on every deploy to apply schema changes, then start server.
-# prisma binary is in production deps so it's available in this stage.
-CMD ["sh", "-c", "node_modules/.bin/prisma db push --accept-data-loss && node dist/index.js"]
+# On every deploy: apply schema changes, seed questions (upsert — idempotent), then start server.
+CMD ["sh", "-c", "node_modules/.bin/prisma db push --accept-data-loss && node_modules/.bin/ts-node --project tsconfig.json prisma/seed.ts && node dist/index.js"]
