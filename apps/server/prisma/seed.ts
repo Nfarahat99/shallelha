@@ -22,6 +22,13 @@ async function main() {
     create: { name: 'ترفيه', slug: 'tarfeeh' },
   })
 
+  // Skip question creation if questions already exist (idempotent)
+  const existingCount = await prisma.question.count()
+  if (existingCount > 0) {
+    console.log(`Seed: ${existingCount} questions already present, skipping`)
+    return
+  }
+
   // ثقافة عامة — 10 questions
   const thaqafaQuestions = [
     {

@@ -30,5 +30,6 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 EXPOSE 4000
 
-# On every deploy: apply schema changes, seed questions (upsert — idempotent), then start server.
-CMD ["sh", "-c", "node_modules/.bin/prisma db push --accept-data-loss && node_modules/.bin/ts-node --project tsconfig.json prisma/seed.ts && node dist/index.js"]
+# On every deploy: apply schema changes, seed questions (idempotent), then start server.
+# --transpile-only --skip-project avoids tsconfig rootDir rejection of prisma/seed.ts
+CMD ["sh", "-c", "node_modules/.bin/prisma db push --accept-data-loss && node_modules/.bin/ts-node --transpile-only --skip-project prisma/seed.ts && node dist/index.js"]
