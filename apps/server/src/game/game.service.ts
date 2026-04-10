@@ -82,3 +82,10 @@ export async function getGameState(roomCode: string): Promise<GameState | null> 
   if (!raw) return null
   return JSON.parse(raw)
 }
+
+/**
+ * Delete game state from Redis (called on game end cleanup).
+ */
+export async function deleteGameState(roomCode: string): Promise<void> {
+  await redis.hdel(`room:${roomCode}`, 'gameState')
+}
