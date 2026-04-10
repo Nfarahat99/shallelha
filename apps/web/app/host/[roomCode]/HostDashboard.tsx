@@ -13,6 +13,7 @@ import { PlayerIndicators } from './game/PlayerIndicators'
 import { HostInGameControls } from './game/HostInGameControls'
 import { LeaderboardOverlay } from './game/LeaderboardOverlay'
 import { PodiumScreen } from './game/PodiumScreen'
+import { VotingDisplay } from './game/VotingDisplay'
 
 interface Player {
   id: string
@@ -38,7 +39,7 @@ interface CurrentQuestion {
   mediaUrl?: string
 }
 
-type GamePhase = 'question' | 'reveal' | 'leaderboard' | 'podium'
+type GamePhase = 'question' | 'reveal' | 'leaderboard' | 'podium' | 'voting'
 
 interface HostDashboardProps {
   roomCode: string
@@ -66,6 +67,12 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [podium, setPodium] = useState<LeaderboardEntry[]>([])
+
+  // Free text state
+  const [freeTextAnswers, setFreeTextAnswers] = useState<Array<{ playerId: string; emoji: string; text: string }>>([])
+  const [votingAnswers, setVotingAnswers] = useState<Array<{ id: string; emoji: string; text: string }>>([])
+  const [votingDeadline, setVotingDeadline] = useState(0)
+  const [freeTextWinner, setFreeTextWinner] = useState<{ winnerId: string; winnerText: string } | null>(null)
 
   const joinUrl =
     typeof window !== 'undefined'
@@ -122,8 +129,28 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
         setAnsweredPlayerIds(new Set())
         setGamePhase('question')
         setShowLeaderboard(false)
+        // Reset free text state for new question
+        setFreeTextAnswers([])
+        setVotingAnswers([])
+        setFreeTextWinner(null)
+        setVotingDeadline(0)
       }
     )
+
+    socket.on('freetext:answers', ({ answers }: { answers: Array<{ playerId: string; emoji: string; text: string }> }) => {
+      setFreeTextAnswers(answers)
+    })
+
+    socket.on('freetext:lock', ({ answers }: { answers: Array<{ id: string; emoji: string; text: string }> }) => {
+      setVotingAnswers(answers)
+      setVotingDeadline(Date.now() + 15_000)
+      setGamePhase('voting')
+    })
+
+    socket.on('freetext:results', ({ winnerId, winnerText }: { winnerId: string; winnerText: string; votes: Record<string, string[]>; authorBonus: string[] }) => {
+      setFreeTextWinner({ winnerId, winnerText })
+      setGamePhase('reveal')
+    })
 
     socket.on(
       'question:progress',
@@ -175,6 +202,9 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
       socket.off('leaderboard:update')
       socket.off('game:podium')
       socket.off('game:ended')
+      socket.off('freetext:answers')
+      socket.off('freetext:lock')
+      socket.off('freetext:results')
     }
   }, [roomCode, userId])
 
@@ -202,6 +232,11 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
 
   // In-game control handlers
   const handleReveal = useCallback(() => {
+    getSocket().emit('question:reveal')
+  }, [])
+
+  const handleLockFreeText = useCallback(() => {
+    // Reuse reveal — server routes FREE_TEXT to startVotingPhase (T-05-15)
     getSocket().emit('question:reveal')
   }, [])
 
@@ -283,6 +318,30 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
       )
     }
 
+    // Voting phase — free text voting in progress
+    if (gamePhase === 'voting') {
+      return (
+        <HostGameScreen roomCode={roomCode}>
+          <div className="flex-1 flex flex-col min-h-0">
+            <VotingDisplay
+              answers={votingAnswers}
+              votingDeadline={votingDeadline}
+              winnerResult={freeTextWinner}
+            />
+            <HostInGameControls
+              gamePhase={gamePhase}
+              onReveal={handleReveal}
+              onNext={handleNext}
+              onLeaderboard={handleLeaderboard}
+              onEnd={handleGameEnd}
+              onLockFreeText={handleLockFreeText}
+              currentQuestionType={currentQuestion?.type}
+            />
+          </div>
+        </HostGameScreen>
+      )
+    }
+
     // Active game phase (question / reveal / leaderboard)
     return (
       <HostGameScreen roomCode={roomCode}>
@@ -310,6 +369,7 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
               type={currentQuestion.type}
               mediaUrl={currentQuestion.mediaUrl}
               timerDuration={currentQuestion.timerDuration}
+              freeTextAnswers={freeTextAnswers}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center">
@@ -330,6 +390,8 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
             onNext={handleNext}
             onLeaderboard={handleLeaderboard}
             onEnd={handleGameEnd}
+            onLockFreeText={handleLockFreeText}
+            currentQuestionType={currentQuestion?.type}
           />
 
           {/* Leaderboard overlay */}

@@ -9,6 +9,8 @@ import { AnswerOptions } from './game/AnswerOptions'
 import { PlayerTimerBar } from './game/PlayerTimerBar'
 import { WaitingScreen } from './game/WaitingScreen'
 import { MediaQuestion } from '@/app/host/[roomCode]/game/MediaQuestion'
+import { FreeTextInput } from './game/FreeTextInput'
+import { VotingUI } from './game/VotingUI'
 
 interface Player {
   id: string
@@ -20,7 +22,7 @@ interface Player {
 type JoinPhase = 'form' | 'lobby' | 'playing' | 'ended'
 
 /** Player phase during a question lifecycle */
-type PlayerPhase = 'answering' | 'waiting' | 'revealed'
+type PlayerPhase = 'answering' | 'waiting' | 'revealed' | 'voting'
 
 /** Answer option Tailwind color classes — must match AnswerOptions and host QuestionDisplay (D-04) */
 const ANSWER_COLORS = [
@@ -65,6 +67,13 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [questionStartedAt, setQuestionStartedAt] = useState(0)
   const [myScore, setMyScore] = useState(0)
   const [myStreak, setMyStreak] = useState(0)
+
+  // Free text state
+  const [freeTextSubmitted, setFreeTextSubmitted] = useState(false)
+  const [submittedText, setSubmittedText] = useState('')
+  const [votingAnswers, setVotingAnswers] = useState<Array<{ id: string; emoji: string; text: string }>>([])
+  const [votedAnswerId, setVotedAnswerId] = useState<string | null>(null)
+  const [votingDeadline, setVotingDeadline] = useState(0)
 
   // ── Reconnect on mount ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -124,6 +133,24 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setPlayerPhase('answering')
       setQuestionStartedAt(Date.now())
       setPhase('playing')
+      // Reset free text state for new question
+      setFreeTextSubmitted(false)
+      setSubmittedText('')
+      setVotingAnswers([])
+      setVotedAnswerId(null)
+      setVotingDeadline(0)
+    })
+
+    // freetext:lock — voting phase starts
+    socket.on('freetext:lock', ({ answers }: { answers: Array<{ id: string; emoji: string; text: string }> }) => {
+      setVotingAnswers(answers)
+      setVotingDeadline(Date.now() + 15_000)
+      setPlayerPhase('voting')
+    })
+
+    // freetext:results — voting resolved
+    socket.on('freetext:results', (_data: { winnerId: string; winnerText: string; votes: Record<string, string[]>; authorBonus: string[] }) => {
+      setPlayerPhase('revealed')
     })
 
     // question:revealed — host revealed the correct answer (D-07)
@@ -156,6 +183,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.off('question:start')
       socket.off('question:revealed')
       socket.off('game:podium')
+      socket.off('freetext:lock')
+      socket.off('freetext:results')
     }
   }, [phase, myToken])
 
@@ -192,6 +221,21 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     setPlayerPhase('waiting')
     getSocket().emit('player:answer', { answerIndex })
   }, [myAnswer])
+
+  // ── Free text handlers ─────────────────────────────────────────────────────
+  const handleFreeTextSubmit = useCallback((text: string) => {
+    if (freeTextSubmitted) return  // dedup
+    setFreeTextSubmitted(true)
+    setSubmittedText(text)
+    setPlayerPhase('waiting')
+    getSocket().emit('freetext:answer', { text })
+  }, [freeTextSubmitted])
+
+  const handleVote = useCallback((answerId: string) => {
+    if (votedAnswerId !== null) return  // dedup
+    setVotedAnswerId(answerId)
+    getSocket().emit('freetext:vote', { answerId })
+  }, [votedAnswerId])
 
   // ── Render: form ───────────────────────────────────────────────────────────
   if (phase === 'form') {
@@ -271,6 +315,68 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
 
   // ── Render: playing ────────────────────────────────────────────────────────
   if (phase === 'playing' && currentQuestion) {
+    const isFreeText = currentQuestion.type === 'FREE_TEXT'
+
+    // FREE_TEXT question flow
+    if (isFreeText) {
+      // Voting phase
+      if (playerPhase === 'voting') {
+        return (
+          <PlayerGameScreen>
+            <VotingUI
+              answers={votingAnswers}
+              myPlayerId={myToken ?? ''}
+              onVote={handleVote}
+              votedAnswerId={votedAnswerId}
+              votingDeadline={votingDeadline}
+            />
+          </PlayerGameScreen>
+        )
+      }
+
+      // Waiting after submission
+      if (playerPhase === 'waiting') {
+        return (
+          <PlayerGameScreen>
+            <WaitingScreen
+              selectedAnswer={submittedText}
+              selectedIndex={0}
+              selectedColor="bg-gray-400 text-white"
+            />
+          </PlayerGameScreen>
+        )
+      }
+
+      // Revealed (after freetext:results)
+      if (playerPhase === 'revealed') {
+        return (
+          <PlayerGameScreen>
+            <div className="text-center py-4 space-y-1 px-4">
+              <p className="text-lg font-bold text-gray-900">انتهى التصويت</p>
+              <p className="text-sm text-gray-500">النقاط: {myScore}</p>
+            </div>
+          </PlayerGameScreen>
+        )
+      }
+
+      // Answering phase — show FreeTextInput
+      return (
+        <PlayerGameScreen>
+          <PlayerTimerBar
+            duration={currentQuestion.timerDuration}
+            startedAt={questionStartedAt}
+            active={playerPhase === 'answering'}
+          />
+          <FreeTextInput
+            questionText={currentQuestion.text}
+            onSubmit={handleFreeTextSubmit}
+            disabled={freeTextSubmitted}
+          />
+        </PlayerGameScreen>
+      )
+    }
+
+    // MC / MEDIA_GUESSING question flow (unchanged)
     return (
       <PlayerGameScreen>
         <PlayerTimerBar
@@ -297,13 +403,6 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
               revealed={playerPhase === 'revealed'}
               timerDuration={currentQuestion.timerDuration}
             />
-          </div>
-        )}
-
-        {/* FREE_TEXT placeholder for Plan 03 */}
-        {currentQuestion.type === 'FREE_TEXT' && (
-          <div className="px-4 pb-2 text-center text-gray-400 text-sm">
-            سيتم تفعيلها قريبا
           </div>
         )}
 

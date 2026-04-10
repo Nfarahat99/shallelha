@@ -3,6 +3,7 @@
 import * as m from 'motion/react-m'
 import { useReducedMotion } from 'motion/react'
 import { MediaQuestion } from './MediaQuestion'
+import { FreeTextFeed } from './FreeTextFeed'
 
 interface QuestionDisplayProps {
   text: string
@@ -15,6 +16,7 @@ interface QuestionDisplayProps {
   type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
   mediaUrl?: string
   timerDuration?: number
+  freeTextAnswers?: Array<{ playerId: string; emoji: string; text: string }>
 }
 
 const OPTION_COLORS = [
@@ -55,6 +57,7 @@ export function QuestionDisplay({
   type,
   mediaUrl,
   timerDuration,
+  freeTextAnswers,
 }: QuestionDisplayProps) {
   const reducedMotion = useReducedMotion() ?? false
 
@@ -149,7 +152,7 @@ export function QuestionDisplay({
     )
   }
 
-  // FREE_TEXT placeholder (Plan 03 will replace this)
+  // FREE_TEXT branch — question text + live answer feed
   if (type === 'FREE_TEXT') {
     return (
       <div className="flex-1 flex flex-col min-h-0">
@@ -159,8 +162,13 @@ export function QuestionDisplay({
             سؤال {questionIndex + 1} من {total}
           </span>
         </div>
-        <div className="flex-1 flex items-center justify-center px-16 py-8 min-h-0">
+        {/* Question text */}
+        <div className="flex items-center justify-center px-16 py-4 shrink-0">
           <h2 className="text-5xl font-black text-white text-start leading-tight">{text}</h2>
+        </div>
+        {/* Live answer feed */}
+        <div className="flex-1 px-8 pb-4 overflow-hidden">
+          <FreeTextFeed answers={freeTextAnswers ?? []} />
         </div>
       </div>
     )

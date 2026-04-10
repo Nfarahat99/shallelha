@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-type GamePhase = 'question' | 'reveal' | 'leaderboard' | 'podium'
+type GamePhase = 'question' | 'reveal' | 'leaderboard' | 'podium' | 'voting'
 
 interface HostInGameControlsProps {
   gamePhase: GamePhase
@@ -10,6 +10,8 @@ interface HostInGameControlsProps {
   onNext: () => void
   onLeaderboard: () => void
   onEnd: () => void
+  onLockFreeText?: () => void
+  currentQuestionType?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
 }
 
 export function HostInGameControls({
@@ -18,6 +20,8 @@ export function HostInGameControls({
   onNext,
   onLeaderboard,
   onEnd,
+  onLockFreeText,
+  currentQuestionType,
 }: HostInGameControlsProps) {
   const [confirmEnd, setConfirmEnd] = useState(false)
 
@@ -31,25 +35,41 @@ export function HostInGameControls({
   }
 
   const isQuestion = gamePhase === 'question'
+  const isVoting = gamePhase === 'voting'
   const isRevealOrLeaderboard = gamePhase === 'reveal' || gamePhase === 'leaderboard'
+  const isFreeText = currentQuestionType === 'FREE_TEXT'
+
+  // During question phase for FREE_TEXT: show "اغلق الإجابات" instead of "اكشف الإجابة"
+  const showLockButton = isQuestion && isFreeText
 
   return (
     <div className="flex flex-row items-center gap-3 px-6 py-3 bg-gray-900 shrink-0">
-      {/* Reveal Answer — active during question phase */}
-      <button
-        onClick={onReveal}
-        disabled={!isQuestion}
-        aria-label="اكشف الإجابة"
-        className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors ${
-          isQuestion
-            ? 'bg-indigo-600 hover:bg-indigo-700'
-            : 'bg-gray-700 opacity-40 cursor-not-allowed'
-        }`}
-      >
-        اكشف الإجابة
-      </button>
+      {/* Reveal / Lock button */}
+      {showLockButton ? (
+        <button
+          onClick={onLockFreeText}
+          disabled={!isQuestion}
+          aria-label="اغلق الإجابات"
+          className="flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors bg-indigo-600 hover:bg-indigo-700"
+        >
+          اغلق الإجابات
+        </button>
+      ) : (
+        <button
+          onClick={onReveal}
+          disabled={!isQuestion || isVoting}
+          aria-label="اكشف الإجابة"
+          className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors ${
+            isQuestion && !isVoting
+              ? 'bg-indigo-600 hover:bg-indigo-700'
+              : 'bg-gray-700 opacity-40 cursor-not-allowed'
+          }`}
+        >
+          اكشف الإجابة
+        </button>
+      )}
 
-      {/* Next Question — active after reveal */}
+      {/* Next Question — active after reveal, disabled during voting */}
       <button
         onClick={onNext}
         disabled={!isRevealOrLeaderboard}
@@ -63,7 +83,7 @@ export function HostInGameControls({
         التالي
       </button>
 
-      {/* Show Leaderboard — active after reveal */}
+      {/* Show Leaderboard — active after reveal, disabled during voting */}
       <button
         onClick={onLeaderboard}
         disabled={!isRevealOrLeaderboard}
