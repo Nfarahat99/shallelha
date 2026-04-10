@@ -74,6 +74,20 @@ function clearVotingTimer(roomCode: string): void {
 }
 
 /**
+ * Escape HTML special characters to prevent XSS when storing/broadcasting
+ * free text answers (T-05-08). Defence-in-depth: React JSX escapes by default
+ * but raw text is also persisted in Redis and re-emitted to all consumers.
+ */
+function escapeHtml(raw: string): string {
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+}
+
+/**
  * Fisher-Yates shuffle — mutates the array and returns it.
  */
 function shuffle<T>(arr: T[]): T[] {
@@ -627,7 +641,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Validate text — server-side enforcement (T-05-08: XSS prevention)
       const { text } = data ?? {}
       if (!text || typeof text !== 'string') return
-      const trimmed = text.trim().slice(0, 80)  // D-07: max 80 chars
+      const trimmed = escapeHtml(text.trim().slice(0, 80))  // D-07: max 80 chars; escapeHtml: T-05-08
       if (trimmed.length === 0) return
 
       const playerId: string = socket.data.reconnectToken
