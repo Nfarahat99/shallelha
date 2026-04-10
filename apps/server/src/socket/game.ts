@@ -6,6 +6,7 @@ import {
   getLeaderboard,
   saveGameState,
   getGameState,
+  calculateFreeTextScore,
 } from '../game/game.service'
 import type { GameState, HostSettings } from '../game/game.types'
 import { prisma } from '../db/prisma'
@@ -32,6 +33,9 @@ interface QuestionData {
 /** Auto-reveal timers keyed by roomCode */
 const autoRevealTimers = new Map<string, NodeJS.Timeout>()
 
+/** Voting timers keyed by roomCode — cleared on question:next and game:end */
+const votingTimers = new Map<string, NodeJS.Timeout>()
+
 /** Question cache keyed by roomCode — populated at game:start, cleared at game:end */
 const questionCache = new Map<string, QuestionData[]>()
 
@@ -57,6 +61,15 @@ function clearAutoRevealTimer(roomCode: string): void {
   if (timer) {
     clearTimeout(timer)
     autoRevealTimers.delete(roomCode)
+  }
+}
+
+/** Clear the voting timer for a room if one is running. */
+function clearVotingTimer(roomCode: string): void {
+  const timer = votingTimers.get(roomCode)
+  if (timer) {
+    clearTimeout(timer)
+    votingTimers.delete(roomCode)
   }
 }
 
@@ -98,9 +111,15 @@ function sendQuestion(
 
   // Reset per-question flags
   gameState.revealedCurrentQ = false
+  gameState.freeTextAnswers = {}
+  gameState.votingDeadline = undefined
   for (const id of Object.keys(gameState.playerStates)) {
     gameState.playerStates[id].answeredCurrentQ = false
+    gameState.playerStates[id].votedCurrentQ = false
   }
+
+  // Clear any existing voting timer
+  clearVotingTimer(roomCode)
 
   // Schedule auto-reveal if host chose that mode
   if (gameState.hostSettings.revealMode === 'auto') {
@@ -111,6 +130,80 @@ function sendQuestion(
     }, durationMs)
     autoRevealTimers.set(roomCode, timer)
   }
+}
+
+/**
+ * Start the voting phase for a FREE_TEXT question.
+ * Called when the auto-reveal timer fires or host clicks lock.
+ */
+async function startVotingPhase(io: Server, roomCode: string): Promise<void> {
+  const gameState = await getGameState(roomCode)
+  if (!gameState || gameState.phase !== 'question') return
+
+  gameState.phase = 'voting'
+  gameState.votingDeadline = Date.now() + 15_000
+  await saveGameState(roomCode, gameState)
+
+  // Shuffle answers before broadcast (T-05-13: eliminate order bias)
+  const room = await getRoom(roomCode)
+  const answers = Object.entries(gameState.freeTextAnswers ?? {}).map(([playerId, a]) => {
+    const player = room?.players.find((p) => p.id === playerId)
+    return { id: playerId, emoji: player?.emoji ?? '?', text: a.text }
+  })
+  shuffle(answers)
+
+  io.to(roomCode).emit('freetext:lock', { answers })
+
+  // Auto-close voting after 15s
+  clearVotingTimer(roomCode)
+  const timer = setTimeout(() => {
+    void resolveVoting(io, roomCode)
+  }, 15_000)
+  votingTimers.set(roomCode, timer)
+}
+
+/**
+ * Resolve voting after timer expires — calculate scores, broadcast results.
+ */
+async function resolveVoting(io: Server, roomCode: string): Promise<void> {
+  clearVotingTimer(roomCode)
+
+  const gameState = await getGameState(roomCode)
+  if (!gameState || gameState.phase !== 'voting') return
+
+  const freeTextAnswers = gameState.freeTextAnswers ?? {}
+  const result = calculateFreeTextScore(freeTextAnswers)
+
+  // Apply author scores (D-09: no streak impact for FREE_TEXT)
+  for (const [playerId, pts] of Object.entries(result.authorScores)) {
+    if (gameState.playerStates[playerId]) {
+      gameState.playerStates[playerId].score += pts
+    }
+  }
+  // Apply voter scores
+  for (const [playerId, pts] of Object.entries(result.voterScores)) {
+    if (gameState.playerStates[playerId]) {
+      gameState.playerStates[playerId].score += pts
+    }
+  }
+
+  // Move to reveal phase so host can show leaderboard / next question
+  gameState.phase = 'reveal'
+  gameState.revealedCurrentQ = true
+  await saveGameState(roomCode, gameState)
+
+  // Broadcast results
+  const votes: Record<string, string[]> = {}
+  for (const [pid, a] of Object.entries(freeTextAnswers)) {
+    votes[pid] = a.votes
+  }
+
+  io.to(roomCode).emit('freetext:results', {
+    winnerId: result.winnerIds[0] ?? '',
+    winnerText: result.winnerText,
+    votes,
+    authorBonus: result.winnerIds,
+  })
 }
 
 /**
@@ -125,12 +218,17 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
   // (catches the TOCTOU race between auto-reveal timer and manual question:reveal)
   if (!gameState || gameState.phase !== 'question' || gameState.revealedCurrentQ) return
 
+  // For FREE_TEXT questions, "reveal" means "start voting phase" (not show correctIndex)
+  const questionData = questionCache.get(roomCode)?.[gameState.currentQuestionIndex]
+  if (questionData?.type === 'FREE_TEXT') {
+    await startVotingPhase(io, roomCode)
+    return
+  }
+
   // Flip both the phase and the idempotency flag atomically before broadcasting
   gameState.phase = 'reveal'
   gameState.revealedCurrentQ = true
   await saveGameState(roomCode, gameState)
-
-  const questionData = questionCache.get(roomCode)?.[gameState.currentQuestionIndex]
 
   io.to(roomCode).emit('question:revealed', {
     correctAnswerIndex: questionData?.correctIndex ?? 0,
@@ -430,12 +528,16 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         await updateRoomStatus(roomCode, 'ended')
 
         clearAutoRevealTimer(roomCode)
+        clearVotingTimer(roomCode)
         questionCache.delete(roomCode)
 
         io.to(roomCode).emit('game:podium', { top3 })
         console.log(`[Game] Game ended (all questions answered) in ${roomCode}`)
         return
       }
+
+      // Clear any voting timer before advancing (T-05-14: no orphaned timers)
+      clearVotingTimer(roomCode)
 
       // Advance to next question
       const questions = questionCache.get(roomCode)
@@ -495,6 +597,8 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await updateRoomStatus(roomCode, 'ended')
 
       clearAutoRevealTimer(roomCode)
+      clearVotingTimer(roomCode)
+      votingTimers.delete(roomCode)
       questionCache.delete(roomCode)
 
       io.to(roomCode).emit('game:podium', { top3 })
@@ -502,6 +606,83 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to end game'
       socket.emit('room:error', { message })
+    }
+  })
+
+  // -------------------------------------------------------------------------
+  // freetext:answer — Player submits a free text answer
+  // -------------------------------------------------------------------------
+  socket.on('freetext:answer', async (data: { text: string }) => {
+    const roomCode: string = socket.data.roomCode
+    if (!roomCode) return
+
+    try {
+      const gameState = await getGameState(roomCode)
+      if (!gameState || gameState.phase !== 'question') return
+
+      // Validate question type (T-05-11: reject if not FREE_TEXT)
+      const questionData = questionCache.get(roomCode)?.[gameState.currentQuestionIndex]
+      if (!questionData || questionData.type !== 'FREE_TEXT') return
+
+      // Validate text — server-side enforcement (T-05-08: XSS prevention)
+      const { text } = data ?? {}
+      if (!text || typeof text !== 'string') return
+      const trimmed = text.trim().slice(0, 80)  // D-07: max 80 chars
+      if (trimmed.length === 0) return
+
+      const playerId: string = socket.data.reconnectToken
+      if (!playerId || !gameState.playerStates[playerId]) return
+
+      // One answer per player per question (deduplication)
+      if (gameState.freeTextAnswers?.[playerId]) return
+
+      gameState.freeTextAnswers = gameState.freeTextAnswers ?? {}
+      gameState.freeTextAnswers[playerId] = { text: trimmed, votes: [] }
+      await saveGameState(roomCode, gameState)
+
+      // Broadcast updated answer list to room (host sees live feed — D-07)
+      const room = await getRoom(roomCode)
+      const answers = Object.entries(gameState.freeTextAnswers).map(([pid, a]) => {
+        const player = room?.players.find((p) => p.id === pid)
+        return { playerId: pid, emoji: player?.emoji ?? '?', text: a.text }
+      })
+      io.to(roomCode).emit('freetext:answers', { answers })
+    } catch (err) {
+      console.error('[Game] freetext:answer error:', err)
+    }
+  })
+
+  // -------------------------------------------------------------------------
+  // freetext:vote — Player votes for another player's answer
+  // -------------------------------------------------------------------------
+  socket.on('freetext:vote', async (data: { answerId: string }) => {
+    const roomCode: string = socket.data.roomCode
+    if (!roomCode) return
+
+    try {
+      const gameState = await getGameState(roomCode)
+      if (!gameState || gameState.phase !== 'voting') return  // T-05-12: reject after results
+
+      const playerId: string = socket.data.reconnectToken
+      if (!playerId || !gameState.playerStates[playerId]) return
+
+      // Deduplicate votes (T-05-09: one vote per player per question)
+      if (gameState.playerStates[playerId].votedCurrentQ) return
+
+      const { answerId } = data ?? {}
+      if (!answerId || typeof answerId !== 'string') return
+
+      // Cannot vote for own answer (T-05-10: D-08)
+      if (answerId === playerId) return
+
+      // answerId must be a valid player who submitted an answer
+      if (!gameState.freeTextAnswers?.[answerId]) return
+
+      gameState.playerStates[playerId].votedCurrentQ = true
+      gameState.freeTextAnswers[answerId].votes.push(playerId)
+      await saveGameState(roomCode, gameState)
+    } catch (err) {
+      console.error('[Game] freetext:vote error:', err)
     }
   })
 }
