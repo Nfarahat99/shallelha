@@ -5,11 +5,12 @@ import { redis } from '../redis/client'
 export const healthRouter = Router()
 
 healthRouter.get('/', async (_req, res) => {
-  const checks: Record<string, string> = { status: 'ok' }
+  const checks: Record<string, string | number> = { status: 'ok' }
 
   try {
     await prisma.$queryRaw`SELECT 1`
     checks.postgres = 'ok'
+    checks.approvedQuestions = await prisma.question.count({ where: { status: 'approved' } })
   } catch {
     checks.postgres = 'error'
   }
@@ -21,6 +22,6 @@ healthRouter.get('/', async (_req, res) => {
     checks.redis = 'error'
   }
 
-  const allOk = Object.values(checks).every((v) => v !== 'error')
+  const allOk = ['postgres', 'redis'].every((k) => checks[k] !== 'error')
   res.status(allOk ? 200 : 503).json(checks)
 })

@@ -6,7 +6,6 @@ import cors from 'cors'
 import helmet from 'helmet'
 import { healthRouter } from './routes/health'
 import { setupSocketHandlers } from './socket'
-import { prisma } from './db/prisma'
 
 const FRONTEND_URL = process.env.FRONTEND_URL
 if (!FRONTEND_URL) {
@@ -56,14 +55,8 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 setupSocketHandlers(io)
 
 const PORT = Number(process.env.PORT) || 4000
-httpServer.listen(PORT, async () => {
+httpServer.listen(PORT, () => {
   console.log(`[Server] Listening on port ${PORT}`)
-  try {
-    const approvedCount = await prisma.question.count({ where: { status: 'approved' } })
-    console.log(`[Server] DB check: ${approvedCount} approved questions`)
-  } catch (e) {
-    console.error('[Server] DB check failed:', (e as Error).message)
-  }
 })
 
 export { httpServer }
