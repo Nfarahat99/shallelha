@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in-progress
-last_updated: "2026-04-11T11:00:00.000Z"
+status: unknown
+last_updated: "2026-04-11T10:58:30.126Z"
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 4
   total_plans: 25
   completed_plans: 19
   percent: 76
@@ -26,14 +26,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 ## Current Status
 
 - **Milestone:** v1.0 — MVP Public Launch
-- **Active Phase:** Phase 07 — admin-dashboard-content-management (Plan 2 of 5 complete)
+- **Active Phase:** Phase 07 — admin-dashboard-content-management (Plan 3 of 5 complete)
 - **Phases complete:** 6 / 8
-- **Plans complete:** 19 / 25
+- **Plans complete:** 20 / 25
 
 ---
 
 ## Recent Activity
 
+- 2026-04-11: Phase 07 Plan 03 complete — question CRUD + Cloudinary upload (create/edit/delete/approve, status workflow)
 - 2026-04-11: Phase 07 Plan 02 complete — admin auth (cookie session) + Category CRUD via Server Actions
 - 2026-04-11: Phase 07 Plan 01 complete — Prisma schema extended with archived/timesPlayed/timesAnsweredWrong fields; Wave 0 test stubs created; .env.example updated with Phase 7 vars
 - 2026-04-11: Phase 06 complete — all 4 plans done (data layer, Double Points, Remove Two, Freeze Opponent, E2E verification); 58 server tests green, frontend builds clean
@@ -58,6 +59,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - force-dynamic added to DB-reading Server Components to prevent build-time prerender without DATABASE_URL
 
 ---
+- [Phase 07]: Cloudinary upload uses server-side stream (upload_stream) rather than unsigned client upload — keeps API secret server-only
+- [Phase 07]: QuestionForm placed under new-question/ and imported by [id] edit page to avoid duplication; bound 'use server' closure captures question id in edit page
 
 ## Open Questions
 
@@ -73,7 +76,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 07    | 02   | 25min    | 2     | 11    |
+| 07    | 03   | 15min    | 2     | 9     |
 
 ---
 
-*Last session: 2026-04-11 — Stopped at: Completed 07-02-PLAN.md — admin auth + category CRUD*
+*Last session: 2026-04-11 — Stopped at: Completed 07-03-PLAN.md — question CRUD + Cloudinary upload*
