@@ -1,0 +1,77 @@
+import { prisma } from '@/lib/prisma'
+import Link from 'next/link'
+import { QuestionList } from './QuestionList'
+
+export const dynamic = 'force-dynamic'
+
+export default async function QuestionsPage({
+  searchParams,
+}: {
+  searchParams: { status?: string; category?: string }
+}) {
+  const [questions, categories] = await Promise.all([
+    prisma.question.findMany({
+      where: {
+        ...(searchParams.status ? { status: searchParams.status as any } : {}),
+        ...(searchParams.category ? { categoryId: searchParams.category } : {}),
+      },
+      include: { category: { select: { name: true, slug: true } } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.category.findMany({
+      where: { archived: false },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    }),
+  ])
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">الأسئلة</h1>
+        <Link
+          href="/admin/new-question"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+        >
+          سؤال جديد
+        </Link>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-3 mb-4">
+        <form className="flex gap-3">
+          <select
+            name="status"
+            defaultValue={searchParams.status || ''}
+            className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
+          >
+            <option value="">جميع الحالات</option>
+            <option value="draft">مسودة</option>
+            <option value="approved">معتمد</option>
+            <option value="live">مباشر</option>
+          </select>
+
+          <select
+            name="category"
+            defaultValue={searchParams.category || ''}
+            className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
+          >
+            <option value="">جميع الفئات</option>
+            {categories.map((cat: { id: string; name: string }) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
+
+          <button
+            type="submit"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-medium"
+          >
+            تصفية
+          </button>
+        </form>
+      </div>
+
+      <QuestionList questions={questions} />
+    </div>
+  )
+}
