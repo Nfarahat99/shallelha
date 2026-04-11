@@ -5,6 +5,7 @@ import { Server as SocketServer } from 'socket.io'
 import cors from 'cors'
 import helmet from 'helmet'
 import { healthRouter } from './routes/health'
+import { adminRouter } from './routes/admin'
 import { setupSocketHandlers } from './socket'
 
 const FRONTEND_URL = process.env.FRONTEND_URL
@@ -38,6 +39,7 @@ app.use(express.json())
 
 // Routes
 app.use('/health', healthRouter)
+app.use('/admin', adminRouter)
 
 // 404 handler
 app.use((_req, res) => {

@@ -266,6 +266,31 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
       streak: state.streak,
     })),
   })
+
+  // --- Analytics: fire-and-forget (ADMIN-04) ---
+  // MUST NOT block the reveal — void + .catch() ensures no impact on game loop
+  if (questionData.id) {
+    // Increment timesPlayed atomically
+    void prisma.question.update({
+      where: { id: questionData.id },
+      data: { timesPlayed: { increment: 1 } },
+    }).catch((err) => {
+      console.error('[Analytics] timesPlayed increment failed:', err)
+    })
+
+    // Count wrong answers: players who answered but streak reset to 0 (wrong answer)
+    const wrongCount = Object.values(gameState.playerStates)
+      .filter((s) => s.answeredCurrentQ && s.streak === 0)
+      .length
+    if (wrongCount > 0) {
+      void prisma.question.update({
+        where: { id: questionData.id },
+        data: { timesAnsweredWrong: { increment: wrongCount } },
+      }).catch((err) => {
+        console.error('[Analytics] timesAnsweredWrong increment failed:', err)
+      })
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
