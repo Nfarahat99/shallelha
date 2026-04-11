@@ -46,6 +46,8 @@ model Question {
   categoryId     String
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
+
+  @@unique([text, categoryId])
 }
 
 // NextAuth.js v5 required models (Phase 2)
