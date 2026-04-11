@@ -11,6 +11,7 @@ import { WaitingScreen } from './game/WaitingScreen'
 import { MediaQuestion } from '@/app/host/[roomCode]/game/MediaQuestion'
 import { FreeTextInput } from './game/FreeTextInput'
 import { VotingUI } from './game/VotingUI'
+import { LifelineBar } from './game/LifelineBar'
 
 interface Player {
   id: string
@@ -74,6 +75,14 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [votingAnswers, setVotingAnswers] = useState<Array<{ id: string; emoji: string; text: string }>>([])
   const [votedAnswerId, setVotedAnswerId] = useState<string | null>(null)
   const [votingDeadline, setVotingDeadline] = useState(0)
+
+  // ── Lifeline state (Phase 6) ──────────────────────────────────────────────
+  const [doublePointsUsed, setDoublePointsUsed] = useState(false)
+  const [removeTwoUsed, setRemoveTwoUsed] = useState(false)
+  const [freezeOpponentUsed, setFreezeOpponentUsed] = useState(false)
+  const [doublePointsActive, setDoublePointsActive] = useState(false)
+  const [eliminatedIndices, setEliminatedIndices] = useState<number[]>([])
+  const [freezeOverlayOpen, setFreezeOverlayOpen] = useState(false)
 
   // ── Reconnect on mount ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -139,6 +148,10 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setVotingAnswers([])
       setVotedAnswerId(null)
       setVotingDeadline(0)
+      // Reset lifeline per-question state
+      setDoublePointsActive(false)
+      setEliminatedIndices([])
+      setFreezeOverlayOpen(false)
     })
 
     // freetext:lock — voting phase starts
@@ -153,6 +166,16 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setPlayerPhase('revealed')
     })
 
+    // Phase 6: Lifeline acknowledgement listeners
+    socket.on('lifeline:double_points_ack', () => {
+      setDoublePointsUsed(true)
+      setDoublePointsActive(true)
+    })
+    socket.on('lifeline:remove_two_result', ({ eliminatedIndices: ei }: { eliminatedIndices: number[] }) => {
+      setRemoveTwoUsed(true)
+      setEliminatedIndices(ei)
+    })
+
     // question:revealed — host revealed the correct answer (D-07)
     socket.on('question:revealed', ({
       correctAnswerIndex,
@@ -163,6 +186,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     }) => {
       setCorrectIndex(correctAnswerIndex)
       setPlayerPhase('revealed')
+      setDoublePointsActive(false)
+      setFreezeOverlayOpen(false)
       // Find my score from playerResults using myToken
       const myResult = playerResults.find((p) => p.id === myToken)
       if (myResult) {
@@ -185,6 +210,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.off('game:podium')
       socket.off('freetext:lock')
       socket.off('freetext:results')
+      socket.off('lifeline:double_points_ack')
+      socket.off('lifeline:remove_two_result')
     }
   }, [phase, myToken])
 
@@ -236,6 +263,17 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     setVotedAnswerId(answerId)
     getSocket().emit('freetext:vote', { answerId })
   }, [votedAnswerId])
+
+  // ── Lifeline handlers ────────────────────────────────────────────────────
+  const handleDoublePoints = useCallback(() => {
+    if (doublePointsUsed || playerPhase !== 'answering') return
+    getSocket().emit('lifeline:double_points')
+  }, [doublePointsUsed, playerPhase])
+
+  const handleRemoveTwo = useCallback(() => {
+    if (removeTwoUsed || playerPhase !== 'answering') return
+    getSocket().emit('lifeline:remove_two')
+  }, [removeTwoUsed, playerPhase])
 
   // ── Render: form ───────────────────────────────────────────────────────────
   if (phase === 'form') {
@@ -376,7 +414,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       )
     }
 
-    // MC / MEDIA_GUESSING question flow (unchanged)
+    // MC / MEDIA_GUESSING question flow
     return (
       <PlayerGameScreen>
         <PlayerTimerBar
@@ -384,6 +422,24 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
           startedAt={questionStartedAt}
           active={playerPhase === 'answering'}
         />
+
+        {/* Phase 6: Lifelines — only for MC/MEDIA_GUESSING */}
+        {currentQuestion.type !== 'FREE_TEXT' && (
+          <LifelineBar
+            doublePointsUsed={doublePointsUsed}
+            removeTwoUsed={removeTwoUsed}
+            freezeOpponentUsed={freezeOpponentUsed}
+            onDoublePoints={handleDoublePoints}
+            onRemoveTwo={handleRemoveTwo}
+            onFreezeOpponent={() => setFreezeOverlayOpen(true)}
+            disabled={playerPhase !== 'answering'}
+          />
+        )}
+        {doublePointsActive && (
+          <p className="text-xs text-indigo-600 font-bold text-center animate-pulse px-4">
+            النقاط مضاعفة لهذا السؤال ×2
+          </p>
+        )}
 
         {/* Question header */}
         <div className="px-4 pt-4 pb-2">
@@ -423,6 +479,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
               revealed={playerPhase === 'revealed'}
               onSelect={handleAnswer}
               disabled={playerPhase !== 'answering'}
+              eliminatedIndices={eliminatedIndices}
             />
           </div>
         )}

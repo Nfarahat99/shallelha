@@ -14,6 +14,8 @@ interface AnswerOptionsProps {
   onSelect: (index: number) => void
   /** When true, all buttons are non-interactive */
   disabled: boolean
+  /** Phase 6: indices of the 2 removed wrong options (Remove Two lifeline, server-provided) */
+  eliminatedIndices?: number[]
 }
 
 /** Color classes per option index — must match host QuestionDisplay colors (D-04) */
@@ -51,6 +53,7 @@ export function AnswerOptions({
   revealed,
   onSelect,
   disabled,
+  eliminatedIndices,
 }: AnswerOptionsProps) {
   const hasSelected = selectedIndex !== null
 
@@ -58,6 +61,11 @@ export function AnswerOptions({
     const base = OPTION_COLORS[index]
     const isSelected = selectedIndex === index
     const isCorrect = correctIndex === index
+
+    // Phase 6: Remove Two — eliminated options (before all other state checks)
+    if (eliminatedIndices?.includes(index)) {
+      return 'bg-gray-200 text-gray-400 opacity-40 pointer-events-none line-through'
+    }
 
     // Post-reveal states
     if (revealed && correctIndex !== null) {
@@ -87,6 +95,7 @@ export function AnswerOptions({
   }
 
   function isButtonDisabled(index: number): boolean {
+    if (eliminatedIndices?.includes(index)) return true
     return disabled || (hasSelected && selectedIndex !== index)
   }
 
