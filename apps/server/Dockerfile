@@ -13,6 +13,7 @@ COPY apps/server/tsconfig.json ./
 COPY apps/server/src ./src
 COPY apps/server/prisma ./prisma
 RUN npx prisma generate
+RUN npx tsc -p prisma/tsconfig.json
 RUN npm run build
 
 # Stage 3: Production image

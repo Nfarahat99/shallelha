@@ -1,51 +1,43 @@
 # Handoff — Sha'lelha (شعللها)
 
-**Generated:** 2026-04-10  
-**Last commit:** fc59d54  
+**Generated:** 2026-04-11  
+**Last commit:** 91e2d1a  
 **Branch:** master
 
 ---
 
 ## What Was Just Completed
 
-**Phase 3+4 (merged): Arabic UI + Game Engine** — fully executed and verified.
+**Phases 1–7 deployed to production.**
 
-### What's Now Working
+### Phase 7: Admin Dashboard + Content Management — What's Now Working
 
-**Backend (apps/server):**
-- Prisma: `Question` + `Category` models, `QuestionStatus` enum, NextAuth models untouched
-- Seed: 30 Arabic trivia questions across 3 categories (ثقافة عامة، رياضة، ترفيه)
-- `game.service.ts`: `calculateScore` (1000→500 linear decay), `createInitialPlayerStates`, `getLeaderboard` (tied-rank), `saveGameState`/`getGameState`/`deleteGameState` (Redis room hash)
-- `game.types.ts`: `GameState`, `PlayerGameState`, `HostSettings`, `LeaderboardEntry`, `QuestionPayload`
-- `socket/game.ts`: All 8 game event handlers — `game:configure`, `game:start`, `player:answer`, `question:reveal`, `leaderboard:show`, `question:next`, `game:end`, auto-reveal timer
-- All host-only events protected by `requireHost()` check
-- `revealedCurrentQ` idempotency guard prevents double-reveal race (CR-02 fixed)
-- `game:end` button correctly wired to `game:end` event (CR-01 fixed)
-- 30 tests passing (16 game service + 10 room service + 4 health)
+**Backend (apps/server — Railway):**
+- `GET /admin/analytics` — per-question stats (timesPlayed, timesAnsweredWrong, wrongRate), rate-limited 30 req/min
+- Fire-and-forget analytics counters wired into `handleReveal` in game loop
+- `adminRouter` registered at `app.use('/admin', adminRouter)` in Express
+- 201 Arabic questions seeded across 6 categories (MC + MEDIA_GUESSING + FREE_TEXT), idempotent via `prisma.question.upsert` keyed on `@@unique([text,categoryId])`
+- Seed script compiled via `prisma/tsconfig.json` during Docker build; Dockerfile CMD runs `prisma db push --accept-data-loss && node prisma/seed.js && node dist/index.js`
 
-**Frontend (apps/web):**
-- `HostDashboard.tsx`: Full state machine — lobby → pre-game → playing → podium → ended
-- `HostPreGame.tsx`: Arabic pickers for layout/timer/reveal config
-- `HostGameScreen.tsx`: Full-screen 16:9 dark stage, LazyMotion wrapper
-- `QuestionDisplay.tsx`: 3 layout variants (2x2/4-column/vertical), color-coded options
-- `TimerDisplay.tsx`: 3 timer styles (bar/circle/number), RTL scaleX for bar
-- `PlayerIndicators.tsx`: Emoji glow ring driven by `answeredIds[]` from `question:progress`
-- `HostInGameControls.tsx`: Arabic buttons, phase-based state, 2-step end confirmation
-- `LeaderboardOverlay.tsx`: AnimatePresence spring slide
-- `PodiumScreen.tsx`: Staggered 3rd→2nd→1st entrance, `useReducedMotion()` support
-- `PlayerGameScreen.tsx`, `AnswerOptions.tsx`, `PlayerTimerBar.tsx`, `WaitingScreen.tsx`
-- `PlayerJoin.tsx`: Wired to full game phase (question:start, question:revealed, game:podium)
-- RTL: 100% Tailwind logical props, zero ml/mr/pl/pr/text-left/text-right violations
-- Motion 12.38.0 installed, build passes
+**Frontend (apps/web — Vercel):**
+- `/admin-login` — password-protected admin gate (httpOnly cookie, ADMIN_SESSION_TOKEN)
+- `/admin` — dashboard with 4 live stat cards (active categories, total/approved/draft questions)
+- `/admin/categories` — Category CRUD: create, rename, archive/unarchive via Server Actions
+- `/admin/questions` — Question list with status + category filters (combinable)
+- `/admin/new-question` — create question form (MC/MEDIA/FREE_TEXT, Cloudinary image upload)
+- `/admin/questions/[id]` — edit question form, pre-populated; approve/revert/delete via Server Actions
+- Cloudinary upload via `POST /api/admin/upload` (server-side stream, API secret never exposed)
+
+**71 server tests passing (7 test files). TypeScript compiles clean.**
 
 ---
 
-## What's Pending (Manual Verification)
+## Deployment Status
 
-Cross-browser smoke test (can't automate):
-- [ ] iOS Safari 16+ — Cairo font renders, RTL layout, scaleX timer depletes right-to-left
-- [ ] Android Chrome 110+ — Same checks, touch targets min 80px
-- [ ] Desktop Chrome/Firefox — Leaderboard overlay, podium animation, full game loop
+| Service | URL | Status |
+|---------|-----|--------|
+| Backend (Railway) | `shallelha-server.railway.app` | Live — port 4000 |
+| Frontend (Vercel) | https://shallelha.vercel.app | Live — latest prod deployment |
 
 ---
 
@@ -58,12 +50,12 @@ Cross-browser smoke test (can't automate):
 | 2 | Complete | Room system + Google auth |
 | 3 | Complete | Arabic UI (merged with Phase 4) |
 | 4 | Complete | Game engine (merged into Phase 3) |
-| 5 | Next | Media Guessing + Free Text |
-| 6 | Pending | Lifelines |
-| 7 | Pending | Admin dashboard |
+| 5 | Complete | Media Guessing + Free Text |
+| 6 | Complete | Lifelines (deployed) |
+| 7 | Complete | Admin dashboard + 201-question Arabic seed (deployed) |
 | 8 | Pending | Polish + launch |
 
-**Next action:** `/gsd-discuss-phase 5` then `/gsd-plan-phase 5` then `/gsd-execute-phase 5`
+**Next action:** `/gsd-next` (will start Phase 8)
 
 ---
 
@@ -79,6 +71,11 @@ Cross-browser smoke test (can't automate):
 - Host controls all game pacing
 - Pre-game config: layoutStyle, timerStyle, revealMode in `game:configure`
 - `question:progress` broadcasts `{answeredCount, totalPlayers, answeredIds: string[]}`
+- Lifelines: one-use per game per player, server-authoritative, transient flags reset per question
+- Admin auth: simple cookie session (ADMIN_SESSION_TOKEN), no DB lookup, edge-compatible middleware
+- Cloudinary upload: server-side `upload_stream` — API secret stays server-only
+- Seed: `@@unique([text, categoryId])` composite constraint enables idempotent per-question upsert
+- `prisma/tsconfig.json` compiles `prisma/*.ts → prisma/*.js` during Docker builder stage
 
 ---
 
@@ -87,8 +84,8 @@ Cross-browser smoke test (can't automate):
 ```bash
 cd /c/shllahaV2
 git status
-npm run test --workspace=apps/server -- --run   # 30 tests green
+npm run test --workspace=apps/server -- --run   # 71 tests green
 npm run build --workspace=apps/web              # build passes
 ```
 
-Start Phase 5: `/gsd-discuss-phase 5`
+Start Phase 8: `/gsd-next`
