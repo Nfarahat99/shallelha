@@ -52,6 +52,27 @@ describe('calculateScore', () => {
   it('returns 0 for wrong answer with streak of 5', () => {
     expect(calculateScore(false, 5000, 20000, 5)).toBe(0)
   })
+
+  // --- Phase 6: Double Points parameter ---
+  it('returns 2000 for instant correct with doublePoints=true (1000*2)', () => {
+    expect(calculateScore(true, 0, 20000, 0, true)).toBe(2000)
+  })
+
+  it('returns 3000 for instant correct with streak=3 and doublePoints=true (1000*1.5*2)', () => {
+    expect(calculateScore(true, 0, 20000, 3, true)).toBe(3000)
+  })
+
+  it('returns 2250 for halfway correct with streak=3 and doublePoints=true (750*1.5*2)', () => {
+    expect(calculateScore(true, 10000, 20000, 3, true)).toBe(2250)
+  })
+
+  it('returns 0 for wrong answer even with doublePoints=true', () => {
+    expect(calculateScore(false, 0, 20000, 0, true)).toBe(0)
+  })
+
+  it('returns 1000 for instant correct with doublePoints=false (no change)', () => {
+    expect(calculateScore(true, 0, 20000, 0, false)).toBe(1000)
+  })
 })
 
 describe('getLeaderboard', () => {
@@ -106,14 +127,32 @@ describe('getLeaderboard', () => {
 })
 
 describe('createInitialPlayerStates', () => {
-  it('initializes all players with score 0, streak 0, answeredCurrentQ false', () => {
+  it('initializes all players with score 0, streak 0, answeredCurrentQ false, and all 5 lifeline fields false', () => {
     const players: Player[] = [
       { id: 'p1', name: 'أحمد', emoji: '😄', socketId: 'socket1' },
       { id: 'p2', name: 'فاطمة', emoji: '😊', socketId: 'socket2' },
     ]
     const states = createInitialPlayerStates(players)
-    expect(states['p1']).toEqual({ score: 0, streak: 0, answeredCurrentQ: false })
-    expect(states['p2']).toEqual({ score: 0, streak: 0, answeredCurrentQ: false })
+    expect(states['p1']).toEqual({
+      score: 0,
+      streak: 0,
+      answeredCurrentQ: false,
+      doublePointsUsed: false,
+      removeTwoUsed: false,
+      freezeOpponentUsed: false,
+      doublePointsActiveCurrentQ: false,
+      frozenCurrentQ: false,
+    })
+    expect(states['p2']).toEqual({
+      score: 0,
+      streak: 0,
+      answeredCurrentQ: false,
+      doublePointsUsed: false,
+      removeTwoUsed: false,
+      freezeOpponentUsed: false,
+      doublePointsActiveCurrentQ: false,
+      frozenCurrentQ: false,
+    })
   })
 
   it('returns an empty object for an empty player list', () => {

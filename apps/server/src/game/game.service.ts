@@ -17,12 +17,14 @@ export function calculateScore(
   elapsedMs: number,
   timerDurationMs: number,
   streak: number,
+  doublePoints = false,
 ): number {
   if (!isCorrect) return 0
   const ratio = Math.min(Math.max(elapsedMs / timerDurationMs, 0), 1)
   const base = Math.floor((1 - ratio / 2) * 1000)
-  const multiplier = streak >= 3 ? 1.5 : 1
-  return Math.floor(base * multiplier)
+  const streakMultiplier = streak >= 3 ? 1.5 : 1
+  const dpMultiplier = doublePoints ? 2 : 1
+  return Math.floor(base * streakMultiplier * dpMultiplier)
 }
 
 /**
@@ -34,7 +36,16 @@ export function createInitialPlayerStates(
 ): Record<string, PlayerGameState> {
   const states: Record<string, PlayerGameState> = {}
   for (const p of players) {
-    states[p.id] = { score: 0, streak: 0, answeredCurrentQ: false }
+    states[p.id] = {
+      score: 0,
+      streak: 0,
+      answeredCurrentQ: false,
+      doublePointsUsed: false,
+      removeTwoUsed: false,
+      freezeOpponentUsed: false,
+      doublePointsActiveCurrentQ: false,
+      frozenCurrentQ: false,
+    }
   }
   return states
 }
