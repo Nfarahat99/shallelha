@@ -137,6 +137,9 @@ function sendQuestion(
   for (const id of Object.keys(gameState.playerStates)) {
     gameState.playerStates[id].answeredCurrentQ = false
     gameState.playerStates[id].votedCurrentQ = false
+    // Phase 6: Reset transient lifeline flags each question (T-06-01, T-06-04)
+    gameState.playerStates[id].doublePointsActiveCurrentQ = false
+    gameState.playerStates[id].frozenCurrentQ = false
   }
 
   // Clear any existing voting timer
@@ -443,6 +446,9 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Reject duplicate answers (T-03-04)
       if (gameState.playerStates[playerId].answeredCurrentQ) return
 
+      // Phase 6: Frozen player cannot answer (LIFE-03, T-06-04)
+      if (gameState.playerStates[playerId].frozenCurrentQ) return
+
       // Compute elapsed time server-side (T-03-05: client cannot influence score)
       const elapsedMs = Date.now() - gameState.questionStartedAt
       const timerDurationMs = gameState.timerDuration
@@ -456,7 +462,13 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Update player state
       const playerState = gameState.playerStates[playerId]
       const currentStreak = playerState.streak
-      const points = calculateScore(isCorrect, elapsedMs, timerDurationMs, currentStreak)
+      const points = calculateScore(
+        isCorrect,
+        elapsedMs,
+        timerDurationMs,
+        currentStreak,
+        playerState.doublePointsActiveCurrentQ,  // Phase 6: Double Points (LIFE-01, T-06-01)
+      )
 
       playerState.score += points
       playerState.answeredCurrentQ = true
@@ -581,9 +593,11 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       gameState.questionStartedAt = Date.now()
       gameState.timerDuration = nextQuestion.timerDuration * 1000
 
-      // Reset answeredCurrentQ flags for all players
+      // Reset per-question flags for all players (Phase 6: also reset transient lifeline flags)
       for (const id of Object.keys(gameState.playerStates)) {
         gameState.playerStates[id].answeredCurrentQ = false
+        gameState.playerStates[id].doublePointsActiveCurrentQ = false
+        gameState.playerStates[id].frozenCurrentQ = false
       }
 
       await saveGameState(roomCode, gameState)
