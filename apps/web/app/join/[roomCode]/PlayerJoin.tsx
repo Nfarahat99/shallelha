@@ -12,6 +12,7 @@ import { MediaQuestion } from '@/app/host/[roomCode]/game/MediaQuestion'
 import { FreeTextInput } from './game/FreeTextInput'
 import { VotingUI } from './game/VotingUI'
 import { LifelineBar } from './game/LifelineBar'
+import { FreezeOpponentOverlay } from './game/FreezeOpponentOverlay'
 
 interface Player {
   id: string
@@ -83,6 +84,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [doublePointsActive, setDoublePointsActive] = useState(false)
   const [eliminatedIndices, setEliminatedIndices] = useState<number[]>([])
   const [freezeOverlayOpen, setFreezeOverlayOpen] = useState(false)
+  const [freezeError, setFreezeError] = useState<string | null>(null)
 
   // ── Reconnect on mount ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -152,6 +154,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setDoublePointsActive(false)
       setEliminatedIndices([])
       setFreezeOverlayOpen(false)
+      setFreezeError(null)
     })
 
     // freetext:lock — voting phase starts
@@ -174,6 +177,21 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     socket.on('lifeline:remove_two_result', ({ eliminatedIndices: ei }: { eliminatedIndices: number[] }) => {
       setRemoveTwoUsed(true)
       setEliminatedIndices(ei)
+    })
+    socket.on('lifeline:freeze_ack', ({ success, reason }: { success: boolean; reason?: string }) => {
+      if (success) {
+        setFreezeOpponentUsed(true)
+        setFreezeOverlayOpen(false)
+      } else {
+        setFreezeOverlayOpen(false)
+        if (reason === 'already_answered') {
+          setFreezeError('اللاعب أجاب بالفعل — لم يُستخدم التجميد')
+        } else if (reason === 'invalid_target') {
+          setFreezeError('هذا اللاعب غير موجود')
+        } else {
+          setFreezeError('تعذّر تجميد المنافس')
+        }
+      }
     })
 
     // question:revealed — host revealed the correct answer (D-07)
@@ -212,6 +230,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.off('freetext:results')
       socket.off('lifeline:double_points_ack')
       socket.off('lifeline:remove_two_result')
+      socket.off('lifeline:freeze_ack')
     }
   }, [phase, myToken])
 
@@ -274,6 +293,10 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     if (removeTwoUsed || playerPhase !== 'answering') return
     getSocket().emit('lifeline:remove_two')
   }, [removeTwoUsed, playerPhase])
+
+  const handleFreezeSelect = useCallback((targetPlayerId: string) => {
+    getSocket().emit('lifeline:freeze_opponent', { targetPlayerId })
+  }, [])
 
   // ── Render: form ───────────────────────────────────────────────────────────
   if (phase === 'form') {
@@ -440,6 +463,11 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             النقاط مضاعفة لهذا السؤال ×2
           </p>
         )}
+        {freezeError && (
+          <p className="text-xs text-red-600 font-semibold text-center px-4">
+            {freezeError}
+          </p>
+        )}
 
         {/* Question header */}
         <div className="px-4 pt-4 pb-2">
@@ -495,6 +523,15 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
               <p className="text-xs text-yellow-500 font-semibold">سلسلة ×1.5</p>
             )}
           </div>
+        )}
+
+        {/* Freeze Opponent overlay — portal-like, fixed z-50 */}
+        {freezeOverlayOpen && (
+          <FreezeOpponentOverlay
+            players={players.filter((p) => p.id !== myToken)}
+            onSelect={handleFreezeSelect}
+            onCancel={() => setFreezeOverlayOpen(false)}
+          />
         )}
       </PlayerGameScreen>
     )

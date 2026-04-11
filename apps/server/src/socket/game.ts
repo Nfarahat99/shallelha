@@ -443,6 +443,9 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Reject duplicate answers (T-03-04)
       if (gameState.playerStates[playerId].answeredCurrentQ) return
 
+      // Reject answers from frozen players (T-06-04: Freeze Opponent lifeline)
+      if (gameState.playerStates[playerId].frozenCurrentQ) return
+
       // Compute elapsed time server-side (T-03-05: client cannot influence score)
       const elapsedMs = Date.now() - gameState.questionStartedAt
       const timerDurationMs = gameState.timerDuration
@@ -788,6 +791,57 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       console.log(`[Game] Remove Two activated by ${playerId} in ${roomCode}: eliminated ${eliminatedIndices}`)
     } catch (err) {
       console.error('[Game] lifeline:remove_two error:', err)
+    }
+  })
+
+  // -------------------------------------------------------------------------
+  // lifeline:freeze_opponent — Player freezes another player (LIFE-03)
+  // -------------------------------------------------------------------------
+  socket.on('lifeline:freeze_opponent', async (data: { targetPlayerId: string }) => {
+    const roomCode: string = socket.data.roomCode
+    if (!roomCode) return
+
+    try {
+      const gameState = await getGameState(roomCode)
+      if (!gameState || gameState.phase !== 'question') return  // T-06-04: phase guard
+
+      const playerId: string = socket.data.reconnectToken
+      if (!playerId || !gameState.playerStates[playerId]) return
+
+      const activatorState = gameState.playerStates[playerId]
+      if (activatorState.freezeOpponentUsed) {
+        socket.emit('lifeline:freeze_ack', { success: false, reason: 'already_used' })
+        return  // T-06-01: replay guard
+      }
+
+      // T-06-03: Input validation — targetPlayerId must be string
+      const { targetPlayerId } = data ?? {}
+      if (!targetPlayerId || typeof targetPlayerId !== 'string') return
+
+      // T-06-03: Cannot freeze self
+      if (targetPlayerId === playerId) return
+
+      const targetState = gameState.playerStates[targetPlayerId]
+      if (!targetState) {
+        socket.emit('lifeline:freeze_ack', { success: false, reason: 'invalid_target' })
+        return  // T-06-03: target must exist in game
+      }
+
+      // Fair game design: if target already answered, freeze has no effect — return lifeline unused
+      if (targetState.answeredCurrentQ) {
+        socket.emit('lifeline:freeze_ack', { success: false, reason: 'already_answered' })
+        return  // Do NOT set freezeOpponentUsed — lifeline returned to player
+      }
+
+      // Apply freeze
+      activatorState.freezeOpponentUsed = true
+      targetState.frozenCurrentQ = true
+      await saveGameState(roomCode, gameState)
+
+      socket.emit('lifeline:freeze_ack', { success: true })
+      console.log(`[Game] Freeze Opponent: ${playerId} froze ${targetPlayerId} in ${roomCode}`)
+    } catch (err) {
+      console.error('[Game] lifeline:freeze_opponent error:', err)
     }
   })
 }
