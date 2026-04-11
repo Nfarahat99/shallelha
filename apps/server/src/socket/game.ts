@@ -137,9 +137,6 @@ function sendQuestion(
   for (const id of Object.keys(gameState.playerStates)) {
     gameState.playerStates[id].answeredCurrentQ = false
     gameState.playerStates[id].votedCurrentQ = false
-    // Phase 6: Reset transient lifeline flags each question (T-06-01, T-06-04)
-    gameState.playerStates[id].doublePointsActiveCurrentQ = false
-    gameState.playerStates[id].frozenCurrentQ = false
   }
 
   // Clear any existing voting timer
@@ -446,9 +443,6 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Reject duplicate answers (T-03-04)
       if (gameState.playerStates[playerId].answeredCurrentQ) return
 
-      // Phase 6: Frozen player cannot answer (LIFE-03, T-06-04)
-      if (gameState.playerStates[playerId].frozenCurrentQ) return
-
       // Compute elapsed time server-side (T-03-05: client cannot influence score)
       const elapsedMs = Date.now() - gameState.questionStartedAt
       const timerDurationMs = gameState.timerDuration
@@ -462,13 +456,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Update player state
       const playerState = gameState.playerStates[playerId]
       const currentStreak = playerState.streak
-      const points = calculateScore(
-        isCorrect,
-        elapsedMs,
-        timerDurationMs,
-        currentStreak,
-        playerState.doublePointsActiveCurrentQ,  // Phase 6: Double Points (LIFE-01, T-06-01)
-      )
+      const points = calculateScore(isCorrect, elapsedMs, timerDurationMs, currentStreak)
 
       playerState.score += points
       playerState.answeredCurrentQ = true
@@ -593,11 +581,9 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       gameState.questionStartedAt = Date.now()
       gameState.timerDuration = nextQuestion.timerDuration * 1000
 
-      // Reset per-question flags for all players (Phase 6: also reset transient lifeline flags)
+      // Reset answeredCurrentQ flags for all players
       for (const id of Object.keys(gameState.playerStates)) {
         gameState.playerStates[id].answeredCurrentQ = false
-        gameState.playerStates[id].doublePointsActiveCurrentQ = false
-        gameState.playerStates[id].frozenCurrentQ = false
       }
 
       await saveGameState(roomCode, gameState)
@@ -733,6 +719,75 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await saveGameState(roomCode, gameState)
     } catch (err) {
       console.error('[Game] freetext:vote error:', err)
+    }
+  })
+
+  // -------------------------------------------------------------------------
+  // lifeline:double_points — Player activates Double Points lifeline (LIFE-01)
+  // -------------------------------------------------------------------------
+  socket.on('lifeline:double_points', async () => {
+    const roomCode: string = socket.data.roomCode
+    if (!roomCode) return
+
+    try {
+      const gameState = await getGameState(roomCode)
+      if (!gameState || gameState.phase !== 'question') return  // T-06-04: phase guard
+
+      const playerId: string = socket.data.reconnectToken
+      if (!playerId || !gameState.playerStates[playerId]) return
+
+      const playerState = gameState.playerStates[playerId]
+      if (playerState.doublePointsUsed) return  // T-06-01: replay guard
+
+      // Defense-in-depth: reject on FREE_TEXT (UI already hides button)
+      const questionData = questionCache.get(roomCode)?.[gameState.currentQuestionIndex]
+      if (!questionData || questionData.type === 'FREE_TEXT') return
+
+      playerState.doublePointsUsed = true
+      playerState.doublePointsActiveCurrentQ = true
+      await saveGameState(roomCode, gameState)
+
+      socket.emit('lifeline:double_points_ack', {})
+      console.log(`[Game] Double Points activated by ${playerId} in ${roomCode}`)
+    } catch (err) {
+      console.error('[Game] lifeline:double_points error:', err)
+    }
+  })
+
+  // -------------------------------------------------------------------------
+  // lifeline:remove_two — Player activates Remove Two lifeline (LIFE-02)
+  // -------------------------------------------------------------------------
+  socket.on('lifeline:remove_two', async () => {
+    const roomCode: string = socket.data.roomCode
+    if (!roomCode) return
+
+    try {
+      const gameState = await getGameState(roomCode)
+      if (!gameState || gameState.phase !== 'question') return  // T-06-04: phase guard
+
+      const playerId: string = socket.data.reconnectToken
+      if (!playerId || !gameState.playerStates[playerId]) return
+
+      const playerState = gameState.playerStates[playerId]
+      if (playerState.removeTwoUsed) return  // T-06-01: replay guard
+
+      // T-06-02: reject on FREE_TEXT question type
+      const questionData = questionCache.get(roomCode)?.[gameState.currentQuestionIndex]
+      if (!questionData || questionData.type === 'FREE_TEXT') return
+
+      // Select 2 wrong indices — NEVER include correctIndex
+      const wrongIndices = [0, 1, 2, 3].filter(i => i !== questionData.correctIndex)
+      shuffle(wrongIndices)
+      const eliminatedIndices = wrongIndices.slice(0, 2)
+
+      playerState.removeTwoUsed = true
+      await saveGameState(roomCode, gameState)
+
+      // Private to requesting player only (not room broadcast)
+      socket.emit('lifeline:remove_two_result', { eliminatedIndices })
+      console.log(`[Game] Remove Two activated by ${playerId} in ${roomCode}: eliminated ${eliminatedIndices}`)
+    } catch (err) {
+      console.error('[Game] lifeline:remove_two error:', err)
     }
   })
 }

@@ -20,17 +20,6 @@ export interface PlayerGameState {
   lastAnswerTime?: number
   /** Free text voting deduplication guard — true once player has cast their vote. */
   votedCurrentQ?: boolean
-  // --- Phase 6: Lifeline state ---
-  /** Permanent per-game flag: Double Points lifeline has been used */
-  doublePointsUsed: boolean
-  /** Permanent per-game flag: Remove Two lifeline has been used */
-  removeTwoUsed: boolean
-  /** Permanent per-game flag: Freeze Opponent lifeline has been used */
-  freezeOpponentUsed: boolean
-  /** Transient per-question: Double Points is active for current question scoring */
-  doublePointsActiveCurrentQ: boolean
-  /** Transient per-question: This player is frozen and cannot answer */
-  frozenCurrentQ: boolean
 }
 
 export interface GameState {
