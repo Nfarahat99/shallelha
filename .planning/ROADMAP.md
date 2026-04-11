@@ -115,14 +115,6 @@ Plans:
 - Lifeline UI on player controller with spent state (greyed out after use)
 - Server-side enforcement: lifelines can't be reused
 
-**Plans:** 4 plans
-
-Plans:
-- [ ] 06-01-PLAN.md — Data layer + scoring: extend PlayerGameState types, calculateScore doublePoints param, Wave 0 test stubs, sendQuestion/player:answer lifeline wiring
-- [ ] 06-02-PLAN.md — Double Points + Remove Two: server handlers with security guards, LifelineBar component, AnswerOptions eliminatedIndices, PlayerJoin lifeline state
-- [ ] 06-03-PLAN.md — Freeze Opponent: server handler with target validation, FreezeOpponentOverlay component, PlayerJoin freeze wiring + error toast
-- [ ] 06-04-PLAN.md — End-to-end verification: complete lifeline tests, build checks, visual/functional checkpoint
-
 ---
 
 ## Phase 7: Admin Dashboard & Content Management
@@ -169,4 +161,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-09*
-*Last updated: 2026-04-11 — Phase 6 plans created (4 plans, 3 waves)*
+*Last updated: 2026-04-11 — Phase 5 plans created (4 plans, 4 waves)*
