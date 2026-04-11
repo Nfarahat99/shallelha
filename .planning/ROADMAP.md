@@ -138,10 +138,10 @@ Plans:
 - Basic analytics: questions played count, wrong answer rate per question
 - Seed script for 200+ launch questions across 6 Arabic categories
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
-- [ ] 07-01-PLAN.md — Data layer: extend schema (archived, timesPlayed, timesAnsweredWrong), Wave 0 test stubs, .env.example
+- [x] 07-01-PLAN.md — Data layer: extend schema (archived, timesPlayed, timesAnsweredWrong), Wave 0 test stubs, .env.example
 - [ ] 07-02-PLAN.md — Admin auth + Category CRUD: middleware cookie gate, login/logout handlers, admin layout, category Server Actions
 - [ ] 07-03-PLAN.md — Question CRUD + Cloudinary: upload Route Handler, question Server Actions, list/create/edit pages, status workflow UI
 - [ ] 07-04-PLAN.md — Analytics: fire-and-forget increments in game.ts, admin Express route with rate-limit, complete Wave 0 test stubs
