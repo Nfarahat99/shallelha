@@ -54,10 +54,12 @@ Exceptions:
 
 All text uses Cairo Arabic (var(--font-cairo)). RTL direction is inherited from `dir="rtl"` on `<html>`.
 
+Declared weights: 2 only — `400 (font-normal)` and `700 (font-bold)`. font-semibold is not used in this phase.
+
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 16px (text-base) | 400 (font-normal) | 1.5 | General text, waiting states, player names in picker overlay |
-| Label | 14px (text-sm) | 600 (font-semibold) | 1.2 | Lifeline button labels (Arabic text), spent badge, question counter |
+| Label | 14px (text-sm) | 700 (font-bold) | 1.2 | Lifeline button labels (Arabic text), spent badge, question counter |
 | Heading | 20px (text-xl) | 700 (font-bold) | 1.2 | Question text (existing), overlay title in player-picker |
 | Display | 28px (text-3xl) | 700 (font-bold) | 1.1 | Score readouts (existing — matches PlayerJoin revealed state) |
 
@@ -78,8 +80,9 @@ Dark/light split: PlayerGameScreen uses `bg-white` (mobile portrait). Host scree
 
 Accent reserved for:
 1. Active (unspent) lifeline buttons — all three when available
-2. The "تأكيد" (Confirm) button inside the Freeze Opponent player-picker overlay
-3. The timer progress bar (existing indigo-500 — do not change)
+2. The timer progress bar (existing indigo-500 — do not change)
+
+Selection in the Freeze Opponent overlay fires directly on player row tap — there is no separate Confirm button.
 
 Spent state color: `bg-gray-200 text-gray-400` with `opacity-50` — matches the "other options greyed out" pattern in AnswerOptions.tsx (existing codebase pattern).
 
@@ -123,7 +126,7 @@ interface LifelineBarProps {
 
 Active button classes:
 ```
-rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] text-sm font-semibold
+rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] text-sm font-bold
 bg-indigo-600 text-white active:scale-95 active:brightness-90
 transition-all duration-150 cursor-pointer
 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2
@@ -131,7 +134,7 @@ focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2
 
 Spent button classes (after use):
 ```
-rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] text-sm font-semibold
+rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] text-sm font-bold
 bg-gray-200 text-gray-400 opacity-50 pointer-events-none cursor-not-allowed
 ```
 
@@ -157,9 +160,9 @@ Fixed full-screen dim backdrop (bg-gray-950/80 backdrop-blur-sm)
        │    └── PlayerRow × N (min-h-[48px] rounded-xl flex items-center gap-3 px-4
        │         bg-gray-100 active:bg-indigo-50 cursor-pointer transition-colors)
        │         ├── Emoji (text-2xl)
-       │         └── Name (text-base font-semibold text-gray-900)
+       │         └── Name (text-base font-bold text-gray-900)
        └── Cancel button (text-sm text-gray-400 underline mt-4 text-center w-full)
-            copy: "إلغاء"
+            copy: "إلغاء التجميد"
 ```
 
 Props:
@@ -215,7 +218,7 @@ eliminatedIndices?: number[]   // indices of the 2 removed wrong options (server
 
 When Double Points is activated but the question is not yet revealed, add a visible badge below the lifeline row:
 ```
-<p className="text-xs text-indigo-600 font-semibold text-center animate-pulse">
+<p className="text-xs text-indigo-600 font-bold text-center animate-pulse">
   النقاط مضاعفة لهذا السؤال ×2
 </p>
 ```
@@ -258,7 +261,7 @@ All copy is Arabic. No English labels anywhere in the player controller.
 | Freeze Opponent button label | جمّد منافس |
 | Double Points active badge | النقاط مضاعفة لهذا السؤال ×2 |
 | Freeze Opponent overlay heading | اختر منافسًا للتجميد |
-| Freeze Opponent cancel | إلغاء |
+| Freeze Opponent cancel | إلغاء التجميد |
 | Freeze Opponent screen-reader label | اختر لاعبًا لتجميده لهذا السؤال |
 | Spent lifeline aria-label suffix | (مستخدم) — appended to button aria-label, e.g. "نقاط مضاعفة (مستخدم)" |
 | Error — already used (defensive) | تم استخدام هذا المساعد مسبقًا |
