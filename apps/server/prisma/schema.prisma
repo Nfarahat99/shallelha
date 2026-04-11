@@ -25,6 +25,7 @@ model Category {
   id        String     @id @default(cuid())
   name      String
   slug      String     @unique
+  archived  Boolean    @default(false)
   questions Question[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -38,7 +39,9 @@ model Question {
   timerDuration  Int            @default(20)
   status         QuestionStatus @default(draft)
   type           QuestionType   @default(MULTIPLE_CHOICE)
-  mediaUrl       String?
+  mediaUrl           String?
+  timesPlayed        Int            @default(0)
+  timesAnsweredWrong Int            @default(0)
   category       Category       @relation(fields: [categoryId], references: [id])
   categoryId     String
   createdAt      DateTime       @default(now())
