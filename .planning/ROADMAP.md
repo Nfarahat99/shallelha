@@ -120,8 +120,8 @@ Plans:
 Plans:
 - [x] 06-01-PLAN.md — Data layer + scoring: extend PlayerGameState types, calculateScore doublePoints param, Wave 0 test stubs, sendQuestion/player:answer lifeline wiring
 - [x] 06-02-PLAN.md — Double Points + Remove Two: server handlers with security guards, LifelineBar component, AnswerOptions eliminatedIndices, PlayerJoin lifeline state
-- [ ] 06-03-PLAN.md — Freeze Opponent: server handler with target validation, FreezeOpponentOverlay component, PlayerJoin freeze wiring + error toast
-- [ ] 06-04-PLAN.md — End-to-end verification: complete lifeline tests, build checks, visual/functional checkpoint
+- [x] 06-03-PLAN.md — Freeze Opponent: server handler with target validation, FreezeOpponentOverlay component, PlayerJoin freeze wiring + error toast
+- [x] 06-04-PLAN.md — End-to-end verification: complete lifeline tests, build checks, visual/functional checkpoint
 
 ---
 
