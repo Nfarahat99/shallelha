@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-11T10:58:30.126Z"
+last_updated: "2026-04-11T11:09:44.397Z"
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 25
-  completed_plans: 19
-  percent: 76
+  completed_plans: 20
+  percent: 80
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -61,6 +61,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 ---
 - [Phase 07]: Cloudinary upload uses server-side stream (upload_stream) rather than unsigned client upload — keeps API secret server-only
 - [Phase 07]: QuestionForm placed under new-question/ and imported by [id] edit page to avoid duplication; bound 'use server' closure captures question id in edit page
+- [Phase 07]: Prisma import from db/prisma (not lib/prisma) — matched existing health.ts pattern in server codebase
+- [Phase 07]: Wrong-answer detection uses streak===0 && answeredCurrentQ at reveal time — atomic Prisma increment, fire-and-forget
 
 ## Open Questions
 
@@ -81,3 +83,4 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 ---
 
 *Last session: 2026-04-11 — Stopped at: Completed 07-03-PLAN.md — question CRUD + Cloudinary upload*
+| Phase 07 P04 | 11min | 2 tasks | 5 files |

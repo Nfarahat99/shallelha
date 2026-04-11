@@ -57,7 +57,7 @@
 - [ ] **ADMIN-01**: Admin can create, read, update, and delete question categories
 - [ ] **ADMIN-02**: Admin can create, read, update, and delete questions (text, image, audio)
 - [ ] **ADMIN-03**: Questions have a draft → approved → live workflow (not visible in-game until approved)
-- [ ] **ADMIN-04**: Admin dashboard shows basic analytics: questions played, wrong answer rates
+- [x] **ADMIN-04**: Admin dashboard shows basic analytics: questions played, wrong answer rates
 - [ ] **ADMIN-05**: Minimum 200 approved questions across 6 categories available at launch
 
 ### Infrastructure & Deployment
