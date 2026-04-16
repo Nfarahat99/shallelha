@@ -48,7 +48,7 @@ app.use((_req, res) => {
 
 // Global error handler — never expose stack traces in production
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('[Error]', err.message)
+  console.error('[ERROR] Express:', err.message)
   const message = process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message
   res.status(500).json({ error: message })
 })
@@ -66,7 +66,7 @@ process.on('unhandledRejection', (reason) => {
 
 const PORT = Number(process.env.PORT) || 4000
 httpServer.listen(PORT, () => {
-  console.log(`[Server] Listening on port ${PORT}`)
+  console.log(`[INFO] Server listening on port ${PORT}`)
 })
 
 export { httpServer }
