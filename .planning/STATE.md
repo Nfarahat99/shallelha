@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-16T11:47:49.010Z"
+last_updated: "2026-04-16T11:56:18.197Z"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 29
-  completed_plans: 27
-  percent: 93
+  completed_plans: 28
+  percent: 97
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -69,6 +69,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 07]: @@unique([text, categoryId]) composite constraint enables per-question upsert; old coarse existingCount===0 guard replaced
 - [Phase 08]: Per-socket in-memory rate limiter chosen over Redis-backed — socket-level limits are per-connection, zero-latency, no Redis round-trips needed
 - [Phase 08]: findRoomByHostId rewritten to O(1) using hostroom:{hostId} Redis reverse index — eliminates redis.keys O(n) scan
+- [Phase 08]: No Sentry for MVP — Railway log drain + process.on handlers sufficient
+- [Phase 08]: Analytics failures downgraded from ERROR to WARN (non-critical, fire-and-forget)
 
 ## Open Questions
 
@@ -92,3 +94,4 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 *Last session: 2026-04-11 — Stopped at: Completed 07-05-PLAN.md — 201 Arabic questions seeded, idempotent upsert, Wave 0 stubs complete*
 | Phase 08 P02 | 15 | 9 tasks | 6 files |
+| Phase 08 P03 | 25min | 6 tasks | 8 files |
