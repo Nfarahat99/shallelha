@@ -75,4 +75,26 @@ describe('GET /health', () => {
     expect(res.body.postgres).toBe('error')
     expect(res.body.redis).toBe('error')
   })
+
+  it('returns 503 when approvedQuestions < 200', async () => {
+    vi.mocked(prisma.$queryRaw).mockResolvedValueOnce([{ '?column?': 1 }])
+    vi.mocked(prisma.question.count).mockResolvedValueOnce(50)
+    vi.mocked(redis.ping).mockResolvedValueOnce('PONG')
+
+    const res = await request(buildApp()).get('/health')
+
+    expect(res.status).toBe(503)
+    expect(res.body.questionThreshold).toBe('below_minimum')
+  })
+
+  it('returns 200 when approvedQuestions >= 200', async () => {
+    vi.mocked(prisma.$queryRaw).mockResolvedValueOnce([{ '?column?': 1 }])
+    vi.mocked(prisma.question.count).mockResolvedValueOnce(201)
+    vi.mocked(redis.ping).mockResolvedValueOnce('PONG')
+
+    const res = await request(buildApp()).get('/health')
+
+    expect(res.status).toBe(200)
+    expect(res.body.questionThreshold).toBeUndefined()
+  })
 })
