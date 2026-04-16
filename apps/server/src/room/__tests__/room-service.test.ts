@@ -9,6 +9,9 @@ vi.mock('../../redis/client', () => {
     hgetall: vi.fn(),
     hget: vi.fn(),
     keys: vi.fn(),
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
     watch: vi.fn(),
     unwatch: vi.fn(),
     multi: vi.fn(() => ({
@@ -31,6 +34,7 @@ describe('createRoom', () => {
     vi.mocked(mockRedis.exists).mockResolvedValue(0)
     vi.mocked(mockRedis.hset).mockResolvedValue(5)
     vi.mocked(mockRedis.expire).mockResolvedValue(1)
+    vi.mocked(mockRedis.set).mockResolvedValue('OK')
 
     const room = await createRoom('user-123', 'socket-abc')
 
@@ -47,6 +51,7 @@ describe('createRoom', () => {
       .mockResolvedValueOnce(0) // second code is free
     vi.mocked(mockRedis.hset).mockResolvedValue(5)
     vi.mocked(mockRedis.expire).mockResolvedValue(1)
+    vi.mocked(mockRedis.set).mockResolvedValue('OK')
 
     const room = await createRoom('user-123', 'socket-abc')
     expect(room.code).toMatch(/^[A-Z]{4}$/)
@@ -153,6 +158,33 @@ describe('joinRoom', () => {
     vi.mocked(mockRedis.unwatch).mockResolvedValue('OK')
 
     await expect(joinRoom('ABCD', 'لاعب', '🦁', 'sock-1')).rejects.toThrow('no longer accepting')
+  })
+})
+
+describe('joinRoom — 9th player', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('throws "Room is full" when 8 players already present', async () => {
+    const fullPlayers = Array.from({ length: 8 }, (_, i) => ({
+      id: `tok-${i}`,
+      name: `لاعب ${i}`,
+      emoji: '🦁',
+      socketId: `sock-${i}`,
+    }))
+
+    vi.mocked(mockRedis.watch).mockResolvedValue('OK')
+    vi.mocked(mockRedis.hgetall).mockResolvedValue({
+      hostId: 'host-1',
+      hostSocketId: 'host-sock',
+      players: JSON.stringify(fullPlayers),
+      status: 'lobby',
+      createdAt: '1700000000000',
+    })
+    vi.mocked(mockRedis.unwatch).mockResolvedValue('OK')
+
+    await expect(
+      joinRoom('ABCD', 'اللاعب التاسع', '😊', 'sock-9'),
+    ).rejects.toThrow('Room is full')
   })
 })
 
