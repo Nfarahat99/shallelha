@@ -42,6 +42,7 @@ export async function createRoom(hostId: string, hostSocketId: string): Promise<
     createdAt: String(room.createdAt),
   })
   await redis.expire(roomKey(code), ROOM_TTL)
+  await redis.set(`hostroom:${hostId}`, code, 'EX', ROOM_TTL)
 
   return room
 }
@@ -61,16 +62,9 @@ export async function getRoom(code: string): Promise<Room | null> {
 }
 
 export async function findRoomByHostId(hostId: string): Promise<Room | null> {
-  // Scan for the host's room — called only on host reconnect, not in hot path
-  const keys = await redis.keys('room:*')
-  for (const key of keys) {
-    const storedHostId = await redis.hget(key, 'hostId')
-    if (storedHostId === hostId) {
-      const code = key.replace('room:', '')
-      return getRoom(code)
-    }
-  }
-  return null
+  const code = await redis.get(`hostroom:${hostId}`)
+  if (!code) return null
+  return getRoom(code)
 }
 
 /**
@@ -181,4 +175,8 @@ export async function updateRoomStatus(
   status: Room['status'],
 ): Promise<void> {
   await redis.hset(roomKey(code), 'status', status)
+  if (status === 'ended') {
+    const raw = await redis.hgetall(roomKey(code))
+    if (raw?.hostId) await redis.del(`hostroom:${raw.hostId}`)
+  }
 }
