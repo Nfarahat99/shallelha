@@ -176,6 +176,11 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
     }
 
     try {
+      const room = await getRoom(roomCode)
+      if (!room || room.hostId !== socket.data.userId) {
+        socket.emit('room:error', { message: 'Host verification failed' })
+        return
+      }
       await updateRoomStatus(roomCode, 'playing')
       io.to(roomCode).emit('game:started', { roomCode })
       console.log(`[Room] Game started in ${roomCode}`)
@@ -201,6 +206,11 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
     }
 
     try {
+      const room = await getRoom(roomCode)
+      if (!room || room.hostId !== socket.data.userId) {
+        socket.emit('room:error', { message: 'Host verification failed' })
+        return
+      }
       await updateRoomStatus(roomCode, 'ended')
       io.to(roomCode).emit('game:ended', { roomCode })
       console.log(`[Room] Game ended in ${roomCode}`)
