@@ -11,6 +11,9 @@ healthRouter.get('/', async (_req, res) => {
     await prisma.$queryRaw`SELECT 1`
     checks.postgres = 'ok'
     checks.approvedQuestions = await prisma.question.count({ where: { status: 'approved' } })
+    if (typeof checks.approvedQuestions === 'number' && checks.approvedQuestions < 200) {
+      checks.questionThreshold = 'below_minimum'
+    }
   } catch {
     checks.postgres = 'error'
   }
@@ -22,6 +25,6 @@ healthRouter.get('/', async (_req, res) => {
     checks.redis = 'error'
   }
 
-  const allOk = ['postgres', 'redis'].every((k) => checks[k] !== 'error')
+  const allOk = ['postgres', 'redis'].every((k) => checks[k] !== 'error') && checks.questionThreshold !== 'below_minimum'
   res.status(allOk ? 200 : 503).json(checks)
 })
