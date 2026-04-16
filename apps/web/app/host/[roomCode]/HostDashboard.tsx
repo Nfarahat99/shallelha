@@ -5,6 +5,7 @@ import { AnimatePresence } from 'motion/react'
 import { getSocket } from '@/lib/socket'
 import { PlayerCard } from '@/components/ui/PlayerCard'
 import { HostControls } from '@/components/ui/HostControls'
+import SkeletonCard from '@/components/ui/SkeletonCard'
 import { HostPreGame, type HostSettings } from './game/HostPreGame'
 import { HostGameScreen } from './game/HostGameScreen'
 import { QuestionDisplay } from './game/QuestionDisplay'
@@ -276,7 +277,7 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-gray-500">اللاعبون ({players.length}/8)</h2>
           {players.length === 0 ? (
-            <p className="text-center text-gray-400 py-8 text-sm">في انتظار اللاعبين…</p>
+            <SkeletonCard count={3} />
           ) : (
             <div className="space-y-2">
               {players.map((player) => (

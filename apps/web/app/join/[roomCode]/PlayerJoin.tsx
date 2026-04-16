@@ -4,6 +4,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { getSocket } from '@/lib/socket'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { PlayerCard } from '@/components/ui/PlayerCard'
+import ErrorBanner from '@/components/ui/ErrorBanner'
+import LoadingButton from '@/components/ui/LoadingButton'
+import DisconnectBanner from '@/components/ui/DisconnectBanner'
+import SkeletonCard from '@/components/ui/SkeletonCard'
 import { PlayerGameScreen } from './game/PlayerGameScreen'
 import { AnswerOptions } from './game/AnswerOptions'
 import { PlayerTimerBar } from './game/PlayerTimerBar'
@@ -47,6 +51,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [emoji, setEmoji] = useState('🦁')
   const [players, setPlayers] = useState<Player[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [isJoining, setIsJoining] = useState(false)
   const [myToken, setMyToken] = useState<string | null>(null)
 
   // ── Game state ─────────────────────────────────────────────────────────────
@@ -243,15 +248,19 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       const socket = getSocket()
       socket.connect()
 
+      setIsJoining(true)
+
       socket.once('room:joined', ({ reconnectToken, players: joined }: { reconnectToken: string; players: Player[] }) => {
         sessionStorage.setItem(RECONNECT_KEY(roomCode), reconnectToken)
         setMyToken(reconnectToken)
         setPlayers(joined)
+        setIsJoining(false)
         setPhase('lobby')
       })
 
       socket.once('room:error', ({ message }: { message: string }) => {
         setError(message)
+        setIsJoining(false)
         socket.off('room:joined')
       })
 
@@ -302,6 +311,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   if (phase === 'form') {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
+        <DisconnectBanner />
+
         <div className="text-center space-y-1">
           <h1 className="text-3xl font-bold">شعللها</h1>
           <p className="text-gray-500 text-sm">غرفة <span dir="ltr" className="font-mono font-bold">{roomCode}</span></p>
@@ -309,9 +320,10 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
 
         <form onSubmit={handleJoin} className="w-full max-w-sm space-y-6">
           {error && (
-            <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 text-center">
-              {error}
-            </div>
+            <ErrorBanner
+              type={error === 'Room is full' ? 'full-room' : 'invalid-code'}
+              onDismiss={() => setError(null)}
+            />
           )}
 
           {/* Name input */}
@@ -320,7 +332,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value.slice(0, 15))}
+              onChange={(e) => { setName(e.target.value.slice(0, 15)); setError(null) }}
               placeholder="أدخل اسمك"
               maxLength={15}
               required
@@ -336,13 +348,14 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             <EmojiPicker value={emoji} onChange={setEmoji} />
           </div>
 
-          <button
+          <LoadingButton
             type="submit"
+            loading={isJoining}
             disabled={!name.trim()}
             className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-lg font-bold text-white hover:bg-indigo-700 disabled:opacity-40 transition-colors"
           >
             انضم إلى الغرفة
-          </button>
+          </LoadingButton>
         </form>
       </main>
     )
@@ -353,6 +366,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     const myPlayer = players.find(p => p.id === myToken)
     return (
       <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
+        <DisconnectBanner />
+
         <div className="text-center space-y-1">
           {myPlayer && (
             <div className="text-5xl mb-2">{myPlayer.emoji}</div>
@@ -364,9 +379,13 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
         </div>
 
         <div className="w-full max-w-sm space-y-2">
-          {players.map((p) => (
-            <PlayerCard key={p.id} name={p.name} emoji={p.emoji} />
-          ))}
+          {players.length === 0 ? (
+            <SkeletonCard count={3} />
+          ) : (
+            players.map((p) => (
+              <PlayerCard key={p.id} name={p.name} emoji={p.emoji} />
+            ))
+          )}
         </div>
 
         <p className="text-sm text-gray-400 animate-pulse">في انتظار المضيف…</p>
