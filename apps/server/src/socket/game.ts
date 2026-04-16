@@ -63,7 +63,7 @@ function requireHost(socket: Socket): boolean {
 }
 
 /** Clear the auto-reveal timer for a room if one is running. */
-function clearAutoRevealTimer(roomCode: string): void {
+export function clearAutoRevealTimer(roomCode: string): void {
   const timer = autoRevealTimers.get(roomCode)
   if (timer) {
     clearTimeout(timer)
@@ -72,7 +72,7 @@ function clearAutoRevealTimer(roomCode: string): void {
 }
 
 /** Clear the voting timer for a room if one is running. */
-function clearVotingTimer(roomCode: string): void {
+export function clearVotingTimer(roomCode: string): void {
   const timer = votingTimers.get(roomCode)
   if (timer) {
     clearTimeout(timer)

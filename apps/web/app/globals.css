@@ -12,3 +12,13 @@
  * The HTML element has dir="rtl" (set in layout.tsx).
  * With dir="rtl", ms- = right, me- = left in the rendered output.
  */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none;
+    opacity: 0.7;
+  }
+  .animate-spin {
+    animation: none;
+  }
+}

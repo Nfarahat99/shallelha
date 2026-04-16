@@ -56,6 +56,14 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 // Socket.io handlers
 setupSocketHandlers(io)
 
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught exception:', err)
+  process.exit(1)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('[ERROR] Unhandled promise rejection:', reason)
+})
+
 const PORT = Number(process.env.PORT) || 4000
 httpServer.listen(PORT, () => {
   console.log(`[Server] Listening on port ${PORT}`)

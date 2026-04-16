@@ -1,6 +1,6 @@
 import type { Server } from 'socket.io'
 import { registerRoomHandlers } from './room'
-import { registerGameHandlers } from './game'
+import { registerGameHandlers, clearAutoRevealTimer, clearVotingTimer } from './game'
 
 export function setupSocketHandlers(io: Server): void {
   io.on('connection', (socket) => {
@@ -11,6 +11,10 @@ export function setupSocketHandlers(io: Server): void {
 
     socket.on('disconnect', (reason) => {
       console.log(`[Socket.io] Client disconnected: ${socket.id} — ${reason}`)
+      if (socket.data.isHost && socket.data.roomCode) {
+        clearAutoRevealTimer(socket.data.roomCode)
+        clearVotingTimer(socket.data.roomCode)
+      }
     })
   })
 }
