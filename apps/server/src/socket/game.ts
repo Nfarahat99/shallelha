@@ -249,7 +249,7 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
   // Guard: cache miss means we cannot determine the correct answer — abort reveal
   // rather than silently broadcasting correctIndex:0 which would award points incorrectly.
   if (!questionData) {
-    console.warn(`[Game] handleReveal: question cache miss for room ${roomCode} index ${gameState.currentQuestionIndex}`)
+    console.warn(`[WARN] Game: handleReveal: question cache miss for room ${roomCode} index ${gameState.currentQuestionIndex}`)
     return
   }
 
@@ -275,7 +275,7 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
       where: { id: questionData.id },
       data: { timesPlayed: { increment: 1 } },
     }).catch((err) => {
-      console.error('[Analytics] timesPlayed increment failed:', err)
+      console.warn('[WARN] Analytics: timesPlayed increment failed:', err)
     })
 
     // Count wrong answers: players who answered but streak reset to 0 (wrong answer)
@@ -287,7 +287,7 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
         where: { id: questionData.id },
         data: { timesAnsweredWrong: { increment: wrongCount } },
       }).catch((err) => {
-        console.error('[Analytics] timesAnsweredWrong increment failed:', err)
+        console.warn('[WARN] Analytics: timesAnsweredWrong increment failed:', err)
       })
     }
   }
@@ -338,7 +338,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await saveGameState(roomCode, gameState)
       socket.emit('game:configured', { hostSettings })
 
-      console.log(`[Game] Configured ${roomCode}:`, hostSettings)
+      console.log(`[INFO] Game: configured ${roomCode}:`, hostSettings)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to configure game'
       socket.emit('room:error', { message })
@@ -433,7 +433,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Persist the reset answeredCurrentQ flags
       await saveGameState(roomCode, gameState)
 
-      console.log(`[Game] Started ${roomCode} — ${questions.length} questions`)
+      console.log(`[INFO] Game: started ${roomCode} — ${questions.length} questions`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start game'
       socket.emit('room:error', { message })
@@ -502,7 +502,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
 
       io.to(roomCode).emit('question:progress', { answeredCount, totalPlayers, answeredIds })
     } catch (err) {
-      console.error('[Game] player:answer error:', err)
+      console.error('[ERROR] Game: player:answer error:', err)
     }
   })
 
@@ -547,7 +547,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
 
       io.to(roomCode).emit('leaderboard:update', { players: leaderboard })
 
-      console.log(`[Game] Leaderboard shown for ${roomCode}`)
+      console.log(`[INFO] Game: leaderboard shown for ${roomCode}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to show leaderboard'
       socket.emit('room:error', { message })
@@ -588,7 +588,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         questionCache.delete(roomCode)
 
         io.to(roomCode).emit('game:podium', { top3 })
-        console.log(`[Game] Game ended (all questions answered) in ${roomCode}`)
+        console.log(`[INFO] Game: game ended (all questions answered) in ${roomCode}`)
         return
       }
 
@@ -621,7 +621,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Persist updated state after sendQuestion resets answeredCurrentQ
       await saveGameState(roomCode, gameState)
 
-      console.log(`[Game] Advanced to question ${nextIndex + 1} in ${roomCode}`)
+      console.log(`[INFO] Game: advanced to question ${nextIndex + 1} in ${roomCode}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to advance to next question'
       socket.emit('room:error', { message })
@@ -657,7 +657,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       questionCache.delete(roomCode)
 
       io.to(roomCode).emit('game:podium', { top3 })
-      console.log(`[Game] Game ended early in ${roomCode}`)
+      console.log(`[INFO] Game: game ended early in ${roomCode}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to end game'
       socket.emit('room:error', { message })
@@ -710,7 +710,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       })
       io.to(roomCode).emit('freetext:answers', { answers })
     } catch (err) {
-      console.error('[Game] freetext:answer error:', err)
+      console.error('[ERROR] Game: freetext:answer error:', err)
     } finally {
       freeTextLocks.delete(lockKey)
     }
@@ -746,7 +746,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       gameState.freeTextAnswers[answerId].votes.push(playerId)
       await saveGameState(roomCode, gameState)
     } catch (err) {
-      console.error('[Game] freetext:vote error:', err)
+      console.error('[ERROR] Game: freetext:vote error:', err)
     }
   })
 
@@ -776,9 +776,9 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await saveGameState(roomCode, gameState)
 
       socket.emit('lifeline:double_points_ack', {})
-      console.log(`[Game] Double Points activated by ${playerId} in ${roomCode}`)
+      console.log(`[INFO] Game: double points activated by ${playerId} in ${roomCode}`)
     } catch (err) {
-      console.error('[Game] lifeline:double_points error:', err)
+      console.error('[ERROR] Game: lifeline:double_points error:', err)
     }
   })
 
@@ -813,9 +813,9 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
 
       // Private to requesting player only (not room broadcast)
       socket.emit('lifeline:remove_two_result', { eliminatedIndices })
-      console.log(`[Game] Remove Two activated by ${playerId} in ${roomCode}: eliminated ${eliminatedIndices}`)
+      console.log(`[INFO] Game: remove two activated by ${playerId} in ${roomCode}: eliminated ${eliminatedIndices}`)
     } catch (err) {
-      console.error('[Game] lifeline:remove_two error:', err)
+      console.error('[ERROR] Game: lifeline:remove_two error:', err)
     }
   })
 
@@ -864,9 +864,9 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await saveGameState(roomCode, gameState)
 
       socket.emit('lifeline:freeze_ack', { success: true })
-      console.log(`[Game] Freeze Opponent: ${playerId} froze ${targetPlayerId} in ${roomCode}`)
+      console.log(`[INFO] Game: freeze opponent: ${playerId} froze ${targetPlayerId} in ${roomCode}`)
     } catch (err) {
-      console.error('[Game] lifeline:freeze_opponent error:', err)
+      console.error('[ERROR] Game: lifeline:freeze_opponent error:', err)
     }
   })
 }
