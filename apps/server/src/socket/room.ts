@@ -9,6 +9,7 @@ import {
   findRoomByHostId,
 } from '../room/room.service'
 import { getAuthUserId } from './auth'
+import { checkRateLimit } from './middleware/rateLimiter'
 
 export function registerRoomHandlers(io: Server, socket: Socket): void {
   /**
@@ -17,6 +18,10 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
    * Emits: room:created { roomCode } | room:error { message }
    */
   socket.on('room:create', async () => {
+    if (!checkRateLimit(socket.id, 'room:create', 5, 60_000)) {
+      socket.emit('room:error', { message: 'Rate limit exceeded — try again later' })
+      return
+    }
     const userId = getAuthUserId(socket)
     if (!userId) {
       socket.emit('room:error', { message: 'Authentication required to create a room' })
@@ -84,10 +89,18 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
    * Broadcasts: lobby:update { players } to room
    */
   socket.on('room:join', async (data: { roomCode: string; name: string; emoji: string }) => {
+    if (!checkRateLimit(socket.id, 'room:join', 10, 60_000)) {
+      socket.emit('room:error', { message: 'Rate limit exceeded — try again later' })
+      return
+    }
     const { roomCode, name, emoji } = data ?? {}
 
     if (!roomCode || !name || !emoji) {
       socket.emit('room:error', { message: 'roomCode, name, and emoji are required' })
+      return
+    }
+    if (!/^[A-HJ-NP-Z]{4}$/.test(roomCode)) {
+      socket.emit('room:error', { message: 'Invalid room code format' })
       return
     }
     if (name.length > 15) {
@@ -120,6 +133,10 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
     const { roomCode, reconnectToken } = data ?? {}
     if (!roomCode || !reconnectToken) {
       socket.emit('room:error', { message: 'roomCode and reconnectToken required' })
+      return
+    }
+    if (!/^[A-HJ-NP-Z]{4}$/.test(roomCode)) {
+      socket.emit('room:error', { message: 'Invalid room code format' })
       return
     }
 
