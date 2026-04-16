@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Cairo } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/react'
 import './globals.css'
 
 // Self-hosted via next/font/google — no external CDN request at runtime.
@@ -28,6 +29,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className={cairo.variable}>
       <body className="font-sans antialiased">
         {children}
+        <Analytics />
       </body>
     </html>
   )
