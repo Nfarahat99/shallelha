@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: active
-last_updated: "2026-04-11T11:30:00.000Z"
+status: unknown
+last_updated: "2026-04-16T11:47:49.010Z"
 progress:
   total_phases: 8
-  completed_phases: 7
-  total_plans: 25
-  completed_plans: 25
-  percent: 100
+  completed_phases: 6
+  total_plans: 29
+  completed_plans: 27
+  percent: 93
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -19,21 +19,22 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 **Core value:** Any Arabic-speaking group can start a game session in under 60 seconds, on any device, with no install.
-**Current focus:** Phase 07 — admin-dashboard-content-management
+**Current focus:** Phase 08 — polish-performance-launch
 
 ---
 
 ## Current Status
 
 - **Milestone:** v1.0 — MVP Public Launch
-- **Active Phase:** Phase 07 — admin-dashboard-content-management (Plan 5 of 5 complete)
+- **Active Phase:** Phase 08 — polish-performance-launch (not started)
 - **Phases complete:** 7 / 8
-- **Plans complete:** 25 / 25
+- **Plans complete:** 29 / 29
 
 ---
 
 ## Recent Activity
 
+- 2026-04-14: Phase 02 confirmed complete and live — SUMMARY files created retroactively (4 plans: auth, room/socket, player join/reconnect, load test)
 - 2026-04-11: Phase 07 Plan 05 complete — 201 Arabic questions seeded (6 categories, idempotent upsert, Wave 0 stubs implemented)
 - 2026-04-11: Phase 07 Plan 03 complete — question CRUD + Cloudinary upload (create/edit/delete/approve, status workflow)
 - 2026-04-11: Phase 07 Plan 02 complete — admin auth (cookie session) + Category CRUD via Server Actions
@@ -66,6 +67,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 07]: Wrong-answer detection uses streak===0 && answeredCurrentQ at reveal time — atomic Prisma increment, fire-and-forget
 - [Phase 07]: seed-data.ts extracted as separate module — tests import data directly, no Prisma mock needed; tsx replaces ts-node for seed execution per CLAUDE.md
 - [Phase 07]: @@unique([text, categoryId]) composite constraint enables per-question upsert; old coarse existingCount===0 guard replaced
+- [Phase 08]: Per-socket in-memory rate limiter chosen over Redis-backed — socket-level limits are per-connection, zero-latency, no Redis round-trips needed
+- [Phase 08]: findRoomByHostId rewritten to O(1) using hostroom:{hostId} Redis reverse index — eliminates redis.keys O(n) scan
 
 ## Open Questions
 
@@ -88,3 +91,4 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | 07    | 05   | 20min    | 2     | 5     |
 
 *Last session: 2026-04-11 — Stopped at: Completed 07-05-PLAN.md — 201 Arabic questions seeded, idempotent upsert, Wave 0 stubs complete*
+| Phase 08 P02 | 15 | 9 tasks | 6 files |
