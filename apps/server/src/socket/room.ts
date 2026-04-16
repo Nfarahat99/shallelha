@@ -35,7 +35,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       socket.data.roomCode = room.code
       socket.data.isHost = true
       socket.emit('room:created', { roomCode: room.code })
-      console.log(`[Room] Created ${room.code} by ${userId}`)
+      console.log(`[INFO] Room: created ${room.code} by ${userId}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create room'
       socket.emit('room:error', { message })
@@ -75,7 +75,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       socket.data.isHost = true
 
       socket.emit('lobby:update', { players: room.players })
-      console.log(`[Room] Host rejoined ${room.code}`)
+      console.log(`[INFO] Room: host rejoined ${room.code}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to rejoin room'
       socket.emit('room:error', { message })
@@ -118,6 +118,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       socket.emit('room:joined', { reconnectToken, players: room.players })
       io.to(roomCode).emit('lobby:update', { players: room.players })
       console.log(`[Room] ${name} joined ${roomCode}`)
+      console.log(`[INFO] Room: ${socket.id} joined ${roomCode} (${room.players.length}/8 players)`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to join room'
       socket.emit('room:error', { message })
@@ -153,7 +154,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
 
       socket.emit('room:joined', { reconnectToken, players: room.players })
       io.to(roomCode).emit('lobby:update', { players: room.players })
-      console.log(`[Room] Player reconnected to ${roomCode}`)
+      console.log(`[INFO] Room: player reconnected to ${roomCode}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Reconnect failed'
       socket.emit('room:error', { message })
@@ -183,7 +184,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       }
       await updateRoomStatus(roomCode, 'playing')
       io.to(roomCode).emit('game:started', { roomCode })
-      console.log(`[Room] Game started in ${roomCode}`)
+      console.log(`[INFO] Room: game started in ${roomCode}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start game'
       socket.emit('room:error', { message })
@@ -213,7 +214,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       }
       await updateRoomStatus(roomCode, 'ended')
       io.to(roomCode).emit('game:ended', { roomCode })
-      console.log(`[Room] Game ended in ${roomCode}`)
+      console.log(`[INFO] Room: game ended in ${roomCode}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to end game'
       socket.emit('room:error', { message })
