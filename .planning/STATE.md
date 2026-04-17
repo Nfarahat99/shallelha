@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-04-17T19:58:22.830Z"
+status: complete
+last_updated: "2026-04-17T00:00:00.000Z"
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 29
   completed_plans: 29
   percent: 100
@@ -19,21 +19,22 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 **Core value:** Any Arabic-speaking group can start a game session in under 60 seconds, on any device, with no install.
-**Current focus:** Phase 08 — polish-performance-launch
+**Current focus:** MILESTONE COMPLETE — v1.0 MVP shipped
 
 ---
 
 ## Current Status
 
-- **Milestone:** v1.0 — MVP Public Launch
-- **Active Phase:** Phase 08 — polish-performance-launch (not started)
-- **Phases complete:** 7 / 8
+- **Milestone:** v1.0 — MVP Public Launch — **COMPLETE**
+- **Active Phase:** None — all 8 phases complete
+- **Phases complete:** 8 / 8
 - **Plans complete:** 29 / 29
 
 ---
 
 ## Recent Activity
 
+- 2026-04-17: Phase 08 complete — 11/11 UAT tests pass; all 78 server tests green; HANDOFF.md generated; v1.0 milestone closed
 - 2026-04-14: Phase 02 confirmed complete and live — SUMMARY files created retroactively (4 plans: auth, room/socket, player join/reconnect, load test)
 - 2026-04-11: Phase 07 Plan 05 complete — 201 Arabic questions seeded (6 categories, idempotent upsert, Wave 0 stubs implemented)
 - 2026-04-11: Phase 07 Plan 03 complete — question CRUD + Cloudinary upload (create/edit/delete/approve, status workflow)

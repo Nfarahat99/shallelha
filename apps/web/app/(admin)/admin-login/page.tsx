@@ -37,11 +37,14 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-center mb-6">لوحة الإدارة</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-elevated p-10">
+        <div className="text-center mb-8">
+          <p className="text-3xl font-black text-brand-600 tracking-tight mb-1">شعللها</p>
+          <h1 className="text-xl font-bold text-gray-800">لوحة الإدارة</h1>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
               كلمة المرور
             </label>
             <input
@@ -50,7 +53,7 @@ export default function AdminLoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent min-h-[44px]"
               placeholder="أدخل كلمة المرور"
               dir="ltr"
             />
@@ -61,7 +64,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 px-4 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px]"
           >
             {loading ? 'جارٍ الدخول...' : 'دخول'}
           </button>

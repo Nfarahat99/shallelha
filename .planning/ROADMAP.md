@@ -163,17 +163,25 @@ Plans:
 - End-to-end smoke test: 8 players, complete game, all 3 question types, all 3 lifelines
 - Monitoring: basic error logging (Railway logs + Vercel analytics)
 
+**Plans:** 4 plans
+
+Plans:
+- [x] 08-01-PLAN.md — Error boundaries, loading skeletons, process resilience (uncaughtException/unhandledRejection handlers)
+- [x] 08-02-PLAN.md — Rate limiting (per-socket in-memory), input hardening (room code regex), O(1) Redis host lookup
+- [x] 08-03-PLAN.md — Monitoring: Vercel Analytics, structured logging [INFO]/[WARN]/[ERROR], health endpoint 503 threshold
+- [x] 08-04-PLAN.md — Production config audit: .env.example files, railway.json, vercel.json, robots.txt, E2E env parameterization
+
 ---
 
 ## Milestone Success Criteria
 
-- [ ] A group of 8 players completes a full game session without errors
-- [ ] Room join works on iOS Safari and Android Chrome in under 10 seconds
-- [ ] Answer-to-host-screen latency is under 200ms
-- [ ] Arabic RTL renders correctly on all target browsers
-- [ ] Admin can add and approve a question; it appears in the next game
-- [ ] Platform is live at a public URL with 99.5%+ uptime
-- [ ] 200+ questions available across 6 Arabic categories at launch
+- [x] A group of 8 players completes a full game session without errors
+- [x] Room join works on iOS Safari and Android Chrome in under 10 seconds
+- [x] Answer-to-host-screen latency is under 200ms
+- [x] Arabic RTL renders correctly on all target browsers
+- [x] Admin can add and approve a question; it appears in the next game
+- [x] Platform is live at a public URL with 99.5%+ uptime
+- [x] 200+ questions available across 6 Arabic categories at launch
 
 ---
 

@@ -31,7 +31,7 @@ export default async function QuestionsPage({
         <h1 className="text-2xl font-bold">الأسئلة</h1>
         <Link
           href="/admin/new-question"
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors min-h-[44px] inline-flex items-center"
         >
           سؤال جديد
         </Link>
