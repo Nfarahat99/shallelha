@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-16T11:56:18.197Z"
+last_updated: "2026-04-17T19:58:22.830Z"
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 29
-  completed_plans: 28
-  percent: 97
+  completed_plans: 29
+  percent: 100
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -71,6 +71,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 08]: findRoomByHostId rewritten to O(1) using hostroom:{hostId} Redis reverse index — eliminates redis.keys O(n) scan
 - [Phase 08]: No Sentry for MVP — Railway log drain + process.on handlers sufficient
 - [Phase 08]: Analytics failures downgraded from ERROR to WARN (non-critical, fire-and-forget)
+- [Phase 08]: NEXT_PUBLIC_BACKEND_URL is the correct env var name (not NEXT_PUBLIC_SOCKET_URL) — matches apps/web/lib/socket.ts
+- [Phase 08]: No output:standalone added to next.config.mjs — Vercel handles its own pipeline; standalone is for Docker self-hosting only
 
 ## Open Questions
 
@@ -95,3 +97,4 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 *Last session: 2026-04-11 — Stopped at: Completed 07-05-PLAN.md — 201 Arabic questions seeded, idempotent upsert, Wave 0 stubs complete*
 | Phase 08 P02 | 15 | 9 tasks | 6 files |
 | Phase 08 P03 | 25min | 6 tasks | 8 files |
+| Phase 08 P04 | 15 | 8 tasks | 7 files |
