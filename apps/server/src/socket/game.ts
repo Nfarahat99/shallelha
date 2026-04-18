@@ -338,8 +338,9 @@ async function saveGameHistory(
     const playerIds = leaderboard.map((e) => e.id)
     const realUsers = await prisma.user.findMany({
       where: { id: { in: playerIds } },
-      select: { id: true },
+      select: { id: true, bestStreak: true },
     })
+    const realUserMap = new Map(realUsers.map((u) => [u.id, u]))
     const realUserIds = new Set(realUsers.map((u) => u.id))
 
     const rows = leaderboard
@@ -356,6 +357,37 @@ async function saveGameHistory(
 
     if (rows.length > 0) {
       await prisma.playerGameResult.createMany({ data: rows })
+    }
+
+    // Update aggregate user stats for all real players
+    const realEntries = leaderboard.filter((e) => realUserIds.has(e.id))
+    const winnerIds = realEntries.filter((e) => e.rank === 1).map((e) => e.id)
+
+    // Increment totalGamesPlayed for all real players
+    if (realEntries.length > 0) {
+      await prisma.user.updateMany({
+        where: { id: { in: realEntries.map((e) => e.id) } },
+        data: { totalGamesPlayed: { increment: 1 } },
+      })
+    }
+
+    // Increment winCount for rank-1 players
+    if (winnerIds.length > 0) {
+      await prisma.user.updateMany({
+        where: { id: { in: winnerIds } },
+        data: { winCount: { increment: 1 } },
+      })
+    }
+
+    // Update bestStreak if this game's streak exceeds stored value
+    for (const entry of realEntries) {
+      const stored = realUserMap.get(entry.id)
+      if (stored && entry.streak > stored.bestStreak) {
+        await prisma.user.update({
+          where: { id: entry.id },
+          data: { bestStreak: entry.streak },
+        })
+      }
     }
 
     console.log(`[INFO] History: saved session ${session.id} for room ${roomCode} (${rows.length} user results)`)
