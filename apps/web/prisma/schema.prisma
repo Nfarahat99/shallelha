@@ -75,13 +75,49 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
+  id                 String              @id @default(cuid())
+  name               String?
+  email              String?             @unique
+  emailVerified      DateTime?
+  image              String?
+  accounts           Account[]
+  sessions           Session[]
+  displayName        String?
+  avatarEmoji        String?             @db.VarChar(10)
+  totalGamesPlayed   Int                 @default(0)
+  winCount           Int                 @default(0)
+  bestStreak         Int                 @default(0)
+  favoriteCategory   String?
+  gameResults        PlayerGameResult[]
+}
+
+model GameSession {
+  id           String             @id @default(cuid())
+  roomCode     String
+  hostId       String
+  playedAt     DateTime           @default(now())
+  categoryId   String?
+  categoryName String?
+  playerCount  Int
+  winnerId     String?
+  results      PlayerGameResult[]
+  createdAt    DateTime           @default(now())
+}
+
+model PlayerGameResult {
+  id            String      @id @default(cuid())
+  gameSessionId String
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playerName    String
+  playerEmoji   String?
+  score         Int
+  rank          Int
+  isWinner      Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@unique([gameSessionId, userId])
 }
 
 model VerificationToken {
