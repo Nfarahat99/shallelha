@@ -21,6 +21,10 @@ if (!FRONTEND_URL) {
 const app = express()
 const httpServer = createServer(app)
 
+// Required for express-rate-limit v8 behind Railway's reverse proxy.
+// Without this, Railway's X-Forwarded-For header triggers ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1)
+
 const io = new SocketServer(httpServer, {
   cors: {
     origin: FRONTEND_URL ?? 'http://localhost:3000',
