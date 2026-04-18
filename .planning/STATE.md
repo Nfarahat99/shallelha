@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-18T09:21:20.354Z"
+last_updated: "2026-04-18T09:36:58.554Z"
 progress:
   total_phases: 14
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 40
-  completed_plans: 37
-  percent: 93
+  completed_plans: 40
+  percent: 100
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -103,6 +103,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 10-ugc-question-packs-shareable-cards]: Delete + re-create strategy for pack updates: backend has no PATCH questions endpoint, so updatePack() deletes and re-creates the pack with new data
 - [Phase 10-07]: FrozenPlayerOverlay placed in ./components/ (not ./game/) — ./game/FreezeOpponentOverlay is the "select target" dialog; ./components/FreezeOpponentOverlay is the "you are frozen" state shown to victim
 - [Phase 10-07]: Server freeze handler emits player:frozen targeted to frozen player's socketId — Rule 2 fix; previously freeze was applied silently with no client notification
+- [Phase 10]: game.ts branches on room.packId (from Redis) to serve PackQuestion rows — no new socket payload needed, packId already stored by Plan 10-04
+- [Phase 10]: playCount incremented in both natural and early game end paths to ensure count is always captured
 
 ## Open Questions
 
@@ -133,6 +135,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | Phase 09 P01 | 15 | 3 tasks | 4 files |
 | Phase 09 P03 | 20 | 3 tasks | 2 files |
 | Phase 10-ugc-question-packs-shareable-cards P02 | 45 | 2 tasks | 12 files |
+| Phase 10 P08 | 20 | 2 tasks | 3 files |
 
 ## Roadmap Evolution
 

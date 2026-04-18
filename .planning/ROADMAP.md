@@ -210,7 +210,7 @@ Plans:
 - Integrated into existing game start flow (select pack → start game)
 
 **Depends on:** Phase 9
-**Plans:** 7/8 plans executed
+**Plans:** 8/8 plans complete
 
 Plans:
 - [x] 10-01-PLAN.md — Database schema: Pack + PackQuestion models, PackStatus enum, Pack CRUD API + integration tests
