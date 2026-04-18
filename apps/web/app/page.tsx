@@ -5,13 +5,15 @@ import { AnimatedCounter } from './LandingClient'
 // Page-level metadata
 // ---------------------------------------------------------------------------
 export const metadata: Metadata = {
-  title: 'شعللها — منصة الألعاب الجماعية العربية',
-  description: 'العبوا مع بعض من أي جهاز — أسئلة ممتعة، تحديات حماسية، وضحك ما ينتهي',
+  title: 'شعللها 🎮 — لعبة الأسئلة الجماعية',
+  description: 'ابدأ لعبة أسئلة مع أصدقائك في ثوانٍ — بدون تسجيل',
   openGraph: {
-    title: 'شعللها — منصة الألعاب الجماعية العربية',
-    description: 'العبوا مع بعض من أي جهاز — أسئلة ممتعة، تحديات حماسية، وضحك ما ينتهي',
-    locale: 'ar_SA',
+    title: 'شعللها 🎮 — لعبة الأسئلة الجماعية',
+    description: 'ابدأ لعبة أسئلة مع أصدقائك في ثوانٍ — بدون تسجيل',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
   },
 }
 
@@ -220,17 +222,17 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
             <a
               href="/host"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-brand-700 shadow-lg shadow-black/20 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all duration-300 min-h-[52px]"
-              aria-label="أنشئ غرفة لعب جديدة"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-lg font-bold text-brand-600 hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all duration-300 min-h-[56px]"
+              aria-label="ابدأ لعبة جديدة"
             >
-              أنشئ غرفة
+              ابدأ لعبة
             </a>
             <a
               href="/join"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-8 py-4 text-lg font-bold text-white border border-white/30 backdrop-blur-sm hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all duration-300 min-h-[52px]"
-              aria-label="انضم إلى غرفة باستخدام الكود"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/15 px-8 py-4 text-lg font-bold text-white border border-white/30 hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all duration-300 min-h-[56px]"
+              aria-label="انضم إلى لعبة"
             >
-              عندك كود؟ انضم
+              انضم للعبة
             </a>
           </div>
         </div>
@@ -471,17 +473,17 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="/host"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-10 py-4 text-lg font-bold text-white shadow-lg shadow-brand-200 hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-300 min-h-[52px]"
-              aria-label="أنشئ غرفة لعب جديدة"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-600 px-8 py-4 text-lg font-bold text-white shadow-lg shadow-brand-200 hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-300 min-h-[56px]"
+              aria-label="ابدأ لعبة جديدة"
             >
-              أنشئ غرفة
+              ابدأ لعبة
             </a>
             <a
               href="/join"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-4 text-lg font-bold text-brand-700 border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-300 min-h-[52px]"
-              aria-label="انضم إلى غرفة باستخدام الكود"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-lg font-bold text-brand-700 border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-300 min-h-[56px]"
+              aria-label="انضم إلى لعبة"
             >
-              عندك كود؟ انضم
+              انضم للعبة
             </a>
           </div>
         </div>
