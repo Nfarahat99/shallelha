@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
 - **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
-- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — **IN PROGRESS** — Plans 01, 03, 05 complete (Pack CRUD data layer + REST API; Groq AI Pack Assistant; Admin Pack Approval Queue)
+- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — **IN PROGRESS** — Plans 01, 03, 05, 06 complete (Pack CRUD data layer + REST API; Groq AI Pack Assistant; Admin Pack Approval Queue; Shareable Result Cards)
 - **Phases complete:** 9 / 14
 - **Plans complete:** 35 / 35 (v1.0 plans) + 8 plans (Phase 10, not yet executed)
 
@@ -35,6 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 ## Recent Activity
 
+- 2026-04-18: Phase 10 Plan 06 complete — Shareable Result Cards: satori+resvg PNG generation (Snapchat 9:16 / WhatsApp 1:1), Cairo font via Google Fonts CDN with fallback, in-memory 1hr cache, rate limiter, 3 Vitest tests pass; ResultCard.tsx Web Share API + download fallback integrated into HostDashboard ended state
 - 2026-04-18: Phase 10 Plan 05 complete — Admin Pack Approval Queue: rejectionReason added to schema (db push), GET /packs accepts ?status= param, admin /packs page with approve/reject Server Actions, pending count badge in admin nav, rejectionReason shown on My Packs page
 - 2026-04-18: Phase 10 fully planned — 8 PLAN.md files (10-01 through 10-08) + 10-NYQUIST.md; plan-checker FLAGs resolved (game engine wiring added as Plan 08, rejectionReason persistence fixed in Plan 05, NYQUIST path corrected, cards test file added to Plan 06); ready to execute
 - 2026-04-18: Milestone 2 roadmap created — v2.0 Growth + Engagement Engine; Phases 11-14 defined; user confirmed priority: Phase 11 (Growth Foundation) → Phase 12 (User Profiles) → Phase 13 (Drawing + Bluffing game types) → Phase 14 (Spectator Mode); REQUIREMENTS.md v2 BRD written with REQ-001 through REQ-006
@@ -94,6 +95,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 10-05]: prisma db push used (not migrate dev) — consistent with Plan 01 pattern; avoids drift with Railway DB
 - [Phase 10-05]: Admin Server Actions check cookie independently of middleware (defense-in-depth per T-10-05-01)
 - [Phase 10-05]: Inline native form for rejection reason — no client JS modal needed; HTML required attr handles validation
+- [Phase 10-06]: Cairo font fetched from Google Fonts CDN as TTF (no browser UA → returns TTF, not woff2); pinned v31 URL with CSS API fallback; cached in module memory — avoids binary asset in repo
+- [Phase 10-06]: satori object format used in Express (no JSX transpiler); cast to `any` at call site per satori docs workaround for non-React environments
+- [Phase 10-06]: In-memory Map cache (1hr TTL) for PNG buffers — no Redis round-trip needed for read-heavy card serving
+- [Phase 10-06]: ResultCard integrated into HostDashboard ended branch (not a separate /postgame route) — leaderboard already in socket state
 - [Phase 10-ugc-question-packs-shareable-cards]: Delete + re-create strategy for pack updates: backend has no PATCH questions endpoint, so updatePack() deletes and re-creates the pack with new data
 
 ## Open Questions
