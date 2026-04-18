@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import express from 'express'
 import request from 'supertest'
 
+// vi.hoisted ensures mockCreate is available inside the vi.mock factory (which is hoisted)
+const { mockCreate } = vi.hoisted(() => ({ mockCreate: vi.fn() }))
+
 // Mock prisma BEFORE imports (vitest hoisting)
 vi.mock('../../db/prisma', () => ({
   prisma: {
@@ -16,7 +19,6 @@ vi.mock('../../db/prisma', () => ({
 
 // Mock openai BEFORE imports
 vi.mock('openai', () => {
-  const mockCreate = vi.fn()
   return {
     default: vi.fn().mockImplementation(() => ({
       chat: {
@@ -25,15 +27,11 @@ vi.mock('openai', () => {
         },
       },
     })),
-    __mockCreate: mockCreate,
   }
 })
 
 import { adminRouter } from '../admin'
 import { prisma } from '../../db/prisma'
-import OpenAI from 'openai'
-
-const mockOpenAICreate = (OpenAI as any).__mockCreate as ReturnType<typeof vi.fn>
 
 // Sample GPT-4o response: array of 3 question objects
 const mockGPTQuestions = [
@@ -76,7 +74,7 @@ describe('POST /admin/ai-generate', () => {
   })
 
   it('returns 200 with created count when GPT-4o returns valid questions', async () => {
-    mockOpenAICreate.mockResolvedValueOnce({
+    mockCreate.mockResolvedValueOnce({
       choices: [
         {
           message: {
@@ -125,7 +123,7 @@ describe('POST /admin/ai-generate', () => {
   })
 
   it('returns 502 when OpenAI throws', async () => {
-    mockOpenAICreate.mockRejectedValueOnce(new Error('OpenAI network error'))
+    mockCreate.mockRejectedValueOnce(new Error('OpenAI network error'))
 
     const res = await request(buildApp())
       .post('/admin/ai-generate')
@@ -136,7 +134,7 @@ describe('POST /admin/ai-generate', () => {
   })
 
   it('rate-limits to 5 requests per minute', async () => {
-    mockOpenAICreate.mockResolvedValue({
+    mockCreate.mockResolvedValue({
       choices: [{ message: { content: JSON.stringify({ questions: mockGPTQuestions }) } }],
     })
     vi.mocked(prisma.question.createMany).mockResolvedValue({ count: 3 })
