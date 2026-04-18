@@ -173,7 +173,51 @@ Plans:
 
 ---
 
-## Milestone Success Criteria
+## Phase 9: AI Content Generation
+
+**Goal:** Admin and hosts can generate Arabic questions via GPT-4o, with all AI-generated questions entering a moderation queue (DRAFT status) before going live.
+
+**Covers:** AI-01, AI-02
+**Delivers:**
+- OpenAI GPT-4o integration on the backend (new Express route, server-side key, rate-limited)
+- AI generation endpoint: accepts category + count (5–10) → calls GPT-4o with Arabic Gulf-culture system prompt → creates DRAFT questions in DB
+- Admin "Generate with AI" button per category in admin dashboard
+- Generation dialog: pick category, pick count, trigger generation, show spinner + result summary
+- Moderation queue view in admin: lists all DRAFT questions with approve/reject actions
+- Batch approve/reject: select multiple DRAFT questions, approve or reject in one action
+- OPENAI_API_KEY added to apps/server/.env.example only (server-side key — never in web env)
+
+**Plans:** 1/3 plans executed
+
+Plans:
+- [x] 09-01-PLAN.md — Backend: OpenAI GPT-4o integration, ai-generate Express route, TDD unit tests
+- [ ] 09-02-PLAN.md — Admin UI: AI generation dialog, moderation queue, Server Actions, batch approve/reject
+- [ ] 09-03-PLAN.md — Verification: build checks, integration tests (generate→approve/reject flow), visual checkpoint
+
+---
+
+## Phase 10: Draw and Guess Game Mode (ارسم وخمن)
+
+**Goal:** One player draws a word on their phone; all other players guess in real time on the host screen. Full Arabic RTL UI, Cloudinary-backed canvas storage, real-time Socket.io sync.
+
+**Covers:** DRAW-01, DRAW-02
+**Delivers:**
+- Drawing canvas on player's phone (touch-based, mobile-first)
+- Real-time stroke broadcast to host screen via Socket.io
+- Word prompt assigned to the drawing player (Arabic words)
+- Other players type/select guesses; first correct guess wins points
+- Reveal animation at round end
+- Integrated into existing game loop alongside MC, Media Guessing, Free Text
+
+**Depends on:** Phase 9
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 10 to break down)
+
+---
+
+## Milestone Success Criteria (v1.0)
 
 - [x] A group of 8 players completes a full game session without errors
 - [x] Room join works on iOS Safari and Android Chrome in under 10 seconds
@@ -186,4 +230,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-09*
-*Last updated: 2026-04-11 — Phase 7 plans created (5 plans, 5 waves)*
+*Last updated: 2026-04-18 — Phase 10 added: Draw and Guess game mode*
