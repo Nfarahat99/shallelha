@@ -11,7 +11,7 @@ export async function generateQuestionsAction(categoryId: string, count: number)
   const cookieStore = await cookies()
   const sessionToken = cookieStore.get('admin_session')?.value ?? ''
 
-  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:4000'
+  const serverUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000'
 
   const res = await fetch(`${serverUrl}/admin/ai-generate`, {
     method: 'POST',
