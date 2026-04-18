@@ -210,7 +210,7 @@ Plans:
 - Integrated into existing game start flow (select pack → start game)
 
 **Depends on:** Phase 9
-**Plans:** 6/8 plans executed
+**Plans:** 7/8 plans executed
 
 Plans:
 - [x] 10-01-PLAN.md — Database schema: Pack + PackQuestion models, PackStatus enum, Pack CRUD API + integration tests
@@ -219,7 +219,7 @@ Plans:
 - [x] 10-04-PLAN.md — Pack Marketplace: browse/filter/detail pages, room creation pack pre-selector
 - [x] 10-05-PLAN.md — Admin Pack Approval Queue: pending packs tab, approve/reject Server Actions, rejection reason on My Packs
 - [x] 10-06-PLAN.md — Shareable Result Cards: satori + @resvg/resvg-js image generation, Web Share API, post-game screen
-- [ ] 10-07-PLAN.md — Quick UX Wins: rank delta in leaderboard, answer count progress, freeze opponent overlay
+- [x] 10-07-PLAN.md — Quick UX Wins: rank delta in leaderboard, answer count progress, freeze opponent overlay
 
 ---
 
