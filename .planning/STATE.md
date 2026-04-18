@@ -27,14 +27,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
 - **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
-- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — pre-planning; run `/gsd-plan-phase 10`
+- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — **IN PROGRESS** — Plan 01 complete (Pack CRUD data layer + REST API)
 - **Phases complete:** 9 / 14
-- **Plans complete:** 35 / 35 (v1.0 plans)
+- **Plans complete:** 35 / 35 (v1.0 plans) + 8 plans (Phase 10, not yet executed)
 
 ---
 
 ## Recent Activity
 
+- 2026-04-18: Phase 10 fully planned — 8 PLAN.md files (10-01 through 10-08) + 10-NYQUIST.md; plan-checker FLAGs resolved (game engine wiring added as Plan 08, rejectionReason persistence fixed in Plan 05, NYQUIST path corrected, cards test file added to Plan 06); ready to execute
 - 2026-04-18: Milestone 2 roadmap created — v2.0 Growth + Engagement Engine; Phases 11-14 defined; user confirmed priority: Phase 11 (Growth Foundation) → Phase 12 (User Profiles) → Phase 13 (Drawing + Bluffing game types) → Phase 14 (Spectator Mode); REQUIREMENTS.md v2 BRD written with REQ-001 through REQ-006
 - 2026-04-18: Phase 09 complete — AI Content Generation: GPT-4o backend route, admin UI (AiGenerateDialog + ModerationQueue), 91/91 server tests green (7 new integration tests), next build clean
 - 2026-04-17: Phase 08 complete — 11/11 UAT tests pass; all 78 server tests green; HANDOFF.md generated; v1.0 milestone closed
@@ -82,6 +83,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 09]: GPT response_format:json_object — parse obj.questions to extract array per locked decision
 - [Phase 09]: vitest config uses vite loadEnv to load .env into test.env — makes DATABASE_URL available to real Prisma in integration tests without modifying test files
 - [Phase 09]: Integration tests use [TEST_AI] prefix + afterEach deleteMany for isolation; afterAll deletes test category — idempotent via beforeAll upsert
+- [Phase 10-01]: Used prisma db push instead of prisma migrate dev — migration history had drift from existing DB; db push syncs schema without dropping data
+- [Phase 10-01]: GET /packs/mine defined before GET /packs/:id in router to prevent route shadowing on the literal path "mine"
+- [Phase 10-01]: Pack.createdBy stored as plain String (no FK) — avoids cascade complexity with future anonymous users
 
 ## Open Questions
 
@@ -103,7 +107,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 | 07    | 05   | 20min    | 2     | 5     |
 
-*Last session: 2026-04-11 — Stopped at: Completed 07-05-PLAN.md — 201 Arabic questions seeded, idempotent upsert, Wave 0 stubs complete*
+*Last session: 2026-04-18 — Stopped at: Completed 10-01-PLAN.md — Pack CRUD data layer + REST API, 6/6 integration tests green*
 
 ---
 | Phase 09 P01 | 15 | 3 tasks | 4 files |
