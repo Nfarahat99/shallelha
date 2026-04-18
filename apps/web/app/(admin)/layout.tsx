@@ -5,7 +5,21 @@ export const metadata = {
   title: 'لوحة الإدارة — شعللها',
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+async function fetchPendingPackCount(): Promise<number> {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+  if (!backendUrl) return 0
+  try {
+    const res = await fetch(`${backendUrl}/packs?status=PENDING`, { cache: 'no-store' })
+    if (!res.ok) return 0
+    const packs = (await res.json()) as unknown[]
+    return packs.length
+  } catch {
+    return 0
+  }
+}
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pendingPackCount = await fetchPendingPackCount()
   return (
     <div className="min-h-screen flex bg-gray-100">
       <aside className="w-64 bg-white shadow-md flex flex-col">
@@ -70,6 +84,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               />
             </svg>
             <span>قائمة المراجعة</span>
+          </Link>
+
+          {/* Community Packs */}
+          <Link
+            href="/admin/packs"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-brand-50 hover:text-brand-700 font-medium transition-colors group min-h-[44px]"
+          >
+            <svg
+              className="w-5 h-5 text-gray-400 group-hover:text-brand-600 shrink-0"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.75}
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
+              />
+            </svg>
+            <span className="flex-1">الباقات</span>
+            {pendingPackCount > 0 && (
+              <span className="inline-flex items-center justify-center rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white min-w-[20px]">
+                {pendingPackCount}
+              </span>
+            )}
           </Link>
         </nav>
 

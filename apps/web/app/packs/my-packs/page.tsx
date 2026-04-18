@@ -13,6 +13,7 @@ interface PackSummary {
   status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'
   category: string
   language: string
+  rejectionReason?: string | null
   _count: { questions: number }
   createdAt: string
   updatedAt: string

@@ -14,6 +14,7 @@ interface PackSummary {
   status: PackStatus
   category: string
   language: string
+  rejectionReason?: string | null
   _count: { questions: number }
   createdAt: string
   updatedAt: string
@@ -186,6 +187,14 @@ export function MyPacksClient({ packs, userId }: MyPacksClientProps) {
               <p className="mb-4 mt-auto text-xs text-slate-600">
                 آخر تعديل: {formatDate(pack.updatedAt)}
               </p>
+
+              {/* Rejection reason */}
+              {pack.status === 'REJECTED' && pack.rejectionReason && (
+                <div className="mb-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2.5">
+                  <p className="text-xs font-semibold text-red-400">سبب الرفض:</p>
+                  <p className="mt-0.5 text-xs text-red-300">{pack.rejectionReason}</p>
+                </div>
+              )}
 
               {/* Error */}
               {packError && (
