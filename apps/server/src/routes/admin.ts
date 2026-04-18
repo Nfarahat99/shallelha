@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import OpenAI from 'openai'
+import Groq from 'groq-sdk'
 import { prisma } from '../db/prisma'
 
 const adminLimiter = rateLimit({
@@ -11,13 +11,17 @@ const adminLimiter = rateLimit({
   message: { error: 'Too many requests, try again later' },
 })
 
-// OpenAI client — lazy singleton so tests that don't mock openai can still import admin.ts
-let _openaiClient: OpenAI | null = null
-function getOpenAIClient(): OpenAI {
-  if (!_openaiClient) {
-    _openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Groq client — lazy singleton so tests that don't mock groq-sdk can still import admin.ts
+let _groqClient: Groq | null = null
+function getGroqClient(): Groq {
+  if (!_groqClient) {
+    const apiKey = process.env.GROQ_API_KEY
+    if (!apiKey) {
+      throw new Error('GROQ_API_KEY is not set')
+    }
+    _groqClient = new Groq({ apiKey })
   }
-  return _openaiClient
+  return _groqClient
 }
 
 // Dedicated rate limiter for AI generation (expensive per-request cost)
@@ -61,7 +65,7 @@ adminRouter.post('/ai-generate', aiGenerateLimiter, async (req, res) => {
       return
     }
 
-    // Build GPT-4o prompt (Arabic, Gulf culture)
+    // Build Groq prompt (Arabic, Gulf culture)
     const systemPrompt = `أنت مساعد متخصص في إنشاء أسئلة اختيار متعدد باللغة العربية الخليجية.
 قواعد صارمة:
 - اكتب الأسئلة عن الثقافة الخليجية العربية (تاريخ، طعام، موسيقى، رياضة، جغرافيا، تقاليد).
@@ -73,9 +77,9 @@ adminRouter.post('/ai-generate', aiGenerateLimiter, async (req, res) => {
     const userPrompt = `اكتب ${parsedCount} أسئلة اختيار متعدد عن الفئة: "${category.name}".
 أعد JSON فقط بالصيغة المطلوبة.`
 
-    // Call GPT-4o
-    const completion = await getOpenAIClient().chat.completions.create({
-      model: 'gpt-4o',
+    // Call Groq Llama 3.3 70B
+    const completion = await getGroqClient().chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },

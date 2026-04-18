@@ -17,8 +17,8 @@ vi.mock('../../db/prisma', () => ({
   },
 }))
 
-// Mock openai BEFORE imports
-vi.mock('openai', () => {
+// Mock groq-sdk BEFORE imports
+vi.mock('groq-sdk', () => {
   return {
     default: vi.fn().mockImplementation(() => ({
       chat: {
@@ -62,6 +62,7 @@ function buildApp() {
 describe('POST /admin/ai-generate', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.GROQ_API_KEY = 'test-key'
     vi.mocked(prisma.category.findUnique).mockResolvedValue({
       id: 'cat-1',
       name: 'ثقافة',

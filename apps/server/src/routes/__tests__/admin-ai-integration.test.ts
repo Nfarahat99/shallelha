@@ -19,8 +19,8 @@ import request from 'supertest'
 // vi.hoisted ensures mockCreate is available inside the vi.mock factory (which is hoisted)
 const { mockCreate } = vi.hoisted(() => ({ mockCreate: vi.fn() }))
 
-// Mock OpenAI before any imports — return controlled test data
-vi.mock('openai', () => ({
+// Mock groq-sdk before any imports — return controlled test data
+vi.mock('groq-sdk', () => ({
   default: vi.fn().mockImplementation(() => ({
     chat: {
       completions: {
@@ -73,6 +73,7 @@ function buildApp() {
 let testCategoryId: string
 
 beforeAll(async () => {
+  process.env.GROQ_API_KEY = 'test-key'
   const existing = await prisma.category.findFirst({
     where: { slug: 'test-ai-integration' },
   })
