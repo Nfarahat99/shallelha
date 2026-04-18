@@ -196,18 +196,18 @@ Plans:
 
 ---
 
-## Phase 10: Draw and Guess Game Mode (ارسم وخمن)
+## Phase 10: UGC Question Packs + Shareable Result Cards (محتوى المجتمع)
 
-**Goal:** One player draws a word on their phone; all other players guess in real time on the host screen. Full Arabic RTL UI, Cloudinary-backed canvas storage, real-time Socket.io sync.
+**Goal:** Let hosts create and share community question packs, and give every game a viral sharing moment with auto-generated result cards — building a content flywheel and growth loop for the Gulf market.
 
-**Covers:** DRAW-01, DRAW-02
+**Covers:** UGC-01, UGC-02, SOCIAL-01
 **Delivers:**
-- Drawing canvas on player's phone (touch-based, mobile-first)
-- Real-time stroke broadcast to host screen via Socket.io
-- Word prompt assigned to the drawing player (Arabic words)
-- Other players type/select guesses; first correct guess wins points
-- Reveal animation at round end
-- Integrated into existing game loop alongside MC, Media Guessing, Free Text
+- **Pack Creator**: Authenticated hosts build, edit, and submit question packs (name, category, Arabic/English, questions) — admin-approved before going public
+- **Pack Marketplace**: Browse/search community packs by category (e.g. محبوبين، رياضة، رمضان، أفلام); hosts pick a pack when starting a game
+- **AI Pack Assistant**: Host types a topic prompt; Groq (Llama 3.3 70B, free tier) generates 10 draft questions the host can review and publish
+- **Shareable Result Cards**: Auto-generated image at game end — final leaderboard, player emojis, game stats, Sha'lelha branding — Snapchat 9:16 + WhatsApp square variants, one-tap share
+- Pack ratings and play-count so quality packs surface naturally
+- Integrated into existing game start flow (select pack → start game)
 
 **Depends on:** Phase 9
 **Plans:** 0 plans
@@ -229,5 +229,130 @@ Plans:
 
 ---
 
-*Roadmap created: 2026-04-09*
-*Last updated: 2026-04-18 — Phase 10 added: Draw and Guess game mode*
+*Roadmap v1.0 created: 2026-04-09*
+*Last updated: 2026-04-18 — Phase 10 redesigned: Draw and Guess → UGC Question Packs + Shareable Result Cards (product analysis recommendation)*
+
+---
+
+---
+
+# Milestone 2: Growth + Engagement Engine
+
+**Milestone:** v2.0 — Growth, Retention & Game Variety
+**Goal:** Transform Sha'lelha from a working Arabic trivia MVP into a destination party game platform that acquires users via WhatsApp virality, retains them through persistent profiles and social competition, and widens its lead over all Arabic competitors by introducing game mechanics no Arabic platform offers.
+
+**Discovery Source:** Business analyst session 2026-04-18 — user confirmed priorities, competitive benchmark, and product vision document (منصة_المسابقات_الجماعية_التفاعلية_—_رؤية_المنتج).
+
+**Phase priority order confirmed by user (2026-04-18):**
+1. Phase 11 — Growth Foundation (unblocks acquisition; no other phase matters if the funnel is broken)
+2. Phase 12 — User Profiles + Persistent Leaderboards (Priority B)
+3. Phase 13 — New Game Types: Drawing + Bluffing (Priority A)
+4. Phase 14 — Audience / Spectator Mode (Priority C)
+
+---
+
+## Phase 11: Growth Foundation — Landing Page, Anonymous Rooms, Sharing
+
+**Goal:** Fix the three critical v1.0 gaps that make the product invisible and unretentive: dead-end homepage, Google-OAuth-gated entry, and zero post-game sharing moment.
+
+**Covers:** REQ-001, REQ-002, REQ-003, REQ-004, REQ-005 (from REQUIREMENTS.md v2)
+**Delivers:**
+- Real Arabic landing page at `/` — tagline, dual CTA (host / player), "How it works" 3-step, game preview visuals, SEO meta tags
+- Anonymous room creation — host creates room without Google sign-in; `guestHostToken` bound to Redis room; IP-rate-limited at 3/hour
+- Post-game upgrade modal for guest hosts — "بقيت سجلاتك لمدة 24 ساعة" → Google OAuth to save history
+- WhatsApp share button on host lobby — pre-written Arabic message with room code + join URL
+- QR code on host lobby screen — generated via `qrcode` npm; encodes `/join/{code}` deeplink; 200×200px minimum
+- Deep link handling — `/join/{code}` pre-fills room code so player only enters name
+- Post-game screen for players — full ranked leaderboard, player rank badge, "شارك نتيجتك" button
+- "Play Again" flow for host — `game:reset` socket event; players auto-return to lobby
+- Shareable result cards — `@vercel/og` edge route; 1:1 WhatsApp variant + 9:16 Snapchat Stories variant; one-tap share
+- OG meta tags for `/join/{code}` — branded WhatsApp preview card
+
+**Plans:** TBD (run `/gsd-plan-phase 11` to break down)
+
+---
+
+## Phase 12: User Profiles + Persistent Leaderboards
+
+**Goal:** Players and hosts have persistent identities with game history, stats, and a social leaderboard — creating the retention loop that makes groups return weekly.
+
+**Covers:** REQ-007, REQ-008 (from REQUIREMENTS.md v2)
+**Delivers:**
+- Player profile page — display name, avatar (emoji selection), total games played, win count, best streak, favorite category
+- Persistent game history — after each game, session summary (date, category, score, rank, players) saved to PostgreSQL
+- "Join with profile" flow — returning players who previously played anonymously can claim their stats by signing in
+- Global leaderboard — weekly and all-time rankings across all Sha'lelha games; filterable by category
+- Room leaderboard — recurring groups can see their personal history head-to-head (e.g., "you've played 12 games with this group")
+- Profile card shareable to WhatsApp — "لعبت ٢٣ مرة وفزت ٨ مرات على شعللها 🏆"
+- Google OAuth required for persistent profile; anonymous play still works but stats not saved
+
+**Plans:** TBD (run `/gsd-plan-phase 12` to break down)
+
+---
+
+## Phase 13: New Game Types — Drawing + Bluffing
+
+**Goal:** Add two entirely new game mechanics that no Arabic party game platform offers — a drawing/guessing game and a bluffing/deception game — positioning Sha'lelha as the Arabic Jackbox.
+
+**Covers:** REQ-009, REQ-010 (from REQUIREMENTS.md v2)
+**Delivers:**
+
+### ارسم وخمّن (Draw & Guess)
+- Host displays a prompt word in Arabic; one player draws on a canvas (touch/mouse); all other players guess by typing
+- Real-time stroke sync via Socket.io (delta-encoded canvas strokes, not full frames)
+- Timer: 60 seconds to draw; guessing players submit answers freely (free-text input)
+- Scoring: guesser gets points for correct guess (speed-based); artist gets points for each correct guess
+- Canvas rendered in Next.js using HTML5 Canvas API (no Cloudinary dependency)
+- Arabic prompt words curated in admin dashboard (new `DrawingPrompt` table in Prisma)
+
+### كاذب بيننا (Bluffing / Who's the Liar)
+- Each round: all players submit a fake "fact" answer; one player submits the real answer; players vote for which answer is real
+- Scoring: bluffers earn points for each vote they attract; real-answer submitter earns points if the majority finds the truth
+- Questions curated as `BLUFFING` type — prompt that has a real factual answer (e.g., "ما عاصمة أيسلندا؟")
+- Phase flow: submit phase → vote phase → reveal phase — mirrors Free Text voting but with deception mechanic
+- Arabic cultural prompts: Gulf geography, Islamic history, Arab cinema, cuisine — categories where plausible bluffs are possible
+
+**Technical approach:**
+- Draw & Guess: new `QuestionType.DRAWING` in Prisma enum; new socket events `draw:stroke`, `draw:guess`, `draw:reveal`
+- Bluffing: new `QuestionType.BLUFFING` in Prisma enum; extends existing freetext voting flow with per-player answer hiding
+- Host can select game type mix when starting (e.g., "5 trivia + 2 drawing + 1 bluffing")
+
+**Plans:** TBD (run `/gsd-plan-phase 13` to break down)
+
+---
+
+## Phase 14: Audience / Spectator Mode
+
+**Goal:** Players who arrive after a game starts, or groups larger than 8, can join as spectators — watching on their phone, reacting with emoji, and staying engaged until the next game.
+
+**Covers:** REQ-006 (from REQUIREMENTS.md v2)
+**Delivers:**
+- When room is at capacity (8 players), join flow offers "Join as Spectator" instead of error
+- Spectator view at `/join/{code}/spectate` — mobile-optimized: live question, timer, read-only answers, running scores
+- Spectators receive all game socket events but do not affect game state or leaderboard
+- Emoji reaction bar (🔥 😂 😮 👏 💀) — tapping sends floating emoji overlay on host screen (rate-limited, 1 per 3s per spectator)
+- Spectator count shown on host lobby screen ("٣ متفرجون")
+- Max 50 spectators per room (Redis broadcast cap)
+- Spectators can convert to players in the next game via "Play Again" if a slot opens
+
+**Plans:** TBD (run `/gsd-plan-phase 14` to break down)
+
+---
+
+## Milestone 2 Success Criteria (v2.0)
+
+- [ ] Landing page conversion: visit → room created ≥ 15%
+- [ ] Time-to-first-game for new anonymous host < 90 seconds
+- [ ] WhatsApp share rate: ≥ 30% of games generate at least 1 share
+- [ ] Play-again click rate ≥ 25% of game-end events
+- [ ] Post-game screen engagement: player sees result card in 100% of completed games
+- [ ] User profiles: ≥ 20% of anonymous hosts convert to registered accounts within 7 days
+- [ ] Game type variety: at least 1 Drawing and 1 Bluffing question played in ≥ 10% of sessions
+- [ ] Spectator mode: no room-full error — spectator path available in 100% of capacity cases
+- [ ] Monthly active rooms (MAR): 100+ (baseline)
+
+---
+
+*Milestone 2 roadmap created: 2026-04-18*
+*Based on: business analyst discovery session, REQUIREMENTS.md v2 BRD, competitive benchmark (بنش_مارك), product vision doc (رؤية_المنتج)*
+*User-confirmed priority order: Phase 11 (Growth) → Phase 12 (Profiles) → Phase 13 (Game Types) → Phase 14 (Spectator)*

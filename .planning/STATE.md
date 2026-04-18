@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
+milestone: v2.0
+milestone_name: Growth + Engagement Engine
 status: active
-last_updated: "2026-04-18T12:00:00.000Z"
+last_updated: "2026-04-18T18:00:00.000Z"
 progress:
-  total_phases: 10
+  total_phases: 14
   completed_phases: 9
   total_plans: 35
   completed_plans: 35
-  percent: 100
+  percent: 64
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -19,21 +19,23 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 **Core value:** Any Arabic-speaking group can start a game session in under 60 seconds, on any device, with no install.
-**Current focus:** MILESTONE COMPLETE — v1.0 MVP shipped
+**Current focus:** Milestone 2 — Growth Foundation, User Profiles, New Game Types, Spectator Mode
 
 ---
 
 ## Current Status
 
-- **Milestone:** v1.0 — MVP Public Launch — **COMPLETE**
-- **Active Phase:** None — Phase 9 complete; Phase 10 planning next
-- **Phases complete:** 9 / 10
-- **Plans complete:** 35 / 35
+- **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
+- **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
+- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — pre-planning; run `/gsd-plan-phase 10`
+- **Phases complete:** 9 / 14
+- **Plans complete:** 35 / 35 (v1.0 plans)
 
 ---
 
 ## Recent Activity
 
+- 2026-04-18: Milestone 2 roadmap created — v2.0 Growth + Engagement Engine; Phases 11-14 defined; user confirmed priority: Phase 11 (Growth Foundation) → Phase 12 (User Profiles) → Phase 13 (Drawing + Bluffing game types) → Phase 14 (Spectator Mode); REQUIREMENTS.md v2 BRD written with REQ-001 through REQ-006
 - 2026-04-18: Phase 09 complete — AI Content Generation: GPT-4o backend route, admin UI (AiGenerateDialog + ModerationQueue), 91/91 server tests green (7 new integration tests), next build clean
 - 2026-04-17: Phase 08 complete — 11/11 UAT tests pass; all 78 server tests green; HANDOFF.md generated; v1.0 milestone closed
 - 2026-04-14: Phase 02 confirmed complete and live — SUMMARY files created retroactively (4 plans: auth, room/socket, player join/reconnect, load test)
@@ -111,6 +113,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - Phase 9 added: AI Content Generation (GPT-4o admin question generation + moderation queue) — plans verified, not yet executed
 - Phase 10 added: Draw and Guess game mode (ارسم وخمن) — from PRD shallelha.md Phase 2 Expansion
+- Phase 10 redesigned (2026-04-18): Draw and Guess → **UGC Community Question Packs + Shareable Result Cards** — product analysis (3 parallel agents) found this is higher-leverage for Gulf market growth: viral Snapchat/WhatsApp sharing loop + creator-driven content flywheel + Groq AI pack assistant (free, no OpenAI dependency)
 
 | Phase 08 P02 | 15 | 9 tasks | 6 files |
 | Phase 08 P03 | 25min | 6 tasks | 8 files |
