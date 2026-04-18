@@ -371,45 +371,79 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         return
       }
 
-      // Build Prisma where clause — filter by approved status and optional category
-      const where: { status: QuestionStatus; categoryId?: string } = {
-        status: QuestionStatus.approved,
-      }
-      if (data?.categoryId) {
-        where.categoryId = data.categoryId
-      }
+      let questions: QuestionData[]
 
-      // Fetch approved questions from PostgreSQL
-      const rawQuestions = await prisma.question.findMany({
-        where,
-        select: {
-          id: true,
-          text: true,
-          options: true,
-          correctIndex: true,
-          timerDuration: true,
-          type: true,
-          mediaUrl: true,
-        },
-      })
+      if (room.packId) {
+        // --- Community pack branch ---
+        // T-10-08-01: Verify pack is still APPROVED (tamper guard — Redis could be stale)
+        const pack = await prisma.pack.findUnique({ where: { id: room.packId } })
+        if (!pack || pack.status !== 'APPROVED') {
+          socket.emit('game:error', { message: 'الباقة المحددة غير متاحة' })
+          return
+        }
 
-      if (rawQuestions.length === 0) {
-        socket.emit('room:error', { message: 'No approved questions available' })
-        return
+        // T-10-08-02: Limit question count to prevent large-pack DoS
+        const questionLimit = 20
+        const packQuestions = await prisma.packQuestion.findMany({
+          where: { packId: room.packId },
+          orderBy: { order: 'asc' },
+          take: questionLimit,
+        })
+
+        if (packQuestions.length === 0) {
+          socket.emit('game:error', { message: 'الباقة المحددة لا تحتوي على أسئلة' })
+          return
+        }
+
+        questions = packQuestions.map((pq) => ({
+          id: pq.id,
+          text: pq.text,
+          options: pq.options as string[],
+          correctIndex: pq.correctIndex ?? 0,
+          timerDuration: 20, // Default timer for pack questions
+          type: pq.type as QuestionData['type'],
+          mediaUrl: undefined,
+        }))
+      } else {
+        // --- Existing behavior: load from Question table by categoryId ---
+        const where: { status: QuestionStatus; categoryId?: string } = {
+          status: QuestionStatus.approved,
+        }
+        if (data?.categoryId) {
+          where.categoryId = data.categoryId
+        }
+
+        const rawQuestions = await prisma.question.findMany({
+          where,
+          select: {
+            id: true,
+            text: true,
+            options: true,
+            correctIndex: true,
+            timerDuration: true,
+            type: true,
+            mediaUrl: true,
+          },
+        })
+
+        if (rawQuestions.length === 0) {
+          socket.emit('room:error', { message: 'No approved questions available' })
+          return
+        }
+
+        // Shuffle and cap at 20 questions
+        questions = shuffle(
+          rawQuestions.map((q) => ({
+            id: q.id,
+            text: q.text,
+            options: q.options as string[],
+            correctIndex: q.correctIndex,
+            timerDuration: q.timerDuration,
+            type: q.type as QuestionData['type'],
+            mediaUrl: q.mediaUrl ?? undefined,
+          })),
+        ).slice(0, 20)
       }
-
-      // Shuffle and cap at 20 questions
-      const questions: QuestionData[] = shuffle(
-        rawQuestions.map((q) => ({
-          id: q.id,
-          text: q.text,
-          options: q.options as string[],
-          correctIndex: q.correctIndex,
-          timerDuration: q.timerDuration,
-          type: q.type as QuestionData['type'],
-          mediaUrl: q.mediaUrl ?? undefined,
-        })),
-      ).slice(0, 20)
 
       // Retrieve existing game state to inherit host settings if already configured
       const existingGameState = await getGameState(roomCode)
@@ -426,6 +460,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           timerStyle: 'bar',
           revealMode: 'manual',
         },
+        ...(room.packId ? { packId: room.packId } : {}),
       }
 
       // Cache questions in memory to avoid DB hits per player answer
@@ -443,7 +478,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Persist the reset answeredCurrentQ flags
       await saveGameState(roomCode, gameState)
 
-      console.log(`[INFO] Game: started ${roomCode} — ${questions.length} questions`)
+      console.log(`[INFO] Game: started ${roomCode} — ${questions.length} questions${room.packId ? ` (pack: ${room.packId})` : ''}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start game'
       socket.emit('room:error', { message })
@@ -607,6 +642,14 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         questionCache.delete(roomCode)
         previousRankings.delete(roomCode)
 
+        // Increment pack play count fire-and-forget (T-10-08: playCount tracking)
+        if (gameState.packId) {
+          prisma.pack.update({
+            where: { id: gameState.packId },
+            data: { playCount: { increment: 1 } },
+          }).catch((err) => console.warn('[pack] playCount increment failed:', err))
+        }
+
         io.to(roomCode).emit('game:podium', { top3 })
         console.log(`[INFO] Game: game ended (all questions answered) in ${roomCode}`)
         return
@@ -676,6 +719,14 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       clearVotingTimer(roomCode)      // internally calls votingTimers.delete(roomCode)
       questionCache.delete(roomCode)
       previousRankings.delete(roomCode)
+
+      // Increment pack play count fire-and-forget (T-10-08: playCount tracking)
+      if (gameState.packId) {
+        prisma.pack.update({
+          where: { id: gameState.packId },
+          data: { playCount: { increment: 1 } },
+        }).catch((err) => console.warn('[pack] playCount increment failed:', err))
+      }
 
       io.to(roomCode).emit('game:podium', { top3 })
       console.log(`[INFO] Game: game ended early in ${roomCode}`)

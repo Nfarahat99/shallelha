@@ -41,8 +41,12 @@ export interface GameState {
   timerDuration: number
   playerStates: Record<string, PlayerGameState>
   hostSettings: HostSettings
+  /** Optional: ID of the community pack being played. Set when host starts game with packId. */
+  packId?: string
   /** Idempotency guard — true once question:revealed has been emitted for the current question. */
   revealedCurrentQ?: boolean
+  /** Count of active (non-disconnected) players who have answered the current question */
+  answerCount?: number
   /** Free text answers keyed by answering player ID. Present during voting phase. */
   freeTextAnswers?: Record<string, FreeTextAnswer>
   /** Unix timestamp (ms) when the voting phase closes. */
@@ -56,6 +60,8 @@ export interface LeaderboardEntry {
   score: number
   rank: number
   streak: number
+  /** Rank improvement since last question: positive = moved up, negative = dropped, 0 = same */
+  rankDelta: number
 }
 
 export interface QuestionPayload {

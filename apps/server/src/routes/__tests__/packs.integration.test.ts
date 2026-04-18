@@ -230,4 +230,101 @@ describe('Pack CRUD API — Integration Tests', () => {
     const gone = await prisma.pack.findUnique({ where: { id: packId } })
     expect(gone).toBeNull()
   })
+
+  // ---------------------------------------------------------------------------
+  // Game engine data layer tests (Plan 10-08)
+  // ---------------------------------------------------------------------------
+
+  it('GET /packs/:id returns pack with questions ordered by order field', async () => {
+    // Create pack directly via prisma with 3 questions in non-sequential order
+    const pack = await prisma.pack.create({
+      data: {
+        name: '[TEST_PACK] Game Engine Test',
+        category: 'ثقافة عامة',
+        language: 'ar',
+        createdBy: TEST_USER_ID,
+        status: 'APPROVED',
+        questions: {
+          create: [
+            {
+              text: 'السؤال الثالث',
+              type: 'MULTIPLE_CHOICE',
+              options: ['أ', 'ب', 'ج', 'د'],
+              correctIndex: 2,
+              order: 2,
+            },
+            {
+              text: 'السؤال الأول',
+              type: 'MULTIPLE_CHOICE',
+              options: ['أ', 'ب', 'ج', 'د'],
+              correctIndex: 0,
+              order: 0,
+            },
+            {
+              text: 'السؤال الثاني',
+              type: 'MULTIPLE_CHOICE',
+              options: ['أ', 'ب', 'ج', 'د'],
+              correctIndex: 1,
+              order: 1,
+            },
+          ],
+        },
+      },
+    })
+
+    const res = await request(buildApp()).get(`/packs/${pack.id}`)
+    expect(res.status).toBe(200)
+
+    // Verify questions array has 3 items
+    expect(res.body.questions).toHaveLength(3)
+
+    // Verify ordered by `order` field ascending
+    const questions = res.body.questions
+    expect(questions[0].order).toBe(0)
+    expect(questions[1].order).toBe(1)
+    expect(questions[2].order).toBe(2)
+
+    // Verify each question has required fields for game engine
+    for (const q of questions) {
+      expect(q.id).toBeTruthy()
+      expect(q.text).toBeTruthy()
+      expect(q.type).toBe('MULTIPLE_CHOICE')
+      expect(Array.isArray(q.options)).toBe(true)
+      expect(q.options).toHaveLength(4)
+      expect(typeof q.correctIndex === 'number' || q.correctIndex === null).toBe(true)
+    }
+  })
+
+  it('Pack playCount increments correctly via prisma update', async () => {
+    // Create an approved pack with initial playCount = 0
+    const pack = await prisma.pack.create({
+      data: {
+        name: '[TEST_PACK] PlayCount Test',
+        category: 'رياضة',
+        createdBy: TEST_USER_ID,
+        status: 'APPROVED',
+        playCount: 0,
+      },
+    })
+
+    expect(pack.playCount).toBe(0)
+
+    // Simulate what game.ts does after game ends — fire-and-forget increment
+    await prisma.pack.update({
+      where: { id: pack.id },
+      data: { playCount: { increment: 1 } },
+    })
+
+    const updated = await prisma.pack.findUnique({ where: { id: pack.id } })
+    expect(updated?.playCount).toBe(1)
+
+    // Simulate a second game completing
+    await prisma.pack.update({
+      where: { id: pack.id },
+      data: { playCount: { increment: 1 } },
+    })
+
+    const updatedAgain = await prisma.pack.findUnique({ where: { id: pack.id } })
+    expect(updatedAgain?.playCount).toBe(2)
+  })
 })
