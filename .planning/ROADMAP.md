@@ -187,12 +187,12 @@ Plans:
 - Batch approve/reject: select multiple DRAFT questions, approve or reject in one action
 - OPENAI_API_KEY added to apps/server/.env.example only (server-side key — never in web env)
 
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 09-01-PLAN.md — Backend: OpenAI GPT-4o integration, ai-generate Express route, TDD unit tests
-- [ ] 09-02-PLAN.md — Admin UI: AI generation dialog, moderation queue, Server Actions, batch approve/reject
-- [ ] 09-03-PLAN.md — Verification: build checks, integration tests (generate→approve/reject flow), visual checkpoint
+- [x] 09-02-PLAN.md — Admin UI: AI generation dialog, moderation queue, Server Actions, batch approve/reject
+- [x] 09-03-PLAN.md — Verification: build checks, integration tests (generate→approve/reject flow), visual checkpoint
 
 ---
 

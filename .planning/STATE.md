@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-18T02:43:13.797Z"
+last_updated: "2026-04-18T03:04:23.341Z"
 progress:
   total_phases: 10
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 32
-  completed_plans: 30
-  percent: 94
+  completed_plans: 32
+  percent: 100
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -77,6 +77,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 09]: OpenAI client uses lazy singleton to avoid constructor throw when OPENAI_API_KEY absent in test env
 - [Phase 09]: aiGenerateLimiter keyed on admin_session cookie with validate.ip:false; no cookie-parser dependency
 - [Phase 09]: GPT response_format:json_object — parse obj.questions to extract array per locked decision
+- [Phase 09]: vitest config uses vite loadEnv to load .env into test.env — makes DATABASE_URL available to real Prisma in integration tests without modifying test files
+- [Phase 09]: Integration tests use [TEST_AI] prefix + afterEach deleteMany for isolation; afterAll deletes test category — idempotent via beforeAll upsert
 
 ## Open Questions
 
@@ -102,6 +104,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 ---
 | Phase 09 P01 | 15 | 3 tasks | 4 files |
+| Phase 09 P03 | 20 | 3 tasks | 2 files |
 
 ## Roadmap Evolution
 
