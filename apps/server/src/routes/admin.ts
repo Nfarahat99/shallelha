@@ -34,7 +34,7 @@ const aiGenerateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => (req.cookies?.admin_session as string | undefined) ?? 'default',
-  validate: { ip: false },
+  validate: { ip: false, xForwardedForHeader: false },
   message: { error: 'حد معدل طلبات توليد الأسئلة تجاوز — انتظر دقيقة' },
 })
 
