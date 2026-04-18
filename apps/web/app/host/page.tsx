@@ -114,6 +114,22 @@ export default async function HostPage() {
           </a>
         </section>
 
+        {/* ─── Secondary nav links ─── */}
+        <section className="mb-10 flex flex-wrap justify-center gap-3">
+          <a
+            href="/packs/my-packs"
+            className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-semibold text-slate-300 transition-colors hover:border-white/30 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            باقاتي
+          </a>
+        </section>
+
         {/* ─── Stats cards ─── */}
         <section aria-labelledby="stats-heading" className="mb-12">
           <h2
