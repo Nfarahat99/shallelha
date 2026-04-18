@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import { getSocket } from '@/lib/socket'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
 import { PlayerCard } from '@/components/ui/PlayerCard'
@@ -18,6 +19,7 @@ import { VotingUI } from './game/VotingUI'
 import { LifelineBar } from './game/LifelineBar'
 import { FreezeOpponentOverlay } from './game/FreezeOpponentOverlay'
 import { FrozenPlayerOverlay } from './components/FreezeOpponentOverlay'
+import { PlayerPostGame } from './PlayerPostGame'
 
 interface Player {
   id: string
@@ -46,6 +48,9 @@ interface PlayerJoinProps {
 }
 
 export function PlayerJoin({ roomCode }: PlayerJoinProps) {
+  // ── Session ────────────────────────────────────────────────────────────────
+  const { data: session } = useSession()
+
   // ── Core join state ────────────────────────────────────────────────────────
   const [phase, setPhase] = useState<JoinPhase>('form')
   const [name, setName] = useState('')
@@ -89,6 +94,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [answerCount, setAnswerCount] = useState(0)
   const [playerCount, setPlayerCount] = useState(0)
   const [isFrozen, setIsFrozen] = useState(false)
+
+  // ── Post-game leaderboard ─────────────────────────────────────────────────
+  const [endLeaderboard, setEndLeaderboard] = useState<Array<{ id: string; name: string; emoji: string; score: number; rank: number }>>([])
 
   // ── Lifeline state (Phase 6) ──────────────────────────────────────────────
   const [doublePointsUsed, setDoublePointsUsed] = useState(false)
@@ -251,9 +259,40 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       }
     })
 
-    // game:podium — game finished, show ended screen
-    socket.on('game:podium', () => {
+    // game:podium — game finished, show ended screen with leaderboard
+    socket.on('game:podium', ({ leaderboard }: { leaderboard?: Array<{ id: string; name: string; emoji: string; score: number; rank: number }> }) => {
+      if (leaderboard) setEndLeaderboard(leaderboard)
       setPhase('ended')
+    })
+
+    // room:reset — host reset the room back to lobby
+    socket.on('room:reset', () => {
+      setPhase('lobby')
+      setMyScore(0)
+      setMyStreak(0)
+      setMyRank(null)
+      setMyRankDelta(0)
+      setAnswerCount(0)
+      setPlayerCount(0)
+      setIsFrozen(false)
+      setCurrentQuestion(null)
+      setQuestionIndex(0)
+      setMyAnswer(null)
+      setCorrectIndex(null)
+      setPlayerPhase('answering')
+      setFreeTextSubmitted(false)
+      setSubmittedText('')
+      setVotingAnswers([])
+      setVotedAnswerId(null)
+      setVotingDeadline(0)
+      setDoublePointsUsed(false)
+      setRemoveTwoUsed(false)
+      setFreezeOpponentUsed(false)
+      setDoublePointsActive(false)
+      setEliminatedIndices([])
+      setFreezeOverlayOpen(false)
+      setFreezeError(null)
+      setEndLeaderboard([])
     })
 
     return () => {
@@ -263,6 +302,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.off('question:start')
       socket.off('question:revealed')
       socket.off('game:podium')
+      socket.off('room:reset')
       socket.off('freetext:lock')
       socket.off('freetext:results')
       socket.off('lifeline:double_points_ack')
@@ -273,6 +313,17 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.off('player:frozen')
     }
   }, [phase, myToken])
+
+  // ── Session pre-fill ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (session?.user) {
+      const profileName = (session.user as { displayName?: string }).displayName ?? session.user.name ?? ''
+      if (profileName && !name) setName(profileName)
+      const profileEmoji = (session.user as { avatarEmoji?: string }).avatarEmoji
+      if (profileEmoji && !emoji) setEmoji(profileEmoji)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session])
 
   // ── Join handler ───────────────────────────────────────────────────────────
   const handleJoin = useCallback(
@@ -621,14 +672,11 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   // ── Render: ended ──────────────────────────────────────────────────────────
   if (phase === 'ended') {
     return (
-      <main className="min-h-dvh flex items-center justify-center bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
-        <div className="text-center space-y-4">
-          <p className="text-4xl">🏁</p>
-          <h2 className="text-2xl font-bold text-white">انتهت اللعبة</h2>
-          <p className="text-lg text-white/60">النقاط: {myScore}</p>
-          <a href="/join" className="text-brand-400 text-sm underline">العب مرة أخرى</a>
-        </div>
-      </main>
+      <PlayerPostGame
+        myPlayerId={myToken ?? ''}
+        leaderboard={endLeaderboard}
+        roomCode={roomCode}
+      />
     )
   }
 
