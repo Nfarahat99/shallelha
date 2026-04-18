@@ -6,6 +6,8 @@ import { getSocket } from '@/lib/socket'
 import { PlayerCard } from '@/components/ui/PlayerCard'
 import { HostControls } from '@/components/ui/HostControls'
 import SkeletonCard from '@/components/ui/SkeletonCard'
+import WhatsAppShareButton from './WhatsAppShareButton'
+import QRCodeDisplay from './QRCodeDisplay'
 import { HostPreGame, type HostSettings } from './game/HostPreGame'
 import { HostGameScreen } from './game/HostGameScreen'
 import { QuestionDisplay } from './game/QuestionDisplay'
@@ -281,7 +283,13 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
           <p className="text-sm text-brand-300 font-medium">كود الغرفة</p>
           <p className="text-5xl font-bold tracking-widest text-white font-mono">{roomCode}</p>
           <p className="text-xs text-white/30 break-all">{joinUrl}</p>
+          <div className="pt-2">
+            <QRCodeDisplay joinUrl={joinUrl} />
+          </div>
         </div>
+
+        {/* WhatsApp share */}
+        <WhatsAppShareButton roomCode={roomCode} joinUrl={joinUrl} />
 
         {/* Players list */}
         <div className="space-y-3">
