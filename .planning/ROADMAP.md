@@ -277,7 +277,16 @@ Plans:
 - Shareable result cards — `@vercel/og` edge route; 1:1 WhatsApp variant + 9:16 Snapchat Stories variant; one-tap share
 - OG meta tags for `/join/{code}` — branded WhatsApp preview card
 
-**Plans:** TBD (run `/gsd-plan-phase 11` to break down)
+**Plans:** 7 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Prisma schema extensions: GameSession, PlayerGameResult, User profile fields
+- [ ] 11-02-PLAN.md — Landing page CTA copy update + OG meta tags
+- [ ] 11-03-PLAN.md — WhatsApp share button + QR code on host lobby
+- [ ] 11-04-PLAN.md — OG meta for /join/{code} + @vercel/og edge route for invite cards
+- [ ] 11-05-PLAN.md — Game engine: full leaderboard emission, game history save, Play Again flow
+- [ ] 11-06-PLAN.md — Post-game player screen with leaderboard, rank badge, share button
+- [ ] 11-07-PLAN.md — User profile page with stats, game history, profile editing
 
 ---
 
