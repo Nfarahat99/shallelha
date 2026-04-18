@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
 - **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
-- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — **IN PROGRESS** — Plan 01 complete (Pack CRUD data layer + REST API)
+- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — **IN PROGRESS** — Plans 01, 03 complete (Pack CRUD data layer + REST API; Groq AI Pack Assistant route)
 - **Phases complete:** 9 / 14
 - **Plans complete:** 35 / 35 (v1.0 plans) + 8 plans (Phase 10, not yet executed)
 
@@ -86,6 +86,10 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 10-01]: Used prisma db push instead of prisma migrate dev — migration history had drift from existing DB; db push syncs schema without dropping data
 - [Phase 10-01]: GET /packs/mine defined before GET /packs/:id in router to prevent route shadowing on the literal path "mine"
 - [Phase 10-01]: Pack.createdBy stored as plain String (no FK) — avoids cascade complexity with future anonymous users
+- [Phase 10-03]: Used cookie-parser middleware so req.cookies works reliably in production and test environments
+- [Phase 10-03]: Rate limit key falls back to 'anonymous' (not req.ip) to avoid ERR_ERL_KEY_GEN_IPV6 validation error from express-rate-limit v8
+- [Phase 10-03]: Integration tests use unique next-auth.session-token cookies per test to isolate rate-limit buckets
+- [Phase 10-03]: 503 threshold set at < 3 valid questions to reject low-quality partial Groq responses early
 
 ## Open Questions
 
@@ -107,7 +111,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 | 07    | 05   | 20min    | 2     | 5     |
 
-*Last session: 2026-04-18 — Stopped at: Completed 10-01-PLAN.md — Pack CRUD data layer + REST API, 6/6 integration tests green*
+| 10    | 03   | 309s     | 2     | 6     |
+
+*Last session: 2026-04-18 — Stopped at: Completed 10-03-PLAN.md — Groq AI Pack Assistant route, 6/6 integration tests green, 103/103 full suite*
 
 ---
 | Phase 09 P01 | 15 | 3 tasks | 4 files |

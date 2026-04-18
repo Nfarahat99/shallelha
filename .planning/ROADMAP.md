@@ -213,9 +213,9 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Database schema: Pack + PackQuestion models, PackStatus enum, Pack CRUD API + integration tests
+- [x] 10-01-PLAN.md — Database schema: Pack + PackQuestion models, PackStatus enum, Pack CRUD API + integration tests
 - [ ] 10-02-PLAN.md — Pack Creator UI: create/edit flow, PackQuestionEditor, AiDraftReviewer, My Packs dashboard
-- [ ] 10-03-PLAN.md — Groq AI Pack Assistant: POST /ai/pack-generate, rate limiter, Groq SDK, mock unit tests
+- [x] 10-03-PLAN.md — Groq AI Pack Assistant: POST /ai/pack-generate, rate limiter, Groq SDK, mock unit tests
 - [ ] 10-04-PLAN.md — Pack Marketplace: browse/filter/detail pages, room creation pack pre-selector
 - [ ] 10-05-PLAN.md — Admin Pack Approval Queue: pending packs tab, approve/reject Server Actions, rejection reason on My Packs
 - [ ] 10-06-PLAN.md — Shareable Result Cards: satori + @resvg/resvg-js image generation, Web Share API, post-game screen
