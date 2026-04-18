@@ -17,6 +17,7 @@ import { FreeTextInput } from './game/FreeTextInput'
 import { VotingUI } from './game/VotingUI'
 import { LifelineBar } from './game/LifelineBar'
 import { FreezeOpponentOverlay } from './game/FreezeOpponentOverlay'
+import { FrozenPlayerOverlay } from './components/FreezeOpponentOverlay'
 
 interface Player {
   id: string
@@ -81,6 +82,13 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [votingAnswers, setVotingAnswers] = useState<Array<{ id: string; emoji: string; text: string }>>([])
   const [votedAnswerId, setVotedAnswerId] = useState<string | null>(null)
   const [votingDeadline, setVotingDeadline] = useState(0)
+
+  // ── UX wins (Phase 10, Plan 07) ───────────────────────────────────────────
+  const [myRank, setMyRank] = useState<number | null>(null)
+  const [myRankDelta, setMyRankDelta] = useState(0)
+  const [answerCount, setAnswerCount] = useState(0)
+  const [playerCount, setPlayerCount] = useState(0)
+  const [isFrozen, setIsFrozen] = useState(false)
 
   // ── Lifeline state (Phase 6) ──────────────────────────────────────────────
   const [doublePointsUsed, setDoublePointsUsed] = useState(false)
@@ -160,6 +168,10 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setEliminatedIndices([])
       setFreezeOverlayOpen(false)
       setFreezeError(null)
+      // Reset UX-win per-question state
+      setAnswerCount(0)
+      setPlayerCount(0)
+      setIsFrozen(false)
     })
 
     // freetext:lock — voting phase starts
@@ -183,6 +195,26 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setRemoveTwoUsed(true)
       setEliminatedIndices(ei)
     })
+    // leaderboard:update — extract own rank + rankDelta for the revealed feedback
+    socket.on('leaderboard:update', ({ players: lb }: { players: Array<{ id: string; rank: number; rankDelta: number }> }) => {
+      const mine = lb.find(e => e.id === myToken)
+      if (mine) {
+        setMyRank(mine.rank)
+        setMyRankDelta(mine.rankDelta)
+      }
+    })
+
+    // question:progress — answer count progress counter
+    socket.on('question:progress', ({ answerCount: ac, playerCount: pc }: { answerCount: number; playerCount: number }) => {
+      setAnswerCount(ac)
+      setPlayerCount(pc)
+    })
+
+    // player:frozen — server notified this player they are frozen
+    socket.on('player:frozen', () => {
+      setIsFrozen(true)
+    })
+
     socket.on('lifeline:freeze_ack', ({ success, reason }: { success: boolean; reason?: string }) => {
       if (success) {
         setFreezeOpponentUsed(true)
@@ -236,6 +268,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.off('lifeline:double_points_ack')
       socket.off('lifeline:remove_two_result')
       socket.off('lifeline:freeze_ack')
+      socket.off('leaderboard:update')
+      socket.off('question:progress')
+      socket.off('player:frozen')
     }
   }, [phase, myToken])
 
@@ -459,6 +494,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     // MC / MEDIA_GUESSING question flow
     return (
       <PlayerGameScreen>
+        {/* Freeze overlay — shown when this player is frozen */}
+        {isFrozen && <FrozenPlayerOverlay />}
+
         <PlayerTimerBar
           duration={currentQuestion.timerDuration}
           startedAt={questionStartedAt}
@@ -490,9 +528,17 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
 
         {/* Question header */}
         <div className="px-4 pt-4 pb-2">
-          <p className="text-xs text-white/50 text-start">
-            سؤال {questionIndex + 1}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-white/50">
+              سؤال {questionIndex + 1}
+            </p>
+            {/* Answer count progress — "X من Y أجابوا" */}
+            {playerPhase === 'answering' && playerCount > 0 && (
+              <p className="text-xs text-white/50" dir="rtl">
+                {answerCount.toLocaleString('ar-EG')} من {playerCount.toLocaleString('ar-EG')} أجابوا
+              </p>
+            )}
+          </div>
           <h2 className="text-xl font-bold text-white text-start leading-relaxed mt-1">
             {currentQuestion.text}
           </h2>
@@ -540,6 +586,22 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             <p className="text-sm text-white/60">النقاط: {myScore}</p>
             {myStreak >= 3 && (
               <p className="text-xs text-yellow-500 font-semibold">سلسلة ×1.5</p>
+            )}
+            {/* Live rank + delta badge */}
+            {myRank !== null && (
+              <div className="flex items-center justify-center gap-2 pt-1" dir="rtl">
+                <span className="text-sm text-white/70">المركز #{myRank.toLocaleString('ar-EG')}</span>
+                {myRankDelta > 0 && (
+                  <span className="text-xs font-bold text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full">
+                    ▲{myRankDelta}
+                  </span>
+                )}
+                {myRankDelta < 0 && (
+                  <span className="text-xs font-bold text-red-400 bg-red-500/20 px-2 py-0.5 rounded-full">
+                    ▼{Math.abs(myRankDelta)}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         )}

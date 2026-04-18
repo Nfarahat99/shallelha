@@ -17,13 +17,17 @@ interface QuestionDisplayProps {
   mediaUrl?: string
   timerDuration?: number
   freeTextAnswers?: Array<{ playerId: string; emoji: string; text: string }>
+  /** Answer count progress — how many players have answered the current question */
+  answerCount?: number
+  /** Total active player count for progress display */
+  playerCount?: number
 }
 
 const OPTION_COLORS = [
-  { bg: 'bg-red-500', text: 'text-white' },
-  { bg: 'bg-blue-500', text: 'text-white' },
-  { bg: 'bg-yellow-400', text: 'text-gray-900' },
-  { bg: 'bg-green-500', text: 'text-white' },
+  { glass: 'bg-indigo-500/20 border-indigo-400/50 hover:bg-indigo-500/30', badge: 'bg-indigo-500 text-white', text: 'text-white' },
+  { glass: 'bg-purple-500/20 border-purple-400/50 hover:bg-purple-500/30', badge: 'bg-purple-500 text-white', text: 'text-white' },
+  { glass: 'bg-cyan-500/20 border-cyan-400/50 hover:bg-cyan-500/30', badge: 'bg-cyan-500 text-white', text: 'text-white' },
+  { glass: 'bg-rose-500/20 border-rose-400/50 hover:bg-rose-500/30', badge: 'bg-rose-500 text-white', text: 'text-white' },
 ]
 
 const ARABIC_LETTERS = ['أ', 'ب', 'ج', 'د']
@@ -58,13 +62,20 @@ export function QuestionDisplay({
   mediaUrl,
   timerDuration,
   freeTextAnswers,
+  answerCount,
+  playerCount,
 }: QuestionDisplayProps) {
   const reducedMotion = useReducedMotion() ?? false
 
   const renderOption = (option: string, index: number) => {
-    const color = OPTION_COLORS[index] ?? { bg: 'bg-gray-600', text: 'text-white' }
+    const color = OPTION_COLORS[index] ?? { glass: 'bg-white/10 border-white/20 hover:bg-white/15', badge: 'bg-gray-600 text-white', text: 'text-white' }
     const isCorrect = revealed && correctIndex === index
     const animProps = getRevealAnimation(index, correctIndex, revealed, reducedMotion)
+
+    const correctOverlay = isCorrect
+      ? 'bg-green-500/30 border-green-400/70 shadow-[0_0_30px_rgba(34,197,94,0.3)]'
+      : ''
+    const baseGlass = `backdrop-blur-xl border ${color.glass} ${color.text}`
 
     return (
       <m.div
@@ -74,31 +85,31 @@ export function QuestionDisplay({
       >
         {layout === '2x2' && (
           <div
-            className={`relative rounded-2xl flex items-center justify-center min-h-[20vh] text-[32px] font-bold text-center p-6 ${color.bg} ${color.text}`}
+            className={`relative rounded-2xl flex items-center justify-center min-h-[20vh] text-[28px] font-bold text-center p-6 transition-colors ${baseGlass} ${correctOverlay}`}
           >
-            <span className="absolute top-3 start-3 text-lg opacity-70">{ARABIC_LETTERS[index]}</span>
+            <span className={`absolute top-3 start-3 text-sm font-bold px-2 py-0.5 rounded-lg ${color.badge}`}>{ARABIC_LETTERS[index]}</span>
             <span>{option}</span>
             {isCorrect && (
-              <span className="absolute bottom-3 end-3 text-sm font-bold">✓ إجابة صحيحة!</span>
+              <span className="absolute bottom-3 end-3 text-xs font-bold text-green-300 bg-green-500/20 px-2 py-1 rounded-lg border border-green-400/30">✓ إجابة صحيحة!</span>
             )}
           </div>
         )}
         {layout === '4-column' && (
           <div
-            className={`flex-1 rounded-xl min-h-[80px] flex flex-col items-center justify-center text-xl font-bold p-4 gap-1 ${color.bg} ${color.text}`}
+            className={`flex-1 rounded-xl min-h-[80px] flex flex-col items-center justify-center text-xl font-bold p-4 gap-2 transition-colors ${baseGlass} ${correctOverlay}`}
           >
-            <span className="text-sm opacity-70">{ARABIC_LETTERS[index]}</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${color.badge}`}>{ARABIC_LETTERS[index]}</span>
             <span className="text-center">{option}</span>
-            {isCorrect && <span className="text-xs font-bold">✓ إجابة صحيحة!</span>}
+            {isCorrect && <span className="text-xs font-bold text-green-300">✓ إجابة صحيحة!</span>}
           </div>
         )}
         {layout === 'vertical' && (
           <div
-            className={`rounded-xl py-4 px-6 flex items-center gap-3 text-xl font-bold ${color.bg} ${color.text}`}
+            className={`rounded-xl py-4 px-6 flex items-center gap-3 text-xl font-bold transition-colors ${baseGlass} ${correctOverlay}`}
           >
-            <span className="text-sm opacity-70 shrink-0">{ARABIC_LETTERS[index]}</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-md shrink-0 ${color.badge}`}>{ARABIC_LETTERS[index]}</span>
             <span className="flex-1">{option}</span>
-            {isCorrect && <span className="text-xs font-bold shrink-0">✓</span>}
+            {isCorrect && <span className="text-xs font-bold text-green-300 shrink-0">✓</span>}
           </div>
         )}
       </m.div>
@@ -177,11 +188,16 @@ export function QuestionDisplay({
   // MULTIPLE_CHOICE (default)
   return (
     <div className="flex-1 flex flex-col min-h-0">
-      {/* Question counter */}
-      <div className="px-8 pt-4 pb-2 shrink-0">
+      {/* Question counter + answer progress */}
+      <div className="px-8 pt-4 pb-2 shrink-0 flex items-center justify-between">
         <span className="text-2xl font-semibold text-gray-300">
           سؤال {questionIndex + 1} من {total}
         </span>
+        {!revealed && typeof answerCount === 'number' && typeof playerCount === 'number' && playerCount > 0 && (
+          <span className="text-lg text-white/50" dir="rtl">
+            {answerCount.toLocaleString('ar-EG')} من {playerCount.toLocaleString('ar-EG')} أجابوا
+          </span>
+        )}
       </div>
 
       {/* Question text zone */}

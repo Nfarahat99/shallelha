@@ -43,14 +43,14 @@ export function HostInGameControls({
   const showLockButton = isQuestion && isFreeText
 
   return (
-    <div className="flex flex-row items-center gap-3 px-6 py-3 bg-gray-900 shrink-0">
+    <div className="flex flex-row items-center gap-3 px-6 py-3 bg-black/40 backdrop-blur-xl border-t border-white/10 shrink-0">
       {/* Reveal / Lock button */}
       {showLockButton ? (
         <button
           onClick={onLockFreeText}
           disabled={!isQuestion}
           aria-label="اغلق الإجابات"
-          className="flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors bg-brand-600 hover:bg-brand-700"
+          className="flex-1 rounded-xl px-4 py-3 font-bold text-white transition-all bg-brand-600 hover:bg-brand-500 shadow-[0_0_20px_rgba(79,70,229,0.4)]"
         >
           اغلق الإجابات
         </button>
@@ -59,39 +59,39 @@ export function HostInGameControls({
           onClick={onReveal}
           disabled={!isQuestion || isVoting}
           aria-label="اكشف الإجابة"
-          className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors ${
+          className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-all ${
             isQuestion && !isVoting
-              ? 'bg-brand-600 hover:bg-brand-700'
-              : 'bg-gray-700 opacity-40 cursor-not-allowed'
+              ? 'bg-brand-600 hover:bg-brand-500 shadow-[0_0_20px_rgba(79,70,229,0.4)]'
+              : 'bg-white/5 border border-white/10 opacity-40 cursor-not-allowed'
           }`}
         >
           اكشف الإجابة
         </button>
       )}
 
-      {/* Next Question — active after reveal, disabled during voting */}
+      {/* Next Question */}
       <button
         onClick={onNext}
         disabled={!isRevealOrLeaderboard}
         aria-label="التالي"
-        className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors ${
+        className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-all border ${
           isRevealOrLeaderboard
-            ? 'bg-gray-700 hover:bg-gray-600'
-            : 'bg-gray-700 opacity-40 cursor-not-allowed'
+            ? 'bg-white/10 border-white/20 hover:bg-white/20'
+            : 'bg-white/5 border-white/10 opacity-40 cursor-not-allowed'
         }`}
       >
         التالي
       </button>
 
-      {/* Show Leaderboard — active after reveal, disabled during voting */}
+      {/* Show Leaderboard */}
       <button
         onClick={onLeaderboard}
         disabled={!isRevealOrLeaderboard}
         aria-label="عرض النتائج"
-        className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors ${
+        className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-all border ${
           isRevealOrLeaderboard
-            ? 'bg-gray-700 hover:bg-gray-600'
-            : 'bg-gray-700 opacity-40 cursor-not-allowed'
+            ? 'bg-white/10 border-white/20 hover:bg-white/20'
+            : 'bg-white/5 border-white/10 opacity-40 cursor-not-allowed'
         }`}
       >
         عرض النتائج
@@ -102,14 +102,14 @@ export function HostInGameControls({
         <button
           onClick={handleEnd}
           aria-label="إنهاء اللعبة"
-          className="flex-1 rounded-xl px-4 py-3 font-bold text-white bg-red-600 hover:bg-red-700 transition-colors"
+          className="flex-1 rounded-xl px-4 py-3 font-bold text-white bg-red-600/80 hover:bg-red-500 border border-red-500/50 transition-all"
         >
           {confirmEnd ? 'هل أنت متأكد؟ إنهاء اللعبة' : 'إنهاء اللعبة'}
         </button>
         {confirmEnd && (
           <button
             onClick={() => setConfirmEnd(false)}
-            className="text-xs text-gray-400 hover:text-gray-200 transition-colors"
+            className="text-xs text-white/40 hover:text-white/70 transition-colors"
           >
             إلغاء
           </button>

@@ -40,6 +40,13 @@ const votingTimers = new Map<string, NodeJS.Timeout>()
 const questionCache = new Map<string, QuestionData[]>()
 
 /**
+ * Previous rankings keyed by roomCode → Map<playerId, rank>.
+ * Used to compute rankDelta in leaderboard broadcasts.
+ * Reset on game:start, updated after each leaderboard:show.
+ */
+const previousRankings = new Map<string, Map<string, number>>()
+
+/**
  * In-flight lock for freetext:answer — prevents TOCTOU duplicate submissions
  * from rapid-fire emits before the first async write completes (T-05-15).
  * Key format: `${roomCode}:${playerId}`
@@ -424,6 +431,9 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Cache questions in memory to avoid DB hits per player answer
       questionCache.set(roomCode, questions)
 
+      // Reset previous rankings for new game
+      previousRankings.set(roomCode, new Map())
+
       await saveGameState(roomCode, gameState)
       await updateRoomStatus(roomCode, 'playing')
 
@@ -497,10 +507,11 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       const answeredIds = Object.entries(gameState.playerStates)
         .filter(([, state]) => state.answeredCurrentQ)
         .map(([id]) => id)
-      const answeredCount = answeredIds.length
-      const totalPlayers = Object.keys(gameState.playerStates).length
+      const answerCount = answeredIds.length
+      // playerCount = all active (non-disconnected) players — same as playerStates size
+      const playerCount = Object.keys(gameState.playerStates).length
 
-      io.to(roomCode).emit('question:progress', { answeredCount, totalPlayers, answeredIds })
+      io.to(roomCode).emit('question:progress', { answerCount, playerCount, answeredIds })
     } catch (err) {
       console.error('[ERROR] Game: player:answer error:', err)
     }
@@ -540,7 +551,15 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         return
       }
 
-      const leaderboard = getLeaderboard(gameState.playerStates, room.players)
+      const roomPrevRankings = previousRankings.get(roomCode)
+      const leaderboard = getLeaderboard(gameState.playerStates, room.players, roomPrevRankings)
+
+      // Update previousRankings with current ranks for next question's delta
+      const newRankings = new Map<string, number>()
+      for (const entry of leaderboard) {
+        newRankings.set(entry.id, entry.rank)
+      }
+      previousRankings.set(roomCode, newRankings)
 
       gameState.phase = 'leaderboard'
       await saveGameState(roomCode, gameState)
@@ -586,6 +605,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         clearAutoRevealTimer(roomCode)
         clearVotingTimer(roomCode)
         questionCache.delete(roomCode)
+        previousRankings.delete(roomCode)
 
         io.to(roomCode).emit('game:podium', { top3 })
         console.log(`[INFO] Game: game ended (all questions answered) in ${roomCode}`)
@@ -655,6 +675,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       clearAutoRevealTimer(roomCode)
       clearVotingTimer(roomCode)      // internally calls votingTimers.delete(roomCode)
       questionCache.delete(roomCode)
+      previousRankings.delete(roomCode)
 
       io.to(roomCode).emit('game:podium', { top3 })
       console.log(`[INFO] Game: game ended early in ${roomCode}`)
@@ -864,6 +885,15 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await saveGameState(roomCode, gameState)
 
       socket.emit('lifeline:freeze_ack', { success: true })
+
+      // Rule 2: notify frozen player so their client can show the freeze overlay.
+      // Find the target player's current socket ID and emit directly to them.
+      const room = await getRoom(roomCode)
+      const targetPlayer = room?.players.find(p => p.id === targetPlayerId)
+      if (targetPlayer?.socketId) {
+        io.to(targetPlayer.socketId).emit('player:frozen')
+      }
+
       console.log(`[INFO] Game: freeze opponent: ${playerId} froze ${targetPlayerId} in ${roomCode}`)
     } catch (err) {
       console.error('[ERROR] Game: lifeline:freeze_opponent error:', err)

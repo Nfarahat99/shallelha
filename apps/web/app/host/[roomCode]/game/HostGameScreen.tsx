@@ -9,11 +9,11 @@ interface HostGameScreenProps {
 
 export function HostGameScreen({ roomCode, children }: HostGameScreenProps) {
   return (
-    <div className="w-screen h-screen overflow-hidden bg-gray-950 flex flex-col">
+    <div className="w-screen h-screen overflow-hidden bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900 flex flex-col">
       {/* Top bar with room code */}
-      <div className="h-12 bg-gray-900 flex items-center justify-between px-6 shrink-0">
-        <span className="text-xs text-gray-500">كود الغرفة</span>
-        <span dir="ltr" className="text-base text-gray-400 font-mono tracking-widest">
+      <div className="h-12 bg-black/30 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-6 shrink-0">
+        <span className="text-xs text-white/40 font-medium tracking-wide">كود الغرفة</span>
+        <span dir="ltr" className="text-sm text-brand-300 font-mono tracking-[0.3em] font-bold">
           {roomCode}
         </span>
       </div>
