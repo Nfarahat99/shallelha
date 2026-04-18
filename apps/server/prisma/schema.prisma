@@ -94,3 +94,38 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+enum PackStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Pack {
+  id            String         @id @default(cuid())
+  name          String
+  description   String?
+  category      String
+  language      String         @default("ar")
+  difficulty    String?
+  status        PackStatus     @default(DRAFT)
+  createdBy     String
+  creatorHandle String?
+  playCount     Int            @default(0)
+  rating        Float?
+  questions     PackQuestion[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model PackQuestion {
+  id           String       @id @default(cuid())
+  packId       String
+  pack         Pack         @relation(fields: [packId], references: [id], onDelete: Cascade)
+  text         String
+  type         QuestionType @default(MULTIPLE_CHOICE)
+  options      String[]
+  correctIndex Int?
+  order        Int
+}
