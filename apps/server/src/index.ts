@@ -4,6 +4,7 @@ import { createServer } from 'http'
 import { Server as SocketServer } from 'socket.io'
 import cors from 'cors'
 import helmet from 'helmet'
+import cookieParser from 'cookie-parser'
 import { healthRouter } from './routes/health'
 import { adminRouter } from './routes/admin'
 import { aiPackRouter } from './routes/ai-pack'
@@ -37,6 +38,7 @@ app.use(helmet())
 app.use(cors({
   origin: FRONTEND_URL ?? 'http://localhost:3000',
 }))
+app.use(cookieParser())
 app.use(express.json())
 
 // Routes
