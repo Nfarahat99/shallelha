@@ -1,8 +1,8 @@
-# HANDOFF: Sha'lelha (شعللها) — Phase 10 Complete / Milestone 2 Active
+# HANDOFF: Sha'lelha (شعللها) — Phase 11 Complete / Milestone 2 Active
 
-**Date:** 2026-04-18
-**Milestone:** v1.0 Complete → v2.0 (Growth + Engagement Engine) Active
-**Status:** Phases 1–10 COMPLETE — DEPLOYED. Active Phase: 11 (Growth Foundation)
+**Date:** 2026-04-19
+**Milestone:** v2.0 — Growth + Engagement Engine — Active
+**Status:** Phases 1–11 COMPLETE — DEPLOYED. Active Phase: 12 (User Profiles)
 
 ---
 
@@ -51,12 +51,15 @@ shllahaV2/
 ├── apps/
 │   ├── web/                     # Next.js 14 frontend
 │   │   ├── app/
+│   │   │   ├── (home)/          # Landing page with Arabic CTAs
 │   │   │   ├── host/            # Host screens (lobby, game, dashboard)
 │   │   │   ├── join/            # Player join + game screens
 │   │   │   ├── admin/           # Admin dashboard (auth-gated)
 │   │   │   ├── packs/           # Pack marketplace + creator
+│   │   │   ├── profile/         # User profile (stats, history, edit)
 │   │   │   └── api/             # Route handlers (auth, cards)
-│   │   └── components/          # Shared UI components
+│   │   ├── components/          # Shared UI components
+│   │   └── tests/e2e/           # Playwright E2E smoke tests
 │   └── server/                  # Node.js backend
 │       ├── src/
 │       │   ├── socket/          # Socket.io handlers (room, game, lifelines)
@@ -71,7 +74,7 @@ shllahaV2/
 
 ---
 
-## What Was Built (10 Phases)
+## What Was Built (11 Phases)
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
@@ -84,7 +87,29 @@ shllahaV2/
 | 08 | Error handling, loading skeletons, rate limiting, O(1) Redis lookup, monitoring, production config | ✓ Complete |
 | 09 | AI Content Generation: GPT-4o admin route, AiGenerateDialog, ModerationQueue, batch approve/reject | ✓ Complete |
 | UI Redesign | Dark glassmorphism brand token sweep — all `indigo-*` → `brand-*` across every screen | ✓ Complete |
-| 10 | UGC Question Packs + Shareable Result Cards (see Phase 10 detail below) | ✓ Complete |
+| 10 | UGC Question Packs + Shareable Result Cards (Groq AI assistant, satori PNG, pack marketplace) | ✓ Complete |
+| 11 | Growth Foundation: landing page, player post-game screen, profile page, game:reset play-again | ✓ Complete |
+
+---
+
+## Phase 11 Detail (Growth Foundation)
+
+| Plan | Deliverable |
+|------|-------------|
+| 11-01 | Prisma schema: GameSession + PlayerGameResult tables; OG image metadata fields on User |
+| 11-02 | Landing page: Arabic hero section, feature cards, CTA buttons, SEO metadata, OG image |
+| 11-03 | WhatsApp sharing utilities: pre-formatted share text, room invite link, Web Share API wrapper |
+| 11-04 | OG image route: `/api/og` dynamic social preview card (satori), room-specific og:image tags |
+| 11-05 | Game engine: record GameSession + PlayerGameResult rows on game end; session ID in Redis room |
+| 11-06 | Player post-game screen: PlayerPostGame component with final leaderboard + WhatsApp share button |
+| 11-07 | Profile page: `/profile` with auth guard, stats (totalGamesPlayed/winCount/bestStreak/favoriteCategory), game history list, edit displayName + avatarEmoji (JWT session refresh) |
+| 11-08 | game:reset play-again flow: server-side phase guard (`phase !== 'ended'` blocks reset), socket unit tests (3/3), Playwright E2E smoke tests (2 pass / 1 skip) |
+
+**Test suite after Phase 11:** 111/111 server tests green, Playwright E2E 2 pass / 1 intentional skip, Next.js build clean
+
+**Code review fixes applied (Phase 11):**
+- **C-01 (JWT staleness)**: `auth.ts` jwt callback now re-reads `displayName`/`avatarEmoji` on `trigger === 'update'`; `ProfileClient.tsx` calls `updateSession()` after `updateProfile()` so the JWT is refreshed immediately without sign-out
+- **H-02 (mid-game reset)**: `game:reset` handler reads `getGameState(roomCode)` from Redis and returns `room:error` if `phase !== 'ended'` — prevents host from accidentally destroying a live game
 
 ---
 
@@ -100,8 +125,6 @@ shllahaV2/
 | 10-06 | Shareable Result Cards: satori + resvg PNG (Snapchat 9:16 + WhatsApp 1:1), Web Share API, 1hr cache |
 | 10-07 | Quick UX Wins: rank delta badge (▲N/▼N), answer count progress, FrozenPlayerOverlay, Rule 2 socket fix |
 | 10-08 | Game Engine Wiring: game.ts branches on packId from Redis, playCount incremented in all end paths |
-
-**Test suite after Phase 10:** 108/108 server tests green, Next.js build clean (25 routes)
 
 ---
 
@@ -136,6 +159,23 @@ shllahaV2/
 - Cairo font via Google Fonts CDN (TTF, pinned v31 URL)
 - In-memory Map cache (1hr TTL)
 - Web Share API + download fallback
+
+### Post-Game Screen (Phase 11)
+- Player post-game screen shows final leaderboard with rank positions
+- WhatsApp share button with pre-formatted invite text for next round
+- game:reset socket event lets host trigger play-again from host dashboard
+
+### User Profile (Phase 11)
+- `/profile` page with auth guard (redirects to sign-in if unauthenticated)
+- Stats: total games played, win count, best streak, favorite category
+- Game history: list of past sessions with score, rank, category, date
+- Edit display name (max 30 chars) and avatar emoji via EmojiPicker
+- JWT session refresh on profile save — no sign-out required
+
+### Landing Page (Phase 11)
+- Arabic hero section: "العب مع أصحابك" CTA + room code input
+- Feature cards explaining game types
+- SEO metadata + dynamic OG image (`/api/og`)
 
 ### Admin Dashboard
 - Password-protected at `/admin` (ADMIN_SESSION_TOKEN cookie, edge-compatible)
@@ -173,13 +213,16 @@ shllahaV2/
 | OpenAI lazy singleton | Avoids constructor throw when OPENAI_API_KEY absent in test env |
 | Groq rate limit key falls back to 'anonymous' | Avoids ERR_ERL_KEY_GEN_IPV6 from express-rate-limit v8 |
 | Pack.createdBy stored as plain String (no FK) | Avoids cascade complexity with future anonymous users |
-| prisma db push (not migrate dev) | Avoids drift with Railway DB; consistent across all Phase 10 plans |
+| prisma db push (not migrate dev) | Avoids drift with Railway DB; consistent across all Phase 10–11 plans |
 | Cairo font fetched from Google Fonts CDN as TTF | No browser UA → returns TTF (not woff2); pinned v31 URL; cached in module memory |
 | satori object format in Express (no JSX transpiler) | Non-React Express environment; cast to `any` at call site per satori docs |
-| player:frozen emitted to frozen player's socketId | Rule 2 fix — server now notifies victim directly, not broadcast |
-| game.ts branches on room.packId | No new socket payload needed; packId already stored in Redis room by Plan 10-04 |
+| player:frozen emitted to frozen player's socketId | Rule 2 fix — server notifies victim directly, not broadcast |
+| game.ts branches on room.packId | No new socket payload needed; packId already stored in Redis room |
+| JWT callback re-reads DB on `trigger === 'update'` | Profile edits propagate to session token immediately via `updateSession()` call |
+| game:reset phase guard reads `getGameState()` | Prevents mid-game reset; blocks if `phase !== 'ended'` with `room:error` |
+| No Prisma adapter for NextAuth | Vercel cannot reach postgres.railway.internal; JWT sessions are self-contained |
 | `cd apps/web && npx next build` as Vercel buildCommand | npm workspace symlinks not fully resolved in Vercel CI; direct next invocation bypasses workspace issues |
-| nodeVersion: 22.x in Vercel project settings | Vercel does not support Node.js 24.x; pinned to 22.x via API + project.json |
+| nodeVersion: 22.x in Vercel project settings | Vercel does not support Node.js 24.x; pinned to 22.x |
 
 ---
 
@@ -215,7 +258,7 @@ GROQ_API_KEY=                  # Llama 3.3 70B UGC pack assistant
 ## Test Coverage
 
 ```
-Server test suite: 108/108 tests pass across 10+ test files
+Server test suite: 111/111 tests pass across 11+ test files
 ├── game.service.test.ts         (27 tests)
 ├── lifelines.test.ts            (17 tests)
 ├── room-service.test.ts         (11 tests)
@@ -227,7 +270,13 @@ Server test suite: 108/108 tests pass across 10+ test files
 ├── rate-limiter.test.ts         (4 tests)
 ├── admin-seed.test.ts           (4 tests)
 ├── admin.test.ts                (4 tests)
-└── cards.test.ts                (3 tests — satori PNG generation)
+├── cards.test.ts                (3 tests — satori PNG generation)
+└── gameReset.test.ts            (3 tests — game:reset socket handler)
+
+E2E suite (Playwright): 2 pass / 1 intentional skip
+├── landing page CTA assertions  (pass)
+├── /profile auth redirect guard (pass)
+└── post-game screen             (skip — requires live socket session)
 ```
 
 ---
@@ -259,16 +308,15 @@ Server test suite: 108/108 tests pass across 10+ test files
 
 ## Current Milestone: v2.0 — Growth + Engagement Engine
 
-**Next phase:** Phase 11 — Growth Foundation
+**Next phase:** Phase 12 — User Profiles (Full Profile System)
 
 | Phase | Goal | Priority |
 |-------|------|----------|
-| **11** | Landing page, anonymous rooms, WhatsApp share, QR code, post-game screens | **NEXT** |
-| 12 | User profiles + persistent leaderboards | B |
+| **12** | Full user profiles: persistent leaderboards, achievement system, friends | **NEXT** |
 | 13 | New game types: Drawing + Bluffing | A |
 | 14 | Audience / Spectator Mode | C |
 
-Run `/gsd-plan-phase 11` to plan Phase 11.
+Run `/gsd-plan-phase 12` to plan Phase 12.
 
 ---
 
@@ -282,12 +330,12 @@ Run `/gsd-plan-phase 11` to plan Phase 11.
 
 ```bash
 cd /c/shllahaV2
-npm run test --workspace=apps/server -- --run   # 108 tests green
-npm run build --workspace=apps/web              # 25 routes clean
+npm run test --workspace=apps/server -- --run   # 111 tests green
+npm run build --workspace=apps/web              # build clean
 ```
 
-6. Start Phase 11: `/gsd-plan-phase 11`
+6. Start Phase 12: `/gsd-plan-phase 12`
 
 ---
 
-*Generated: 2026-04-18 — Phase 10 complete — 10/14 phases shipped — v2.0 active*
+*Generated: 2026-04-19 — Phase 11 complete — 11/14 phases shipped — v2.0 active*
