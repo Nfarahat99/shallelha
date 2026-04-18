@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-18T09:17:28.507Z"
+last_updated: "2026-04-18T09:19:53.178Z"
 progress:
   total_phases: 14
   completed_phases: 8
   total_plans: 40
-  completed_plans: 35
-  percent: 88
+  completed_plans: 37
+  percent: 93
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
 - **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
-- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — **IN PROGRESS** — Plans 01, 03 complete (Pack CRUD data layer + REST API; Groq AI Pack Assistant route)
+- **Active Phase:** Phase 10 (UGC Question Packs + Shareable Cards) — **IN PROGRESS** — Plans 01, 03, 05 complete (Pack CRUD data layer + REST API; Groq AI Pack Assistant; Admin Pack Approval Queue)
 - **Phases complete:** 9 / 14
 - **Plans complete:** 35 / 35 (v1.0 plans) + 8 plans (Phase 10, not yet executed)
 
@@ -35,6 +35,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 ## Recent Activity
 
+- 2026-04-18: Phase 10 Plan 05 complete — Admin Pack Approval Queue: rejectionReason added to schema (db push), GET /packs accepts ?status= param, admin /packs page with approve/reject Server Actions, pending count badge in admin nav, rejectionReason shown on My Packs page
 - 2026-04-18: Phase 10 fully planned — 8 PLAN.md files (10-01 through 10-08) + 10-NYQUIST.md; plan-checker FLAGs resolved (game engine wiring added as Plan 08, rejectionReason persistence fixed in Plan 05, NYQUIST path corrected, cards test file added to Plan 06); ready to execute
 - 2026-04-18: Milestone 2 roadmap created — v2.0 Growth + Engagement Engine; Phases 11-14 defined; user confirmed priority: Phase 11 (Growth Foundation) → Phase 12 (User Profiles) → Phase 13 (Drawing + Bluffing game types) → Phase 14 (Spectator Mode); REQUIREMENTS.md v2 BRD written with REQ-001 through REQ-006
 - 2026-04-18: Phase 09 complete — AI Content Generation: GPT-4o backend route, admin UI (AiGenerateDialog + ModerationQueue), 91/91 server tests green (7 new integration tests), next build clean
@@ -90,6 +91,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 10-03]: Rate limit key falls back to 'anonymous' (not req.ip) to avoid ERR_ERL_KEY_GEN_IPV6 validation error from express-rate-limit v8
 - [Phase 10-03]: Integration tests use unique next-auth.session-token cookies per test to isolate rate-limit buckets
 - [Phase 10-03]: 503 threshold set at < 3 valid questions to reject low-quality partial Groq responses early
+- [Phase 10-05]: prisma db push used (not migrate dev) — consistent with Plan 01 pattern; avoids drift with Railway DB
+- [Phase 10-05]: Admin Server Actions check cookie independently of middleware (defense-in-depth per T-10-05-01)
+- [Phase 10-05]: Inline native form for rejection reason — no client JS modal needed; HTML required attr handles validation
 
 ## Open Questions
 
