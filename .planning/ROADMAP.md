@@ -264,11 +264,9 @@ Plans:
 
 **Goal:** Fix the three critical v1.0 gaps that make the product invisible and unretentive: dead-end homepage, Google-OAuth-gated entry, and zero post-game sharing moment.
 
-**Covers:** REQ-001, REQ-002, REQ-003, REQ-004, REQ-005 (from REQUIREMENTS.md v2)
+**Covers:** REQ-001, REQ-003, REQ-004, REQ-005 (from REQUIREMENTS.md v2) — REQ-002 (Anonymous Room Creation) explicitly excluded per CONTEXT.md user decision; host must be signed-in with Google OAuth
 **Delivers:**
 - Real Arabic landing page at `/` — tagline, dual CTA (host / player), "How it works" 3-step, game preview visuals, SEO meta tags
-- Anonymous room creation — host creates room without Google sign-in; `guestHostToken` bound to Redis room; IP-rate-limited at 3/hour
-- Post-game upgrade modal for guest hosts — "بقيت سجلاتك لمدة 24 ساعة" → Google OAuth to save history
 - WhatsApp share button on host lobby — pre-written Arabic message with room code + join URL
 - QR code on host lobby screen — generated via `qrcode` npm; encodes `/join/{code}` deeplink; 200×200px minimum
 - Deep link handling — `/join/{code}` pre-fills room code so player only enters name
@@ -277,7 +275,7 @@ Plans:
 - Shareable result cards — `@vercel/og` edge route; 1:1 WhatsApp variant + 9:16 Snapchat Stories variant; one-tap share
 - OG meta tags for `/join/{code}` — branded WhatsApp preview card
 
-**Plans:** 7 plans
+**Plans:** 8 plans
 
 Plans:
 - [ ] 11-01-PLAN.md — Prisma schema extensions: GameSession, PlayerGameResult, User profile fields
@@ -287,6 +285,7 @@ Plans:
 - [ ] 11-05-PLAN.md — Game engine: full leaderboard emission, game history save, Play Again flow
 - [ ] 11-06-PLAN.md — Post-game player screen with leaderboard, rank badge, share button
 - [ ] 11-07-PLAN.md — User profile page with stats, game history, profile editing
+- [ ] 11-08-PLAN.md — Smoke tests: landing page, post-game leaderboard, profile auth guard, game:reset round-trip
 
 ---
 
