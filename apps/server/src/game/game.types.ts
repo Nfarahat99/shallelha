@@ -43,6 +43,10 @@ export interface GameState {
   hostSettings: HostSettings
   /** Optional: ID of the community pack being played. Set when host starts game with packId. */
   packId?: string
+  /** Optional: Category ID used for this game session (for history). */
+  categoryId?: string
+  /** Optional: Category name used for this game session (for history). */
+  categoryName?: string
   /** Idempotency guard — true once question:revealed has been emitted for the current question. */
   revealedCurrentQ?: boolean
   /** Count of active (non-disconnected) players who have answered the current question */

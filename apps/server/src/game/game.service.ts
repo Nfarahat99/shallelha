@@ -53,10 +53,15 @@ export function createInitialPlayerStates(
 /**
  * Compute a ranked leaderboard from current player states.
  * Sorted by score descending; tied scores receive the same rank.
+ *
+ * @param previousRankings - Optional map of playerId → previous rank for computing rankDelta.
+ *   If provided, rankDelta = previousRank - currentRank (positive = improved, negative = dropped).
+ *   If absent or player not in map, rankDelta = 0 (first question or new player).
  */
 export function getLeaderboard(
   playerStates: Record<string, PlayerGameState>,
   players: Player[],
+  previousRankings?: Map<string, number>,
 ): LeaderboardEntry[] {
   const entries = players.map(p => ({
     id: p.id,
@@ -65,6 +70,7 @@ export function getLeaderboard(
     score: playerStates[p.id]?.score ?? 0,
     rank: 0,
     streak: playerStates[p.id]?.streak ?? 0,
+    rankDelta: 0,
   }))
   entries.sort((a, b) => b.score - a.score)
   let currentRank = 1
@@ -73,6 +79,10 @@ export function getLeaderboard(
       currentRank = i + 1
     }
     entries[i].rank = currentRank
+    if (previousRankings) {
+      const prevRank = previousRankings.get(entries[i].id)
+      entries[i].rankDelta = prevRank !== undefined ? prevRank - currentRank : 0
+    }
   }
   return entries
 }

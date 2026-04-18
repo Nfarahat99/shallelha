@@ -6,9 +6,10 @@ import {
   getLeaderboard,
   saveGameState,
   getGameState,
+  deleteGameState,
   calculateFreeTextScore,
 } from '../game/game.service'
-import type { GameState, HostSettings } from '../game/game.types'
+import type { GameState, HostSettings, LeaderboardEntry } from '../game/game.types'
 import { prisma } from '../db/prisma'
 import { QuestionStatus } from '@prisma/client'
 
@@ -301,6 +302,69 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// saveGameHistory — fire-and-forget game history persistence
+// ---------------------------------------------------------------------------
+
+/**
+ * Persists a completed game session and per-player results to PostgreSQL.
+ * Called fire-and-forget after game:podium emission — MUST NOT block the game loop.
+ * Only saves PlayerGameResult rows for players whose ID matches a real User record
+ * (FK constraint: PlayerGameResult.userId → User.id).
+ */
+async function saveGameHistory(
+  roomCode: string,
+  hostId: string,
+  leaderboard: LeaderboardEntry[],
+  categoryId?: string,
+  categoryName?: string,
+): Promise<void> {
+  try {
+    const winnerId = leaderboard.find((e) => e.rank === 1)?.id ?? null
+
+    const session = await prisma.gameSession.create({
+      data: {
+        roomCode,
+        hostId,
+        categoryId: categoryId ?? null,
+        categoryName: categoryName ?? null,
+        playerCount: leaderboard.length,
+        winnerId,
+      },
+    })
+
+    if (leaderboard.length === 0) return
+
+    // Only save results for players who are real User rows (FK guard)
+    const playerIds = leaderboard.map((e) => e.id)
+    const realUsers = await prisma.user.findMany({
+      where: { id: { in: playerIds } },
+      select: { id: true },
+    })
+    const realUserIds = new Set(realUsers.map((u) => u.id))
+
+    const rows = leaderboard
+      .filter((e) => realUserIds.has(e.id))
+      .map((e) => ({
+        gameSessionId: session.id,
+        userId: e.id,
+        playerName: e.name,
+        playerEmoji: e.emoji,
+        score: e.score,
+        rank: e.rank,
+        isWinner: e.rank === 1,
+      }))
+
+    if (rows.length > 0) {
+      await prisma.playerGameResult.createMany({ data: rows })
+    }
+
+    console.log(`[INFO] History: saved session ${session.id} for room ${roomCode} (${rows.length} user results)`)
+  } catch (err) {
+    console.warn('[WARN] History: saveGameHistory failed:', err)
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
@@ -448,6 +512,19 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       // Retrieve existing game state to inherit host settings if already configured
       const existingGameState = await getGameState(roomCode)
 
+      // Resolve category name for history
+      let resolvedCategoryId: string | undefined
+      let resolvedCategoryName: string | undefined
+      if (data?.categoryId) {
+        resolvedCategoryId = data.categoryId
+        try {
+          const cat = await prisma.category.findUnique({ where: { id: data.categoryId }, select: { name: true } })
+          resolvedCategoryName = cat?.name ?? undefined
+        } catch {
+          // non-critical — history will just have no category name
+        }
+      }
+
       const gameState: GameState = {
         questionIds: questions.map((q) => q.id),
         currentQuestionIndex: 0,
@@ -461,6 +538,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           revealMode: 'manual',
         },
         ...(room.packId ? { packId: room.packId } : {}),
+        ...(resolvedCategoryId ? { categoryId: resolvedCategoryId, categoryName: resolvedCategoryName } : {}),
       }
 
       // Cache questions in memory to avoid DB hits per player answer
@@ -650,7 +728,17 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           }).catch((err) => console.warn('[pack] playCount increment failed:', err))
         }
 
-        io.to(roomCode).emit('game:podium', { top3 })
+        io.to(roomCode).emit('game:podium', { top3, leaderboard })
+
+        // Fire-and-forget game history save
+        void saveGameHistory(
+          roomCode,
+          room.hostId,
+          leaderboard,
+          gameState.categoryId,
+          gameState.categoryName,
+        )
+
         console.log(`[INFO] Game: game ended (all questions answered) in ${roomCode}`)
         return
       }
@@ -728,7 +816,17 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         }).catch((err) => console.warn('[pack] playCount increment failed:', err))
       }
 
-      io.to(roomCode).emit('game:podium', { top3 })
+      io.to(roomCode).emit('game:podium', { top3, leaderboard })
+
+      // Fire-and-forget game history save
+      void saveGameHistory(
+        roomCode,
+        room.hostId,
+        leaderboard,
+        gameState.categoryId,
+        gameState.categoryName,
+      )
+
       console.log(`[INFO] Game: game ended early in ${roomCode}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to end game'
@@ -888,6 +986,38 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       console.log(`[INFO] Game: remove two activated by ${playerId} in ${roomCode}: eliminated ${eliminatedIndices}`)
     } catch (err) {
       console.error('[ERROR] Game: lifeline:remove_two error:', err)
+    }
+  })
+
+  // -------------------------------------------------------------------------
+  // game:reset — Host resets the room back to lobby after a game ends
+  // -------------------------------------------------------------------------
+  socket.on('game:reset', async () => {
+    if (!requireHost(socket)) return
+
+    const roomCode: string = socket.data.roomCode
+    if (!roomCode) return
+
+    try {
+      // Clear in-memory state for this room
+      clearAutoRevealTimer(roomCode)
+      clearVotingTimer(roomCode)
+      questionCache.delete(roomCode)
+      previousRankings.delete(roomCode)
+
+      // Clear Redis game state
+      await deleteGameState(roomCode)
+
+      // Reset room status back to lobby
+      await updateRoomStatus(roomCode, 'lobby')
+
+      // Notify all clients to return to lobby
+      io.to(roomCode).emit('room:reset')
+
+      console.log(`[INFO] Game: room ${roomCode} reset to lobby`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to reset room'
+      socket.emit('room:error', { message })
     }
   })
 

@@ -194,13 +194,33 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
 
     socket.on(
       'game:podium',
-      ({ top3 }: { top3: LeaderboardEntry[] }) => {
+      ({ top3, leaderboard: fullLeaderboard }: { top3: LeaderboardEntry[]; leaderboard?: LeaderboardEntry[] }) => {
         setPodium(top3)
+        if (fullLeaderboard && fullLeaderboard.length > 0) {
+          setLeaderboard(fullLeaderboard)
+        }
         setGamePhase('podium')
+        setStatus('ended')
       }
     )
 
     socket.on('game:ended', () => setStatus('ended'))
+
+    socket.on('room:reset', () => {
+      setStatus('lobby')
+      setGamePhase('question')
+      setPodium([])
+      setLeaderboard([])
+      setCurrentQuestion(null)
+      setCorrectIndex(null)
+      setAnsweredPlayerIds(new Set())
+      setShowLeaderboard(false)
+      setFreeTextAnswers([])
+      setVotingAnswers([])
+      setFreeTextWinner(null)
+      setAnswerCount(0)
+      setPlayerCount(0)
+    })
 
     return () => {
       socket.off('connect')
@@ -218,6 +238,7 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
       socket.off('freetext:answers')
       socket.off('freetext:lock')
       socket.off('freetext:results')
+      socket.off('room:reset')
     }
   }, [roomCode, userId])
 
@@ -241,6 +262,10 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
 
   const handleGameEnd = useCallback(() => {
     getSocket().emit('game:end')
+  }, [])
+
+  const handlePlayAgain = useCallback(() => {
+    getSocket().emit('game:reset')
   }, [])
 
   // In-game control handlers
@@ -447,6 +472,14 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
         <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
           <ResultCard gameId={roomCode} leaderboard={leaderboard} />
         </div>
+
+        {/* Play Again */}
+        <button
+          onClick={handlePlayAgain}
+          className="w-full flex items-center justify-center py-3 rounded-2xl bg-brand-500 hover:bg-brand-400 transition-all font-bold text-white text-base"
+        >
+          العب مجدداً
+        </button>
 
         {/* Back to home */}
         <a
