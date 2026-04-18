@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { QuestionList } from './QuestionList'
+import { AiGenerateButton } from './AiGenerateButton'
+import { ModerationQueue } from './ModerationQueue'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,7 +11,7 @@ export default async function QuestionsPage({
 }: {
   searchParams: { status?: string; category?: string }
 }) {
-  const [questions, categories] = await Promise.all([
+  const [questions, categories, draftQuestions] = await Promise.all([
     prisma.question.findMany({
       where: {
         ...(searchParams.status ? { status: searchParams.status as any } : {}),
@@ -23,22 +25,33 @@ export default async function QuestionsPage({
       orderBy: { name: 'asc' },
       select: { id: true, name: true },
     }),
+    prisma.question.findMany({
+      where: { status: 'draft' },
+      include: { category: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+    }),
   ])
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">الأسئلة</h1>
-        <Link
-          href="/admin/new-question"
-          className="px-4 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors min-h-[44px] inline-flex items-center"
-        >
-          سؤال جديد
-        </Link>
+        <div className="flex gap-3">
+          <AiGenerateButton categories={categories} />
+          <Link
+            href="/admin/new-question"
+            className="px-4 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors min-h-[44px] inline-flex items-center"
+          >
+            سؤال جديد
+          </Link>
+        </div>
       </div>
 
+      {/* Moderation Queue — AI-generated DRAFT questions awaiting review */}
+      <ModerationQueue questions={draftQuestions} />
+
       {/* Filters */}
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-4 mt-8">
         <form className="flex gap-3">
           <select
             name="status"
@@ -58,7 +71,9 @@ export default async function QuestionsPage({
           >
             <option value="">جميع الفئات</option>
             {categories.map((cat: { id: string; name: string }) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
 
