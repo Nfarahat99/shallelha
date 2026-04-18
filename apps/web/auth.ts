@@ -20,8 +20,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.providerAccountId) {
         token.id = account.providerAccountId
       }
-      // Load display name and avatar from DB on sign-in or when not yet cached
-      if (trigger === 'signIn' || !token.displayName) {
+      // Load display name and avatar from DB on sign-in, session update, or when not yet cached
+      if (trigger === 'signIn' || trigger === 'update' || !token.displayName) {
         const userId = (token.id ?? token.sub) as string | undefined
         if (userId) {
           const dbUser = await prisma.user.findUnique({

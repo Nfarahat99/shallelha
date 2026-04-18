@@ -999,6 +999,13 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
     if (!roomCode) return
 
     try {
+      // Only allow reset when game has ended — prevents mid-game reset
+      const currentState = await getGameState(roomCode)
+      if (currentState && currentState.phase !== 'ended') {
+        socket.emit('room:error', { message: 'Cannot reset: game is still in progress' })
+        return
+      }
+
       // Clear in-memory state for this room
       clearAutoRevealTimer(roomCode)
       clearVotingTimer(roomCode)

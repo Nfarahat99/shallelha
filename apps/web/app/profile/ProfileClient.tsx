@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { updateProfile } from './actions'
 import { EmojiPicker } from '@/components/ui/EmojiPicker'
@@ -31,12 +32,15 @@ export function ProfileClient({ user }: Props) {
   const [displayName, setDisplayName] = useState(user.displayName ?? user.name ?? '')
   const [avatarEmoji, setAvatarEmoji] = useState(user.avatarEmoji ?? '🦁')
   const [isPending, startTransition] = useTransition()
+  const { update: updateSession } = useSession()
 
   const visibleName = user.displayName ?? user.name ?? 'لاعب'
 
   function handleSave() {
     startTransition(async () => {
       await updateProfile({ displayName, avatarEmoji })
+      // Trigger JWT refresh so the new displayName/avatarEmoji propagate to the session token
+      await updateSession()
       setEditing(false)
     })
   }
