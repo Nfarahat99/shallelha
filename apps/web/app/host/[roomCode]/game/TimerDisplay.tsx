@@ -46,7 +46,7 @@ export function TimerDisplay({ timerStyle, duration, startedAt, active }: TimerD
         className="w-full h-3 bg-gray-800 shrink-0 overflow-hidden"
       >
         <div
-          className="h-full bg-indigo-500 transition-transform duration-100 ease-linear"
+          className="h-full bg-brand-500 transition-transform duration-100 ease-linear"
           style={{
             transform: `scaleX(${progress})`,
             transformOrigin: 'right',
@@ -81,7 +81,7 @@ export function TimerDisplay({ timerStyle, duration, startedAt, active }: TimerD
             cy="50"
             r={RADIUS}
             fill="none"
-            stroke="#6366f1"
+            stroke="#4f46e5"
             strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}

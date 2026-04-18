@@ -35,10 +35,14 @@ export function HostNewClient({ userId }: HostNewClientProps) {
   }, [userId, router])
 
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="h-10 w-10 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin mx-auto" />
-        <p className="text-gray-500">جارٍ إنشاء الغرفة…</p>
+    <main className="min-h-dvh flex flex-col items-center justify-center bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
+      <div className="text-center space-y-6">
+        <div className="relative flex items-center justify-center mx-auto w-16 h-16" aria-hidden="true">
+          <span className="block w-16 h-16 rounded-full border-4 border-brand-900" />
+          <span className="absolute block w-16 h-16 rounded-full border-4 border-transparent border-t-brand-500 motion-safe:animate-spin" />
+        </div>
+        <p className="text-3xl font-black tracking-tight text-white select-none">شعللها</p>
+        <p className="text-sm text-white/50 font-medium select-none">جارٍ إنشاء الغرفة…</p>
       </div>
     </main>
   )

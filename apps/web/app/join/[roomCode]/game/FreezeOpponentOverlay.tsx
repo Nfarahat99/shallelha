@@ -36,7 +36,7 @@ export function FreezeOpponentOverlay({ players, onSelect, onCancel }: FreezeOpp
         role="dialog"
         aria-modal="true"
         aria-labelledby="freeze-overlay-heading"
-        className="bg-white rounded-2xl p-6 mx-4 max-w-sm w-full"
+        className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 mx-4 max-w-sm w-full"
         style={{ animation: 'fadeSlideUp 200ms ease-out' }}
       >
         <style>{`
@@ -48,7 +48,7 @@ export function FreezeOpponentOverlay({ players, onSelect, onCancel }: FreezeOpp
 
         <h2
           id="freeze-overlay-heading"
-          className="text-xl font-bold text-gray-900 text-center mb-4"
+          className="text-xl font-bold text-white text-center mb-4"
         >
           اختر منافسًا للتجميد
         </h2>
@@ -60,11 +60,11 @@ export function FreezeOpponentOverlay({ players, onSelect, onCancel }: FreezeOpp
               ref={index === 0 ? firstButtonRef : undefined}
               type="button"
               onClick={() => onSelect(player.id)}
-              className="min-h-[48px] rounded-xl flex items-center gap-3 px-4 bg-gray-100 active:bg-indigo-50 cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+              className="min-h-[48px] rounded-xl flex items-center gap-3 px-4 bg-white/10 active:bg-brand-600/20 cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
               role="listitem"
             >
               <span className="text-2xl">{player.emoji}</span>
-              <span className="text-base font-bold text-gray-900">{player.name}</span>
+              <span className="text-base font-bold text-white">{player.name}</span>
             </button>
           ))}
         </div>
@@ -72,7 +72,7 @@ export function FreezeOpponentOverlay({ players, onSelect, onCancel }: FreezeOpp
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-gray-400 underline mt-4 text-center w-full"
+          className="text-sm text-white/40 underline mt-4 text-center w-full"
         >
           إلغاء التجميد
         </button>

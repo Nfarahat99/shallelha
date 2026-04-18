@@ -12,14 +12,14 @@ export default async function HostPage() {
   return (
     <div
       dir="rtl"
-      className="min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900"
+      className="min-h-screen bg-gradient-to-br from-brand-950 via-slate-900 to-brand-900"
     >
       {/* Decorative background blobs */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 overflow-hidden"
       >
-        <div className="absolute -top-40 -start-40 h-[500px] w-[500px] rounded-full bg-indigo-600/20 blur-3xl" />
+        <div className="absolute -top-40 -start-40 h-[500px] w-[500px] rounded-full bg-brand-600/20 blur-3xl" />
         <div className="absolute bottom-0 end-0 h-[400px] w-[400px] rounded-full bg-violet-600/15 blur-3xl" />
       </div>
 
@@ -28,7 +28,7 @@ export default async function HostPage() {
         {/* Brand */}
         <div className="flex items-center gap-3">
           {/* Flame icon */}
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-900/50">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 shadow-lg shadow-brand-900/50">
             <svg
               viewBox="0 0 24 24"
               fill="currentColor"
@@ -51,7 +51,7 @@ export default async function HostPage() {
           </span>
           <a
             href="/api/auth/signout"
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-slate-300 transition-colors duration-150 hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm font-medium text-slate-300 transition-colors duration-150 hover:border-white/30 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
           >
             <svg
               viewBox="0 0 24 24"
@@ -89,7 +89,7 @@ export default async function HostPage() {
         <section className="mb-12 flex justify-center">
           <a
             href="/host/new"
-            className="group relative flex min-h-[60px] items-center justify-center gap-3 overflow-hidden rounded-2xl bg-indigo-600 px-10 py-4 text-xl font-bold text-white shadow-xl shadow-indigo-900/60 transition-all duration-200 hover:bg-indigo-500 hover:shadow-indigo-700/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400"
+            className="group relative flex min-h-[60px] items-center justify-center gap-3 overflow-hidden rounded-2xl bg-brand-600 px-10 py-4 text-xl font-bold text-white shadow-xl shadow-brand-900/60 transition-all duration-200 hover:bg-brand-500 hover:shadow-brand-700/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-400"
           >
             {/* Shimmer overlay */}
             <span
@@ -188,7 +188,7 @@ export default async function HostPage() {
                 key={label}
                 className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition-colors duration-150 hover:bg-white/8"
               >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-300">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600/20 text-brand-300">
                   {icon}
                 </span>
                 <div className="min-w-0">

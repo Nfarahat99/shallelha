@@ -50,7 +50,7 @@ export function HostInGameControls({
           onClick={onLockFreeText}
           disabled={!isQuestion}
           aria-label="اغلق الإجابات"
-          className="flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors bg-indigo-600 hover:bg-indigo-700"
+          className="flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors bg-brand-600 hover:bg-brand-700"
         >
           اغلق الإجابات
         </button>
@@ -61,7 +61,7 @@ export function HostInGameControls({
           aria-label="اكشف الإجابة"
           className={`flex-1 rounded-xl px-4 py-3 font-bold text-white transition-colors ${
             isQuestion && !isVoting
-              ? 'bg-indigo-600 hover:bg-indigo-700'
+              ? 'bg-brand-600 hover:bg-brand-700'
               : 'bg-gray-700 opacity-40 cursor-not-allowed'
           }`}
         >

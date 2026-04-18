@@ -25,12 +25,12 @@ export function WaitingScreen({ selectedAnswer, selectedColor }: WaitingScreenPr
 
       {/* Spinner */}
       <div
-        className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"
+        className="animate-spin rounded-full h-8 w-8 border-4 border-brand-900 border-t-brand-500"
         aria-hidden="true"
       />
 
       {/* Arabic waiting text (D-06) */}
-      <p className="text-sm text-gray-400">في انتظار اللاعبين…</p>
+      <p className="text-sm text-white/50">في انتظار اللاعبين…</p>
     </div>
   )
 }

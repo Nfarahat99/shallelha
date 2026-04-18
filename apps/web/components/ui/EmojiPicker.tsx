@@ -22,13 +22,12 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
           onClick={() => onChange(emoji)}
           aria-label={emoji}
           aria-pressed={value === emoji}
-          // min 44px touch target (INFRA-03 iOS Safari requirement)
           className={`
             h-11 w-11 text-2xl rounded-xl flex items-center justify-center
-            transition-all border-2
+            transition-all duration-150 border-2 cursor-pointer
             ${value === emoji
-              ? 'border-indigo-500 bg-indigo-50 scale-110'
-              : 'border-transparent bg-gray-100 hover:bg-gray-200'
+              ? 'border-brand-500 bg-brand-600/20 scale-110'
+              : 'border-transparent bg-white/10 hover:bg-white/20'
             }
           `}
         >

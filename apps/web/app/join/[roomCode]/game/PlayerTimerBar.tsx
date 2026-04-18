@@ -39,10 +39,10 @@ export function PlayerTimerBar({ duration, startedAt, active }: PlayerTimerBarPr
       aria-valuenow={Math.ceil(progress * duration)}
       aria-valuemax={duration}
       aria-label="الوقت المتبقي"
-      className="fixed top-0 inset-x-0 h-[6px] bg-gray-200 z-50"
+      className="fixed top-0 inset-x-0 h-[6px] bg-white/10 z-50"
     >
       <div
-        className="h-full bg-indigo-500"
+        className="h-full bg-brand-500"
         style={{
           transform: `scaleX(${progress})`,
           transformOrigin: 'right',

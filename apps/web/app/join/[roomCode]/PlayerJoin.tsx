@@ -310,12 +310,12 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   // ── Render: form ───────────────────────────────────────────────────────────
   if (phase === 'form') {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
+      <main className="min-h-dvh flex flex-col items-center justify-center gap-6 p-6 bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
         <DisconnectBanner />
 
         <div className="text-center space-y-1">
-          <h1 className="text-3xl font-bold">شعللها</h1>
-          <p className="text-gray-500 text-sm">غرفة <span dir="ltr" className="font-mono font-bold">{roomCode}</span></p>
+          <h1 className="text-3xl font-bold text-white">شعللها</h1>
+          <p className="text-white/50 text-sm">غرفة <span dir="ltr" className="font-mono font-bold">{roomCode}</span></p>
         </div>
 
         <form onSubmit={handleJoin} className="w-full max-w-sm space-y-6">
@@ -328,7 +328,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
 
           {/* Name input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">اسمك</label>
+            <label className="text-sm font-medium text-white/70">اسمك</label>
             <input
               type="text"
               value={name}
@@ -337,14 +337,14 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
               maxLength={15}
               required
               autoFocus
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full rounded-xl border border-white/20 bg-white/10 text-white placeholder:text-white/30 px-4 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
-            <p className="text-xs text-gray-400 text-end">{name.length}/15</p>
+            <p className="text-xs text-white/40 text-end">{name.length}/15</p>
           </div>
 
           {/* Emoji picker */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">اختر رمزك</label>
+            <label className="text-sm font-medium text-white/70">اختر رمزك</label>
             <EmojiPicker value={emoji} onChange={setEmoji} />
           </div>
 
@@ -352,7 +352,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             type="submit"
             loading={isJoining}
             disabled={!name.trim()}
-            className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-lg font-bold text-white hover:bg-indigo-700 disabled:opacity-40 transition-colors"
+            className="w-full rounded-xl bg-brand-600 px-6 py-4 text-lg font-bold text-white hover:bg-brand-500 disabled:opacity-40 transition-colors"
           >
             انضم إلى الغرفة
           </LoadingButton>
@@ -365,15 +365,15 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   if (phase === 'lobby') {
     const myPlayer = players.find(p => p.id === myToken)
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-6 p-6">
+      <main className="min-h-dvh flex flex-col items-center justify-center gap-6 p-6 bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
         <DisconnectBanner />
 
         <div className="text-center space-y-1">
           {myPlayer && (
             <div className="text-5xl mb-2">{myPlayer.emoji}</div>
           )}
-          <h2 className="text-xl font-bold">في انتظار بدء اللعبة</h2>
-          <p className="text-gray-500 text-sm">
+          <h2 className="text-xl font-bold text-white">في انتظار بدء اللعبة</h2>
+          <p className="text-white/50 text-sm">
             غرفة <span dir="ltr" className="font-mono font-bold">{roomCode}</span> · {players.length} لاعب
           </p>
         </div>
@@ -388,7 +388,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
           )}
         </div>
 
-        <p className="text-sm text-gray-400 animate-pulse">في انتظار المضيف…</p>
+        <p className="text-sm text-white/40 animate-pulse">في انتظار المضيف…</p>
       </main>
     )
   }
@@ -432,8 +432,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
         return (
           <PlayerGameScreen>
             <div className="text-center py-4 space-y-1 px-4">
-              <p className="text-lg font-bold text-gray-900">انتهى التصويت</p>
-              <p className="text-sm text-gray-500">النقاط: {myScore}</p>
+              <p className="text-lg font-bold text-white">انتهى التصويت</p>
+              <p className="text-sm text-white/60">النقاط: {myScore}</p>
             </div>
           </PlayerGameScreen>
         )
@@ -478,22 +478,22 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
           />
         )}
         {doublePointsActive && (
-          <p className="text-xs text-indigo-600 font-bold text-center animate-pulse px-4">
+          <p className="text-xs text-brand-400 font-bold text-center animate-pulse px-4">
             النقاط مضاعفة لهذا السؤال ×2
           </p>
         )}
         {freezeError && (
-          <p className="text-xs text-red-600 font-semibold text-center px-4">
+          <p className="text-xs text-red-400 font-semibold text-center px-4">
             {freezeError}
           </p>
         )}
 
         {/* Question header */}
         <div className="px-4 pt-4 pb-2">
-          <p className="text-xs text-gray-400 text-start">
+          <p className="text-xs text-white/50 text-start">
             سؤال {questionIndex + 1}
           </p>
-          <h2 className="text-xl font-bold text-gray-900 text-start leading-relaxed mt-1">
+          <h2 className="text-xl font-bold text-white text-start leading-relaxed mt-1">
             {currentQuestion.text}
           </h2>
         </div>
@@ -534,10 +534,10 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
         {/* Score and feedback after reveal */}
         {playerPhase === 'revealed' && (
           <div className="text-center py-4 space-y-1">
-            <p className="text-lg font-bold text-gray-900">
+            <p className="text-lg font-bold text-white">
               {myAnswer === correctIndex ? 'إجابة صحيحة!' : 'إجابة خاطئة'}
             </p>
-            <p className="text-sm text-gray-500">النقاط: {myScore}</p>
+            <p className="text-sm text-white/60">النقاط: {myScore}</p>
             {myStreak >= 3 && (
               <p className="text-xs text-yellow-500 font-semibold">سلسلة ×1.5</p>
             )}
@@ -559,12 +559,12 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   // ── Render: ended ──────────────────────────────────────────────────────────
   if (phase === 'ended') {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-dvh flex items-center justify-center bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
         <div className="text-center space-y-4">
           <p className="text-4xl">🏁</p>
-          <h2 className="text-2xl font-bold">انتهت اللعبة</h2>
-          <p className="text-lg text-gray-600">النقاط: {myScore}</p>
-          <a href="/join" className="text-indigo-600 text-sm underline">العب مرة أخرى</a>
+          <h2 className="text-2xl font-bold text-white">انتهت اللعبة</h2>
+          <p className="text-lg text-white/60">النقاط: {myScore}</p>
+          <a href="/join" className="text-brand-400 text-sm underline">العب مرة أخرى</a>
         </div>
       </main>
     )
@@ -572,10 +572,10 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
 
   // Fallback — playing phase with no question yet loaded (between game:started and first question:start)
   return (
-    <main className="min-h-screen flex items-center justify-center">
+    <main className="min-h-dvh flex items-center justify-center bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
       <div className="text-center space-y-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent mx-auto" />
-        <p className="text-sm text-gray-400">جارٍ تحميل السؤال…</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-brand-900 border-t-brand-500 mx-auto" />
+        <p className="text-sm text-white/50">جارٍ تحميل السؤال…</p>
       </div>
     </main>
   )

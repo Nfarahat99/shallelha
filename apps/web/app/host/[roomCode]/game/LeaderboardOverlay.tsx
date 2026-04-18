@@ -56,7 +56,7 @@ export function LeaderboardOverlay({ players, onClose }: LeaderboardOverlayProps
             </span>
             {/* Score */}
             <div className="text-end shrink-0">
-              <span className="text-lg font-bold text-indigo-300">{player.score}</span>
+              <span className="text-lg font-bold text-brand-300">{player.score}</span>
               <span className="text-xs text-gray-500 ms-1">نقطة</span>
             </div>
             {/* Streak badge */}

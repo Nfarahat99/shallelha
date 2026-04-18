@@ -46,14 +46,14 @@ export function VotingUI({
   return (
     <div className="flex flex-col gap-4 px-4 py-4 flex-1">
       {/* Heading */}
-      <h2 className="text-xl font-bold text-gray-900 text-start font-[family-name:var(--font-cairo)]">
+      <h2 className="text-xl font-bold text-white text-start font-[family-name:var(--font-cairo)]">
         اختر الإجابة الأفضل
       </h2>
 
       {/* Countdown bar */}
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
         <div
-          className="h-full bg-indigo-500 transition-none rounded-full"
+          className="h-full bg-brand-500 transition-none rounded-full"
           style={{ width: `${barWidth}%` }}
         />
       </div>
@@ -68,15 +68,15 @@ export function VotingUI({
           let cardClasses = 'rounded-xl px-4 py-3 min-h-[60px] flex items-center gap-3 transition-all'
 
           if (isOwnAnswer) {
-            cardClasses += ' bg-gray-100 opacity-40 cursor-not-allowed'
+            cardClasses += ' bg-white/5 opacity-40 cursor-not-allowed'
           } else if (isVoted) {
-            cardClasses += ' ring-4 ring-indigo-500 bg-indigo-50 cursor-default'
+            cardClasses += ' ring-4 ring-brand-500 bg-brand-600/20 cursor-default'
           } else if (isDimmed) {
-            cardClasses += ' bg-gray-50 opacity-40 cursor-default'
+            cardClasses += ' bg-white/10 opacity-40 cursor-default'
           } else if (timeExpired || hasVoted) {
-            cardClasses += ' bg-gray-50 cursor-default'
+            cardClasses += ' bg-white/10 cursor-default'
           } else {
-            cardClasses += ' bg-gray-50 hover:bg-gray-100 active:scale-95 cursor-pointer'
+            cardClasses += ' bg-white/10 hover:bg-white/20 active:scale-95 cursor-pointer'
           }
 
           return (
@@ -91,7 +91,7 @@ export function VotingUI({
               title={isOwnAnswer ? 'لا يمكنك التصويت على إجابتك' : undefined}
             >
               <span className="text-xl shrink-0">{emoji}</span>
-              <span className="text-base font-semibold text-gray-900 text-start flex-1 font-[family-name:var(--font-cairo)]">
+              <span className="text-base font-semibold text-white text-start flex-1 font-[family-name:var(--font-cairo)]">
                 {text}
               </span>
             </div>
@@ -101,7 +101,7 @@ export function VotingUI({
 
       {/* Expired message */}
       {timeExpired && (
-        <p className="text-center text-sm text-gray-400 font-[family-name:var(--font-cairo)]">
+        <p className="text-center text-sm text-white/40 font-[family-name:var(--font-cairo)]">
           انتهى التصويت
         </p>
       )}

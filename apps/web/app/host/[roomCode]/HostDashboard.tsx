@@ -256,26 +256,26 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
 
   if (status === 'lobby') {
     return (
-      <div className="min-h-screen flex flex-col p-6 gap-6 max-w-lg mx-auto">
+      <div className="min-h-dvh flex flex-col bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900 p-6 gap-6 max-w-lg mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">غرفة اللعب</h1>
+        <div className="flex items-center justify-between pt-2">
+          <h1 className="text-2xl font-bold text-white">غرفة اللعب</h1>
           <div className="flex items-center gap-2">
-            <div className={`h-2 w-2 rounded-full ${connected ? 'bg-green-500' : 'bg-gray-300'}`} />
-            <span className="text-xs text-gray-500">{connected ? 'متصل' : 'غير متصل'}</span>
+            <div className={`h-2 w-2 rounded-full ${connected ? 'bg-green-400' : 'bg-white/20'}`} />
+            <span className="text-xs text-white/50">{connected ? 'متصل' : 'غير متصل'}</span>
           </div>
         </div>
 
         {/* Room code display */}
-        <div className="rounded-2xl bg-indigo-50 border border-indigo-100 p-6 text-center space-y-2">
-          <p className="text-sm text-indigo-600 font-medium">كود الغرفة</p>
-          <p className="text-5xl font-bold tracking-widest text-indigo-700 font-mono">{roomCode}</p>
-          <p className="text-xs text-indigo-400 break-all">{joinUrl}</p>
+        <div className="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 p-6 text-center space-y-2">
+          <p className="text-sm text-brand-300 font-medium">كود الغرفة</p>
+          <p className="text-5xl font-bold tracking-widest text-white font-mono">{roomCode}</p>
+          <p className="text-xs text-white/30 break-all">{joinUrl}</p>
         </div>
 
         {/* Players list */}
         <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-gray-500">اللاعبون ({players.length}/8)</h2>
+          <h2 className="text-sm font-semibold text-white/50">اللاعبون ({players.length}/8)</h2>
           {players.length === 0 ? (
             <SkeletonCard count={3} />
           ) : (
@@ -411,9 +411,9 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
 
   // ended
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <p className="text-2xl font-bold text-gray-700">انتهت اللعبة</p>
-      <a href="/host" className="text-indigo-600 hover:underline">
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
+      <p className="text-2xl font-bold text-white">انتهت اللعبة</p>
+      <a href="/host" className="text-brand-400 hover:text-brand-300 transition-colors">
         العودة إلى الرئيسية
       </a>
     </div>

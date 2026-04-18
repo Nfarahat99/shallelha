@@ -167,7 +167,7 @@ export default function HomePage() {
           ================================================================ */}
       <section
         aria-labelledby="hero-heading"
-        className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 min-h-dvh flex flex-col items-center justify-center px-6 py-20 text-center text-white"
+        className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-purple-600 to-violet-700 min-h-dvh flex flex-col items-center justify-center px-6 py-20 text-center text-white"
       >
         {/* Decorative dot grid overlay — pure CSS, no image */}
         <div
@@ -220,7 +220,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
             <a
               href="/host"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-indigo-700 shadow-lg shadow-black/20 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all duration-300 min-h-[52px]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-lg font-bold text-brand-700 shadow-lg shadow-black/20 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white transition-all duration-300 min-h-[52px]"
               aria-label="أنشئ غرفة لعب جديدة"
             >
               أنشئ غرفة
@@ -277,13 +277,13 @@ export default function HomePage() {
               {/* Connector line — desktop only */}
               <div
                 aria-hidden="true"
-                className="hidden sm:block absolute top-10 start-1/2 w-full h-px bg-indigo-100"
+                className="hidden sm:block absolute top-10 start-1/2 w-full h-px bg-brand-100"
               />
-              <div className="relative z-10 flex items-center justify-center w-20 h-20 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+              <div className="relative z-10 flex items-center justify-center w-20 h-20 rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-200">
                 <IconScreen />
               </div>
               <div className="space-y-1">
-                <span className="block text-xs font-bold text-indigo-400 uppercase tracking-widest">
+                <span className="block text-xs font-bold text-brand-400 uppercase tracking-widest">
                   الخطوة ١
                 </span>
                 <h3 className="text-xl font-bold text-gray-900">أنشئ غرفة</h3>
@@ -297,7 +297,7 @@ export default function HomePage() {
             <li className="relative flex flex-col items-center text-center gap-4">
               <div
                 aria-hidden="true"
-                className="hidden sm:block absolute top-10 start-1/2 w-full h-px bg-indigo-100"
+                className="hidden sm:block absolute top-10 start-1/2 w-full h-px bg-brand-100"
               />
               <div className="relative z-10 flex items-center justify-center w-20 h-20 rounded-2xl bg-purple-600 text-white shadow-lg shadow-purple-200">
                 <IconShare />
@@ -353,7 +353,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {/* Card 1 */}
             <article className="group rounded-2xl border border-gray-100 bg-white p-8 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-indigo-50 text-indigo-600 mb-6 group-hover:bg-indigo-100 transition-colors duration-300">
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-brand-50 text-brand-600 mb-6 group-hover:bg-brand-100 transition-colors duration-300">
                 <IconQuestions />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">3 أنواع أسئلة</h3>
@@ -392,7 +392,7 @@ export default function HomePage() {
           ================================================================ */}
       <section
         aria-labelledby="stats-heading"
-        className="py-20 px-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 text-white"
+        className="py-20 px-6 bg-gradient-to-br from-brand-600 via-purple-600 to-violet-700 text-white"
       >
         <div className="max-w-4xl mx-auto text-center">
           <h2
@@ -471,14 +471,14 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="/host"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-10 py-4 text-lg font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-300 min-h-[52px]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-10 py-4 text-lg font-bold text-white shadow-lg shadow-brand-200 hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-300 min-h-[52px]"
               aria-label="أنشئ غرفة لعب جديدة"
             >
               أنشئ غرفة
             </a>
             <a
               href="/join"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-4 text-lg font-bold text-indigo-700 border-2 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all duration-300 min-h-[52px]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-4 text-lg font-bold text-brand-700 border-2 border-brand-200 hover:border-brand-400 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 transition-all duration-300 min-h-[52px]"
               aria-label="انضم إلى غرفة باستخدام الكود"
             >
               عندك كود؟ انضم

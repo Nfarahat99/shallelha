@@ -15,7 +15,7 @@ export default function ErrorBanner({ type, onDismiss }: ErrorBannerProps) {
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
-          className="w-5 h-5 text-red-500 shrink-0"
+          className="w-5 h-5 text-red-400 shrink-0"
           aria-hidden="true"
         >
           <path
@@ -34,7 +34,7 @@ export default function ErrorBanner({ type, onDismiss }: ErrorBannerProps) {
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
-          className="w-5 h-5 text-red-500 shrink-0"
+          className="w-5 h-5 text-red-400 shrink-0"
           aria-hidden="true"
         >
           <path
@@ -52,18 +52,18 @@ export default function ErrorBanner({ type, onDismiss }: ErrorBannerProps) {
   return (
     <div
       role="alert"
-      className="w-full rounded-xl bg-red-50 border border-red-200 px-4 py-3 flex items-start gap-3"
+      className="w-full rounded-xl bg-red-900/20 border border-red-700/30 px-4 py-3 flex items-start gap-3"
       dir="rtl"
     >
       {icon}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-red-700">{headline}</p>
-        <p className="text-sm text-red-600 mt-0.5">{body}</p>
+        <p className="text-sm font-semibold text-red-300">{headline}</p>
+        <p className="text-sm text-red-400/80 mt-0.5">{body}</p>
       </div>
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="shrink-0 text-red-400 hover:text-red-600 transition-colors"
+          className="shrink-0 text-red-400/60 hover:text-red-300 transition-colors"
           aria-label="إغلاق"
         >
           <svg

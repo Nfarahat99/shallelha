@@ -62,7 +62,7 @@ shllahaV2/
 
 ---
 
-## What Was Built (8 Phases)
+## What Was Built (8 Phases + UI Redesign)
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
@@ -73,6 +73,7 @@ shllahaV2/
 | 06 | Three lifelines: Double Points, Remove Two, Freeze Opponent — server-enforced | Complete |
 | 07 | Admin dashboard (CRUD + Cloudinary upload), 201 Arabic questions seeded (6 categories) | Complete |
 | 08 | Error handling, loading skeletons, rate limiting, O(1) Redis lookup, monitoring, production config | Complete |
+| UI Redesign | Dark glassmorphism brand token sweep — all `indigo-*` replaced with `brand-*` across every screen | Complete |
 
 ---
 
@@ -99,6 +100,21 @@ shllahaV2/
 - Question CRUD with Cloudinary media upload (server-side stream — API secret never exposed)
 - Draft → Approved → Live workflow (questions not in-game until approved)
 - Analytics: times played, wrong answer rate per question
+
+---
+
+## Design System
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `brand-600` | `#4f46e5` | Primary CTAs, active states, accent color |
+| `brand-950/900` | dark indigo | Page gradients, selected state backgrounds |
+| `brand-400/300` | light indigo | Text accents, score displays, icon colors |
+| Dark gradient | `from-gray-950 via-brand-950 to-gray-900` | Full-screen game backgrounds |
+| Glassmorphism card | `bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl` | All overlay cards |
+| Font | Cairo (Arabic) via `--font-cairo` CSS var | All game UI text |
+
+**Important:** All color references use semantic `brand-*` Tailwind tokens — never raw `indigo-*`. The brand palette maps `brand-600 = #4f46e5`.
 
 ---
 

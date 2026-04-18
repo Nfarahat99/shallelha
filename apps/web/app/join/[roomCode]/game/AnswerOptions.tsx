@@ -64,7 +64,7 @@ export function AnswerOptions({
 
     // Phase 6: Remove Two — eliminated options (before all other state checks)
     if (eliminatedIndices?.includes(index)) {
-      return 'bg-gray-200 text-gray-400 opacity-40 pointer-events-none line-through'
+      return 'bg-white/10 text-white/30 opacity-40 pointer-events-none line-through'
     }
 
     // Post-reveal states
@@ -87,7 +87,7 @@ export function AnswerOptions({
         return `${base} ring-4 ring-white ring-offset-2 opacity-100`
       }
       // Other options greyed out while waiting
-      return 'bg-gray-200 text-gray-400'
+      return 'bg-white/10 text-white/30'
     }
 
     // Idle state
@@ -121,7 +121,7 @@ export function AnswerOptions({
               rounded-2xl flex flex-col items-center justify-center
               min-h-[80px] min-w-[44px] text-base font-semibold p-4
               transition-all duration-200 focus-visible:ring-2
-              focus-visible:ring-indigo-500 focus-visible:ring-offset-2
+              focus-visible:ring-brand-500 focus-visible:ring-offset-2
               ${getButtonClasses(index)}
               ${isButtonDisabled(index) ? 'pointer-events-none' : 'cursor-pointer'}
             `}
@@ -150,7 +150,7 @@ export function AnswerOptions({
               flex-1 rounded-xl min-h-[80px] min-w-[44px]
               flex flex-col items-center justify-center
               text-sm font-semibold p-3 transition-all duration-200
-              focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2
+              focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2
               ${getButtonClasses(index)}
               ${isButtonDisabled(index) ? 'pointer-events-none' : 'cursor-pointer'}
             `}
@@ -178,7 +178,7 @@ export function AnswerOptions({
             rounded-xl py-4 px-6 min-h-[80px] min-w-[44px]
             flex items-center gap-3 text-base font-semibold
             transition-all duration-200 focus-visible:ring-2
-            focus-visible:ring-indigo-500 focus-visible:ring-offset-2
+            focus-visible:ring-brand-500 focus-visible:ring-offset-2
             ${getButtonClasses(index)}
             ${isButtonDisabled(index) ? 'pointer-events-none' : 'cursor-pointer'}
           `}

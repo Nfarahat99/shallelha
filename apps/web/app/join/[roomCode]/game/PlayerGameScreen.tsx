@@ -17,7 +17,7 @@ export function PlayerGameScreen({ children }: PlayerGameScreenProps) {
   return (
     <div
       dir="rtl"
-      className="min-h-screen flex flex-col bg-white pt-[6px] pb-[env(safe-area-inset-bottom)]"
+      className="min-h-dvh flex flex-col bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900 pt-[6px] pb-[env(safe-area-inset-bottom)]"
     >
       <div className="flex-1 flex flex-col">
         {children}

@@ -88,7 +88,7 @@ export function PodiumScreen({ top3 }: PodiumScreenProps) {
               <div className="flex flex-col items-center gap-2 mb-2">
                 <span className="text-6xl">{entry.emoji}</span>
                 <span className="text-2xl font-bold text-white text-start">{entry.name}</span>
-                <span className="text-xl font-semibold text-indigo-300">{entry.score} نقطة</span>
+                <span className="text-xl font-semibold text-brand-300">{entry.score} نقطة</span>
                 {medal && (
                   <span
                     className={

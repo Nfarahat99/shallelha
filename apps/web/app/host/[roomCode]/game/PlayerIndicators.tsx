@@ -23,7 +23,7 @@ export function PlayerIndicators({ players, answeredPlayerIds }: PlayerIndicator
             transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             className={`flex flex-col items-center gap-1 rounded-full p-2 transition-colors ${
               hasAnswered
-                ? 'ring-2 ring-indigo-400 bg-indigo-950'
+                ? 'ring-2 ring-brand-400 bg-brand-950'
                 : 'bg-gray-800'
             }`}
             aria-label={hasAnswered ? `${player.name} — أجاب` : player.name}

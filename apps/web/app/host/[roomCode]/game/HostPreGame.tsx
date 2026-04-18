@@ -48,7 +48,7 @@ export function HostPreGame({ onStart, playerCount }: HostPreGameProps) {
                 onClick={() => setLayout(option.value)}
                 className={`cursor-pointer rounded-2xl p-6 text-center border-2 transition-colors ${
                   layout === option.value
-                    ? 'border-indigo-500 bg-indigo-950 text-white'
+                    ? 'border-brand-500 bg-brand-950 text-white'
                     : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
                 }`}
               >
@@ -68,7 +68,7 @@ export function HostPreGame({ onStart, playerCount }: HostPreGameProps) {
                 onClick={() => setTimerStyle(option.value)}
                 className={`cursor-pointer rounded-2xl p-6 text-center border-2 transition-colors ${
                   timerStyle === option.value
-                    ? 'border-indigo-500 bg-indigo-950 text-white'
+                    ? 'border-brand-500 bg-brand-950 text-white'
                     : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
                 }`}
               >
@@ -86,7 +86,7 @@ export function HostPreGame({ onStart, playerCount }: HostPreGameProps) {
               onClick={() => setRevealMode('auto')}
               className={`cursor-pointer rounded-2xl p-5 text-center border-2 transition-colors ${
                 revealMode === 'auto'
-                  ? 'border-indigo-500 bg-indigo-950 text-white'
+                  ? 'border-brand-500 bg-brand-950 text-white'
                   : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
               }`}
             >
@@ -96,7 +96,7 @@ export function HostPreGame({ onStart, playerCount }: HostPreGameProps) {
               onClick={() => setRevealMode('manual')}
               className={`cursor-pointer rounded-2xl p-5 text-center border-2 transition-colors ${
                 revealMode === 'manual'
-                  ? 'border-indigo-500 bg-indigo-950 text-white'
+                  ? 'border-brand-500 bg-brand-950 text-white'
                   : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
               }`}
             >
@@ -109,7 +109,7 @@ export function HostPreGame({ onStart, playerCount }: HostPreGameProps) {
         <button
           onClick={handleStart}
           disabled={playerCount === 0}
-          className="w-full rounded-xl bg-indigo-600 px-6 py-4 text-xl font-bold text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-full rounded-xl bg-brand-600 px-6 py-4 text-xl font-bold text-white hover:bg-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           ابدأ اللعبة {playerCount > 0 && `(${playerCount} لاعب)`}
         </button>

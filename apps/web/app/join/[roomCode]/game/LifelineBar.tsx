@@ -21,17 +21,17 @@ export function LifelineBar({
 }: LifelineBarProps) {
   const activeClasses =
     'rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] text-sm font-bold ' +
-    'bg-indigo-600 text-white active:scale-95 active:brightness-90 ' +
+    'bg-brand-600 text-white active:scale-95 active:brightness-90 ' +
     'transition-all duration-150 cursor-pointer ' +
-    'focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2'
+    'focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2'
 
   const spentClasses =
     'rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] text-sm font-bold ' +
-    'bg-gray-200 text-gray-400 opacity-50 pointer-events-none cursor-not-allowed'
+    'bg-white/10 text-white/30 opacity-50 pointer-events-none cursor-not-allowed'
 
   const disabledActiveClasses =
     'rounded-xl px-3 py-2 min-h-[44px] min-w-[44px] text-sm font-bold ' +
-    'bg-indigo-600 text-white opacity-40 pointer-events-none'
+    'bg-brand-600 text-white opacity-40 pointer-events-none'
 
   function getClasses(used: boolean): string {
     if (used) return spentClasses

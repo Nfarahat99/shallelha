@@ -30,7 +30,7 @@ export function VotingDisplay({ answers, votingDeadline, winnerResult }: VotingD
 
       {/* Countdown timer */}
       <div className="text-center">
-        <span className="text-4xl font-black text-indigo-400 tabular-nums">{secondsLeft}</span>
+        <span className="text-4xl font-black text-brand-400 tabular-nums">{secondsLeft}</span>
         <span className="text-lg text-gray-400 ms-2">ثانية</span>
       </div>
 
