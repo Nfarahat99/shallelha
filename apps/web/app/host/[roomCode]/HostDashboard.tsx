@@ -15,6 +15,7 @@ import { HostInGameControls } from './game/HostInGameControls'
 import { LeaderboardOverlay } from './game/LeaderboardOverlay'
 import { PodiumScreen } from './game/PodiumScreen'
 import { VotingDisplay } from './game/VotingDisplay'
+import { ResultCard } from './game/ResultCard'
 
 interface Player {
   id: string
@@ -74,6 +75,10 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
   const [votingAnswers, setVotingAnswers] = useState<Array<{ id: string; emoji: string; text: string }>>([])
   const [votingDeadline, setVotingDeadline] = useState(0)
   const [freeTextWinner, setFreeTextWinner] = useState<{ winnerId: string; winnerText: string } | null>(null)
+
+  // Answer progress counters (Plan 10-07)
+  const [answerCount, setAnswerCount] = useState(0)
+  const [playerCount, setPlayerCount] = useState(0)
 
   const joinUrl =
     typeof window !== 'undefined'
@@ -135,6 +140,9 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
         setVotingAnswers([])
         setFreeTextWinner(null)
         setVotingDeadline(0)
+        // Reset answer progress counters
+        setAnswerCount(0)
+        setPlayerCount(0)
       }
     )
 
@@ -155,8 +163,10 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
 
     socket.on(
       'question:progress',
-      ({ answeredIds }: { answeredCount: number; totalPlayers: number; answeredIds: string[] }) => {
+      ({ answerCount: ac, playerCount: pc, answeredIds }: { answerCount: number; playerCount: number; answeredIds: string[] }) => {
         setAnsweredPlayerIds(new Set(answeredIds))
+        setAnswerCount(ac)
+        setPlayerCount(pc)
       }
     )
 
@@ -371,6 +381,8 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
               mediaUrl={currentQuestion.mediaUrl}
               timerDuration={currentQuestion.timerDuration}
               freeTextAnswers={freeTextAnswers}
+              answerCount={answerCount}
+              playerCount={playerCount}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center">
@@ -409,13 +421,33 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
     )
   }
 
-  // ended
+  // ended — post-game screen with shareable result card
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
-      <p className="text-2xl font-bold text-white">انتهت اللعبة</p>
-      <a href="/host" className="text-brand-400 hover:text-brand-300 transition-colors">
-        العودة إلى الرئيسية
-      </a>
+    <div
+      className="min-h-dvh flex flex-col bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900 overflow-y-auto"
+      dir="rtl"
+    >
+      <div className="max-w-lg mx-auto w-full flex flex-col gap-6 px-6 py-8 pb-16">
+        {/* Header */}
+        <div className="flex flex-col items-center gap-1 text-center">
+          <span className="text-4xl font-black text-brand-400">شعللها</span>
+          <p className="text-2xl font-bold text-white">انتهت اللعبة!</p>
+          <p className="text-sm text-white/50">كود الغرفة: {roomCode}</p>
+        </div>
+
+        {/* Result card with share/download UI */}
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
+          <ResultCard gameId={roomCode} leaderboard={leaderboard} />
+        </div>
+
+        {/* Back to home */}
+        <a
+          href="/host"
+          className="w-full flex items-center justify-center py-3 rounded-2xl bg-white/8 border border-white/10 text-white/70 hover:text-white hover:bg-white/12 transition-all font-semibold text-base"
+        >
+          العودة إلى الرئيسية
+        </a>
+      </div>
     </div>
   )
 }
