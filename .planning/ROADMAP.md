@@ -220,6 +220,9 @@ Plans:
 - [x] 10-05-PLAN.md — Admin Pack Approval Queue: pending packs tab, approve/reject Server Actions, rejection reason on My Packs
 - [x] 10-06-PLAN.md — Shareable Result Cards: satori + @resvg/resvg-js image generation, Web Share API, post-game screen
 - [x] 10-07-PLAN.md — Quick UX Wins: rank delta in leaderboard, answer count progress, freeze opponent overlay
+- [x] 10-08-PLAN.md — Game Engine Wiring: packId served from Redis into game.ts question selector, playCount increment in both natural and early-end paths
+
+**Status: COMPLETE ✓ — Deployed 2026-04-18**
 
 ---
 
