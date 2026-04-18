@@ -116,14 +116,21 @@ packsRouter.get('/mine', async (req, res) => {
   }
 })
 
-// GET /packs — list APPROVED packs with optional ?category= and ?language= filters
+// GET /packs — list packs with optional ?status= ?category= ?language= filters
+// Default: APPROVED only (marketplace). Admin can pass ?status=PENDING to get queue.
 packsRouter.get('/', async (req, res) => {
   try {
-    const { category, language } = req.query as { category?: string; language?: string }
+    const { category, language, status } = req.query as { category?: string; language?: string; status?: string }
+
+    // If a valid status param is provided, use it; otherwise default to APPROVED
+    const filterStatus: PackStatus =
+      status && VALID_STATUSES.has(status)
+        ? (status as PackStatus)
+        : PackStatus.APPROVED
 
     const packs = await prisma.pack.findMany({
       where: {
-        status: PackStatus.APPROVED,
+        status: filterStatus,
         ...(category ? { category: category.trim() } : {}),
         ...(language ? { language: language.trim() } : {}),
       },
@@ -171,7 +178,7 @@ packsRouter.get('/:id', async (req, res) => {
 packsRouter.patch('/:id/status', async (req, res) => {
   try {
     const { id } = req.params
-    const { status } = req.body as { status?: string }
+    const { status, rejectionReason } = req.body as { status?: string; rejectionReason?: string }
 
     if (!status || !VALID_STATUSES.has(status)) {
       res.status(400).json({ error: `الحالة غير صالحة. القيم المقبولة: ${[...VALID_STATUSES].join(', ')}` })
@@ -184,9 +191,14 @@ packsRouter.patch('/:id/status', async (req, res) => {
       return
     }
 
+    const updateData: { status: PackStatus; rejectionReason?: string } = { status: status as PackStatus }
+    if (status === 'REJECTED' && rejectionReason) {
+      updateData.rejectionReason = rejectionReason.trim()
+    }
+
     const updated = await prisma.pack.update({
       where: { id },
-      data: { status: status as PackStatus },
+      data: updateData,
     })
 
     res.json(updated)

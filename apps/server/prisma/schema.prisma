@@ -103,20 +103,21 @@ enum PackStatus {
 }
 
 model Pack {
-  id            String         @id @default(cuid())
-  name          String
-  description   String?
-  category      String
-  language      String         @default("ar")
-  difficulty    String?
-  status        PackStatus     @default(DRAFT)
-  createdBy     String
-  creatorHandle String?
-  playCount     Int            @default(0)
-  rating        Float?
-  questions     PackQuestion[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id              String         @id @default(cuid())
+  name            String
+  description     String?
+  category        String
+  language        String         @default("ar")
+  difficulty      String?
+  status          PackStatus     @default(DRAFT)
+  createdBy       String
+  creatorHandle   String?
+  playCount       Int            @default(0)
+  rating          Float?
+  rejectionReason String?
+  questions       PackQuestion[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 }
 
 model PackQuestion {
