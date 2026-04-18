@@ -16,4 +16,6 @@ export interface Room {
   players: Player[]
   status: 'lobby' | 'playing' | 'ended'
   createdAt: number
+  /** Optional: ID of the pre-selected question pack. Only set for APPROVED packs. */
+  packId?: string
 }

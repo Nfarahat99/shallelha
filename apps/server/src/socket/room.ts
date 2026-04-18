@@ -17,7 +17,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
    * Requires auth (userId in handshake.auth).
    * Emits: room:created { roomCode } | room:error { message }
    */
-  socket.on('room:create', async () => {
+  socket.on('room:create', async (data?: { packId?: string }) => {
     if (!checkRateLimit(socket.id, 'room:create', 5, 60_000)) {
       socket.emit('room:error', { message: 'Rate limit exceeded — try again later' })
       return
@@ -28,14 +28,43 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       return
     }
 
+    // T-10-04-01: Validate packId references an APPROVED pack before storing
+    let validatedPackId: string | undefined
+    const rawPackId = data?.packId
+    if (rawPackId && typeof rawPackId === 'string') {
+      const backendUrl = process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:3001'
+      try {
+        const res = await fetch(`${backendUrl}/packs/${encodeURIComponent(rawPackId)}`)
+        if (res.ok) {
+          const pack = await res.json() as { status?: string }
+          if (pack.status === 'APPROVED') {
+            validatedPackId = rawPackId
+          } else {
+            socket.emit('room:error', { message: 'هذه الباقة غير متاحة' })
+            return
+          }
+        } else if (res.status === 404) {
+          socket.emit('room:error', { message: 'هذه الباقة غير موجودة' })
+          return
+        } else {
+          socket.emit('room:error', { message: 'تعذر التحقق من الباقة — حاول مجدداً' })
+          return
+        }
+      } catch {
+        socket.emit('room:error', { message: 'تعذر التحقق من الباقة — حاول مجدداً' })
+        return
+      }
+    }
+
     try {
-      const room = await createRoom(userId, socket.id)
+      const room = await createRoom(userId, socket.id, validatedPackId)
       socket.join(room.code)
       socket.data.userId = userId
       socket.data.roomCode = room.code
       socket.data.isHost = true
+      // TODO: game server reads pack questions via packId in room config — see apps/server game.ts
       socket.emit('room:created', { roomCode: room.code })
-      console.log(`[INFO] Room: created ${room.code} by ${userId}`)
+      console.log(`[INFO] Room: created ${room.code} by ${userId}${validatedPackId ? ` with pack ${validatedPackId}` : ''}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create room'
       socket.emit('room:error', { message })

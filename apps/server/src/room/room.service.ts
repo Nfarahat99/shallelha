@@ -14,7 +14,11 @@ function roomKey(code: string): string {
   return `room:${code}`
 }
 
-export async function createRoom(hostId: string, hostSocketId: string): Promise<Room> {
+export async function createRoom(
+  hostId: string,
+  hostSocketId: string,
+  packId?: string,
+): Promise<Room> {
   let code: string
   let attempts = 0
 
@@ -32,15 +36,19 @@ export async function createRoom(hostId: string, hostSocketId: string): Promise<
     players: [],
     status: 'lobby',
     createdAt: Date.now(),
+    ...(packId ? { packId } : {}),
   }
 
-  await redis.hset(roomKey(code), {
+  const redisPayload: Record<string, string> = {
     hostId: room.hostId,
     hostSocketId: room.hostSocketId,
     players: JSON.stringify(room.players),
     status: room.status,
     createdAt: String(room.createdAt),
-  })
+  }
+  if (packId) redisPayload.packId = packId
+
+  await redis.hset(roomKey(code), redisPayload)
   await redis.expire(roomKey(code), ROOM_TTL)
   await redis.set(`hostroom:${hostId}`, code, 'EX', ROOM_TTL)
 
@@ -58,6 +66,7 @@ export async function getRoom(code: string): Promise<Room | null> {
     players: raw.players ? JSON.parse(raw.players) : [],
     status: raw.status as Room['status'],
     createdAt: parseInt(raw.createdAt),
+    ...(raw.packId ? { packId: raw.packId } : {}),
   }
 }
 
