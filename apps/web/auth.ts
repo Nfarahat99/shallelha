@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
+import { prisma } from '@/lib/prisma'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true, // Required on Vercel — sits behind a proxy, headers include x-forwarded-host
@@ -14,15 +15,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: { strategy: 'jwt' },
   callbacks: {
-    jwt({ token, account, profile }) {
+    async jwt({ token, account, trigger }) {
       // On first sign-in, capture the Google sub ID as stable userId
       if (account?.providerAccountId) {
         token.id = account.providerAccountId
       }
+      // Load display name and avatar from DB on sign-in or when not yet cached
+      if (trigger === 'signIn' || !token.displayName) {
+        const userId = (token.id ?? token.sub) as string | undefined
+        if (userId) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { displayName: true, avatarEmoji: true },
+          })
+          if (dbUser) {
+            token.displayName = dbUser.displayName ?? undefined
+            token.avatarEmoji = dbUser.avatarEmoji ?? undefined
+          }
+        }
+      }
       return token
     },
     session({ session, token }) {
-      session.user.id = token.id as string
+      session.user.id = (token.id ?? token.sub) as string
+      session.user.displayName = token.displayName as string | undefined
+      session.user.avatarEmoji = token.avatarEmoji as string | undefined
       return session
     },
   },
