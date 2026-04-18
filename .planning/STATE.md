@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-18T09:19:53.178Z"
+last_updated: "2026-04-18T09:21:20.354Z"
 progress:
   total_phases: 14
   completed_phases: 8
@@ -94,6 +94,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 10-05]: prisma db push used (not migrate dev) — consistent with Plan 01 pattern; avoids drift with Railway DB
 - [Phase 10-05]: Admin Server Actions check cookie independently of middleware (defense-in-depth per T-10-05-01)
 - [Phase 10-05]: Inline native form for rejection reason — no client JS modal needed; HTML required attr handles validation
+- [Phase 10-ugc-question-packs-shareable-cards]: Delete + re-create strategy for pack updates: backend has no PATCH questions endpoint, so updatePack() deletes and re-creates the pack with new data
 
 ## Open Questions
 
@@ -122,6 +123,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 ---
 | Phase 09 P01 | 15 | 3 tasks | 4 files |
 | Phase 09 P03 | 20 | 3 tasks | 2 files |
+| Phase 10-ugc-question-packs-shareable-cards P02 | 45 | 2 tasks | 12 files |
 
 ## Roadmap Evolution
 
