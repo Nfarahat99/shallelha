@@ -7,6 +7,7 @@ import helmet from 'helmet'
 import { healthRouter } from './routes/health'
 import { adminRouter } from './routes/admin'
 import { aiPackRouter } from './routes/ai-pack'
+import { packsRouter } from './routes/packs'
 import { setupSocketHandlers } from './socket'
 
 const FRONTEND_URL = process.env.FRONTEND_URL
@@ -42,6 +43,7 @@ app.use(express.json())
 app.use('/health', healthRouter)
 app.use('/admin', adminRouter)
 app.use('/ai', aiPackRouter)
+app.use('/packs', packsRouter)
 
 // 404 handler
 app.use((_req, res) => {
