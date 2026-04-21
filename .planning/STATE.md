@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-21T15:49:28.351Z"
+last_updated: "2026-04-21T15:57:34.971Z"
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 57
-  completed_plans: 52
-  percent: 91
+  completed_plans: 54
+  percent: 95
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -119,6 +119,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 12-04]: PlayerCard uses avatarConfig != null guard so existing callers without avatarConfig continue rendering emoji fallback
 - [Phase 12-05]: bigint literal 0n avoided in $queryRaw result mapping — Number() conversion used instead to stay compatible with tsconfig target below ES2020
 - [Phase 12-05]: SSR leaderboard fetch uses NEXT_PUBLIC_APP_URL for correct base URL in both dev and production environments
+- [Phase 12]: NetworkFirst imported from serwist (not @serwist/next/worker); ReconnectOverlay wired in PlayerJoin.tsx not page.tsx
 
 ## Open Questions
 
@@ -153,6 +154,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | Phase 12 P02 | 15 | 3 tasks | 9 files |
 | Phase 12-user-profiles-persistent-leaderboards P04 | 5m | 2 tasks | 4 files |
 | Phase 12-user-profiles-persistent-leaderboards P05 | 8m | 3 tasks | 4 files |
+| Phase 12 P08 | 8m | 2 tasks | 6 files |
 
 ## Roadmap Evolution
 
