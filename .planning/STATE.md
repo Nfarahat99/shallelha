@@ -117,6 +117,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 12]: SW disabled in development via process.env.NODE_ENV check to prevent dev caching interference
 - [Phase 12]: sharp installed as devDep for icon generation; icons committed to git; sw.js excluded via .gitignore
 - [Phase 12-04]: PlayerCard uses avatarConfig != null guard so existing callers without avatarConfig continue rendering emoji fallback
+- [Phase 12-05]: bigint literal 0n avoided in $queryRaw result mapping — Number() conversion used instead to stay compatible with tsconfig target below ES2020
+- [Phase 12-05]: SSR leaderboard fetch uses NEXT_PUBLIC_APP_URL for correct base URL in both dev and production environments
 
 ## Open Questions
 
@@ -150,6 +152,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | Phase 10 P08 | 20 | 2 tasks | 3 files |
 | Phase 12 P02 | 15 | 3 tasks | 9 files |
 | Phase 12-user-profiles-persistent-leaderboards P04 | 5m | 2 tasks | 4 files |
+| Phase 12-user-profiles-persistent-leaderboards P05 | 8m | 3 tasks | 4 files |
 
 ## Roadmap Evolution
 
