@@ -1,9 +1,11 @@
 'use client'
 
 import * as m from 'motion/react-m'
+import type { AvatarConfig } from '@/components/avatar/avatar-parts'
+import { PlayerAvatar } from '@/components/avatar/PlayerAvatar'
 
 interface PlayerIndicatorsProps {
-  players: Array<{ id: string; name: string; emoji: string }>
+  players: Array<{ id: string; name: string; emoji: string; avatarConfig?: AvatarConfig | null }>
   answeredPlayerIds: Set<string>
 }
 
@@ -28,7 +30,7 @@ export function PlayerIndicators({ players, answeredPlayerIds }: PlayerIndicator
             }`}
             aria-label={hasAnswered ? `${player.name} — أجاب` : player.name}
           >
-            <span className="text-2xl">{player.emoji}</span>
+            <PlayerAvatar config={player.avatarConfig} size={40} />
           </m.div>
         )
       })}

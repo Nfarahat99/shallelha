@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { getSocket } from '@/lib/socket'
+import type { AvatarConfig } from '@/components/avatar/avatar-parts'
 import { PlayerCard } from '@/components/ui/PlayerCard'
 import { HostControls } from '@/components/ui/HostControls'
 import SkeletonCard from '@/components/ui/SkeletonCard'
@@ -24,6 +25,7 @@ interface Player {
   name: string
   emoji: string
   socketId: string
+  avatarConfig?: AvatarConfig | null
 }
 
 interface LeaderboardEntry {
@@ -33,6 +35,7 @@ interface LeaderboardEntry {
   score: number
   rank: number
   streak: number
+  avatarConfig?: AvatarConfig | null
 }
 
 interface CurrentQuestion {
@@ -324,7 +327,7 @@ export function HostDashboard({ roomCode, userId }: HostDashboardProps) {
           ) : (
             <div className="space-y-2">
               {players.map((player) => (
-                <PlayerCard key={player.id} name={player.name} emoji={player.emoji} />
+                <PlayerCard key={player.id} name={player.name} emoji={player.emoji} avatarConfig={player.avatarConfig} />
               ))}
             </div>
           )}

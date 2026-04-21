@@ -2,6 +2,8 @@
 
 import * as m from 'motion/react-m'
 import { useReducedMotion } from 'motion/react'
+import type { AvatarConfig } from '@/components/avatar/avatar-parts'
+import { PlayerAvatar } from '@/components/avatar/PlayerAvatar'
 
 interface PodiumEntry {
   id: string
@@ -9,6 +11,7 @@ interface PodiumEntry {
   emoji: string
   score: number
   rank: number
+  avatarConfig?: AvatarConfig | null
 }
 
 interface PodiumScreenProps {
@@ -86,7 +89,7 @@ export function PodiumScreen({ top3 }: PodiumScreenProps) {
             >
               {/* Player info (sits above podium bar) */}
               <div className="flex flex-col items-center gap-2 mb-2">
-                <span className="text-6xl">{entry.emoji}</span>
+                <PlayerAvatar config={entry.avatarConfig} size={entry.rank === 1 ? 72 : 56} />
                 <span className="text-2xl font-bold text-white text-start">{entry.name}</span>
                 <span className="text-xl font-semibold text-brand-300">{entry.score} نقطة</span>
                 {medal && (
