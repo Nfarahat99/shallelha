@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-21T13:00:15.081Z"
+last_updated: "2026-04-21T13:02:46.485Z"
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 57
-  completed_plans: 49
-  percent: 86
+  completed_plans: 50
+  percent: 88
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -113,6 +113,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 10]: playCount incremented in both natural and early game end paths to ensure count is always captured
 - [Phase 12]: Removed @@unique([gameSessionId, userId]) from PlayerGameResult — nullable userId breaks unique constraint semantics in PostgreSQL (NULLs-are-distinct); replaced with individual @@index directives
 - [Phase 12]: avatarConfig stored as Json? column (not normalized table) — flexible, schema-less for evolving SVG avatar builder data; onDelete: SetNull on PlayerGameResult.user preserves game history when user is deleted
+- [Phase 12]: sw.ts uses WorkerGlobalScope cast instead of ServiceWorkerGlobalScope — latter absent from dom lib in app tsconfig context
+- [Phase 12]: SW disabled in development via process.env.NODE_ENV check to prevent dev caching interference
+- [Phase 12]: sharp installed as devDep for icon generation; icons committed to git; sw.js excluded via .gitignore
 
 ## Open Questions
 
@@ -144,6 +147,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | Phase 09 P03 | 20 | 3 tasks | 2 files |
 | Phase 10-ugc-question-packs-shareable-cards P02 | 45 | 2 tasks | 12 files |
 | Phase 10 P08 | 20 | 2 tasks | 3 files |
+| Phase 12 P02 | 15 | 3 tasks | 9 files |
 
 ## Roadmap Evolution
 
