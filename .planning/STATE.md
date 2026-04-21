@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Growth + Engagement Engine
-status: active
-last_updated: "2026-04-19T03:00:00.000Z"
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-04-21T13:00:15.081Z"
 progress:
   total_phases: 14
-  completed_phases: 11
-  total_plans: 56
-  completed_plans: 55
-  percent: 79
+  completed_phases: 10
+  total_plans: 57
+  completed_plans: 49
+  percent: 86
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -27,7 +27,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
 - **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
-- **Active Phase:** Phase 12 (User Profiles — Full Profile System) — next to plan
+- **Active Phase:** Phase 12 (User Profiles + Persistent Leaderboards) — **PLANNED** — 9 plans ready to execute
 - **Phase 11:** Growth Foundation — Landing Page, Sharing, Post-Game Screen — **COMPLETE ✓** — All 8 plans executed 2026-04-19
 - **Phase 10:** UGC Question Packs + Shareable Result Cards — **COMPLETE ✓** — deployed 2026-04-18
 - **Phases complete:** 11 / 14
@@ -37,6 +37,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 ## Recent Activity
 
+- 2026-04-21: Phase 12 PLANNED — 9 plans approved (12-01 through 12-09); wave structure: W1 schema+PWA, W2 avatar system, W3 avatar display+leaderboard+PWA polish, W4 anon claiming+profile enhancement, W5 smoke tests+Lighthouse; covers REQ-007 (PWA) + REQ-008 (avatars); ready to execute
 - 2026-04-19: Phase 11 COMPLETE — all 8 plans executed; landing page live, player post-game screen with leaderboard+share, profile page with JWT session refresh, game:reset play-again flow, 111/111 server tests green; code review fixes applied (C-01 JWT refresh, H-02 phase guard); ready for Phase 12
 - 2026-04-19: Phase 11 PLANNED — 8 plans approved (11-01 through 11-08); wave structure: W1 schema+landing+sharing+OG, W2 game engine+profile+auth callbacks, W3 post-game player screen, W4 smoke tests; REQ-002 (anonymous rooms) explicitly excluded per user decision; ready to execute
 - 2026-04-18: Phase 10 COMPLETE — all 8 plans executed; single unified deploy to Railway (server) + Vercel (web); smoke test: Vercel HTTP 200, Railway health {"status":"ok","postgres":"ok","approvedQuestions":204,"redis":"ok"}; HANDOFF.md updated; active phase now Phase 11
@@ -110,6 +111,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 10-07]: Server freeze handler emits player:frozen targeted to frozen player's socketId — Rule 2 fix; previously freeze was applied silently with no client notification
 - [Phase 10]: game.ts branches on room.packId (from Redis) to serve PackQuestion rows — no new socket payload needed, packId already stored by Plan 10-04
 - [Phase 10]: playCount incremented in both natural and early game end paths to ensure count is always captured
+- [Phase 12]: Removed @@unique([gameSessionId, userId]) from PlayerGameResult — nullable userId breaks unique constraint semantics in PostgreSQL (NULLs-are-distinct); replaced with individual @@index directives
+- [Phase 12]: avatarConfig stored as Json? column (not normalized table) — flexible, schema-less for evolving SVG avatar builder data; onDelete: SetNull on PlayerGameResult.user preserves game history when user is deleted
 
 ## Open Questions
 
