@@ -29,3 +29,61 @@ export async function updateProfile(data: {
   await prisma.user.update({ where: { id: session.user.id }, data: updateData })
   revalidatePath('/profile')
 }
+
+export async function claimAnonymousStats(data: {
+  gameSessionId: string
+  playerName: string
+}): Promise<{ claimed: number; error?: string }> {
+  const session = await auth()
+  if (!session?.user?.id) return { claimed: 0, error: 'Unauthorized' }
+
+  // Sanitize inputs
+  const sessionId = data.gameSessionId.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40)
+  const playerName = data.playerName.trim().slice(0, 50)
+  if (!sessionId || !playerName) return { claimed: 0, error: 'Invalid input' }
+
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
+  // Find unclaimed results matching this session + player name (case-insensitive)
+  const candidates = await prisma.playerGameResult.findMany({
+    where: {
+      gameSessionId: sessionId,
+      userId: null,
+      playerName: { equals: playerName, mode: 'insensitive' },
+      createdAt: { gte: sevenDaysAgo },
+    },
+  })
+
+  if (candidates.length === 0) return { claimed: 0 }
+
+  // Claim them — optimistic lock: only update rows still with userId=null
+  const result = await prisma.playerGameResult.updateMany({
+    where: {
+      id: { in: candidates.map((r) => r.id) },
+      userId: null,
+    },
+    data: { userId: session.user.id },
+  })
+
+  if (result.count === 0) return { claimed: 0 }
+
+  // Recalculate aggregate stats from DB to avoid drift
+  const statsResult = await prisma.playerGameResult.aggregate({
+    where: { userId: session.user.id },
+    _count: { id: true },
+  })
+  const winsResult = await prisma.playerGameResult.count({
+    where: { userId: session.user.id, isWinner: true },
+  })
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      totalGamesPlayed: statsResult._count.id,
+      winCount: winsResult,
+    },
+  })
+
+  revalidatePath('/profile')
+  return { claimed: result.count }
+}

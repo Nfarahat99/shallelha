@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession, signIn } from 'next-auth/react'
+import { claimAnonymousStats } from '@/app/profile/actions'
 
 interface LeaderboardEntry {
   id: string
@@ -14,6 +16,8 @@ interface PlayerPostGameProps {
   myPlayerId: string
   leaderboard: LeaderboardEntry[]
   roomCode: string
+  gameSessionId?: string
+  playerName?: string
 }
 
 function getRankMedal(rank: number): string {
@@ -30,8 +34,10 @@ function getRankText(rank: number): string {
   return 'المرتبة ' + rank.toLocaleString('ar-EG')
 }
 
-export function PlayerPostGame({ myPlayerId, leaderboard, roomCode: _roomCode }: PlayerPostGameProps) {
+export function PlayerPostGame({ myPlayerId, leaderboard, roomCode: _roomCode, gameSessionId, playerName }: PlayerPostGameProps) {
   const [copied, setCopied] = useState(false)
+  const { data: session } = useSession()
+  const [claimStatus, setClaimStatus] = useState<'idle' | 'pending' | 'done' | 'error'>('idle')
 
   const myEntry = leaderboard.find(e => e.id === myPlayerId)
 
@@ -44,6 +50,28 @@ export function PlayerPostGame({ myPlayerId, leaderboard, roomCode: _roomCode }:
       navigator.clipboard?.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  async function handleClaim() {
+    if (!session?.user) {
+      // Redirect to Google sign-in; after auth, user can claim from profile
+      signIn('google', { callbackUrl: '/profile' })
+      return
+    }
+    if (!gameSessionId || !playerName) {
+      setClaimStatus('error')
+      return
+    }
+    setClaimStatus('pending')
+    try {
+      const result = await claimAnonymousStats({
+        gameSessionId,
+        playerName,
+      })
+      setClaimStatus(result.claimed > 0 ? 'done' : 'error')
+    } catch {
+      setClaimStatus('error')
     }
   }
 
@@ -116,16 +144,26 @@ export function PlayerPostGame({ myPlayerId, leaderboard, roomCode: _roomCode }:
           {copied ? 'تم النسخ ✓' : 'شارك نتيجتك'}
         </button>
 
-        {/* Auth prompt */}
-        <div className="rounded-2xl bg-white/5 border border-white/10 p-4 text-center">
-          <p className="text-white/70 text-sm mb-3">سجّل دخولك لحفظ نتائجك</p>
-          <a
-            href="/api/auth/signin"
-            className="inline-block bg-white text-gray-900 rounded-2xl py-3 px-6 font-bold text-sm"
+        {/* Claim stats button */}
+        {claimStatus !== 'done' && (
+          <button
+            type="button"
+            onClick={handleClaim}
+            disabled={claimStatus === 'pending'}
+            className="w-full rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 py-3 text-white font-bold text-base transition-colors"
           >
-            تسجيل الدخول بـ Google
-          </a>
-        </div>
+            {claimStatus === 'pending'
+              ? 'جاري الحفظ...'
+              : claimStatus === 'error'
+                ? 'فشل الحفظ — حاول مرة أخرى'
+                : session?.user
+                  ? 'احفظ إحصائياتي'
+                  : 'سجّل الدخول لحفظ إحصائياتك'}
+          </button>
+        )}
+        {claimStatus === 'done' && (
+          <p className="text-center text-green-400 font-semibold py-2">تم حفظ إحصائياتك!</p>
+        )}
 
       </div>
     </div>

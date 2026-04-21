@@ -104,6 +104,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
 
   // ── Post-game leaderboard ─────────────────────────────────────────────────
   const [endLeaderboard, setEndLeaderboard] = useState<Array<{ id: string; name: string; emoji: string; score: number; rank: number }>>([])
+  const [endGameSessionId, setEndGameSessionId] = useState<string>('')
 
   // ── Lifeline state (Phase 6) ──────────────────────────────────────────────
   const [doublePointsUsed, setDoublePointsUsed] = useState(false)
@@ -270,8 +271,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     })
 
     // game:podium — game finished, show ended screen with leaderboard
-    socket.on('game:podium', ({ leaderboard }: { leaderboard?: Array<{ id: string; name: string; emoji: string; score: number; rank: number }> }) => {
+    socket.on('game:podium', ({ leaderboard, gameSessionId }: { leaderboard?: Array<{ id: string; name: string; emoji: string; score: number; rank: number }>; gameSessionId?: string }) => {
       if (leaderboard) setEndLeaderboard(leaderboard)
+      if (gameSessionId) setEndGameSessionId(gameSessionId)
       setPhase('ended')
     })
 
@@ -736,6 +738,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
         myPlayerId={myToken ?? ''}
         leaderboard={endLeaderboard}
         roomCode={roomCode}
+        gameSessionId={endGameSessionId}
+        playerName={name}
       />
     )
   }

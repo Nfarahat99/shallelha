@@ -1,4 +1,5 @@
 import type { Server, Socket } from 'socket.io'
+import { createId } from '@paralleldrive/cuid2'
 import { getRoom, updateRoomStatus } from '../room/room.service'
 import {
   calculateScore,
@@ -11,7 +12,7 @@ import {
 } from '../game/game.service'
 import type { GameState, HostSettings, LeaderboardEntry } from '../game/game.types'
 import { prisma } from '../db/prisma'
-import { QuestionStatus } from '@prisma/client'
+import { QuestionStatus, Prisma } from '@prisma/client'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -308,8 +309,7 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
 /**
  * Persists a completed game session and per-player results to PostgreSQL.
  * Called fire-and-forget after game:podium emission — MUST NOT block the game loop.
- * Only saves PlayerGameResult rows for players whose ID matches a real User record
- * (FK constraint: PlayerGameResult.userId → User.id).
+ * Saves ALL players: authenticated players get userId set, anonymous players get userId=null.
  */
 async function saveGameHistory(
   roomCode: string,
@@ -317,12 +317,14 @@ async function saveGameHistory(
   leaderboard: LeaderboardEntry[],
   categoryId?: string,
   categoryName?: string,
+  preGeneratedSessionId?: string,
 ): Promise<void> {
   try {
     const winnerId = leaderboard.find((e) => e.rank === 1)?.id ?? null
 
     const session = await prisma.gameSession.create({
       data: {
+        ...(preGeneratedSessionId ? { id: preGeneratedSessionId } : {}),
         roomCode,
         hostId,
         categoryId: categoryId ?? null,
@@ -334,7 +336,7 @@ async function saveGameHistory(
 
     if (leaderboard.length === 0) return
 
-    // Only save results for players who are real User rows (FK guard)
+    // Identify which player IDs correspond to real User rows
     const playerIds = leaderboard.map((e) => e.id)
     const realUsers = await prisma.user.findMany({
       where: { id: { in: playerIds } },
@@ -343,20 +345,22 @@ async function saveGameHistory(
     const realUserMap = new Map(realUsers.map((u) => [u.id, u]))
     const realUserIds = new Set(realUsers.map((u) => u.id))
 
-    const rows = leaderboard
-      .filter((e) => realUserIds.has(e.id))
-      .map((e) => ({
-        gameSessionId: session.id,
-        userId: e.id,
-        playerName: e.name,
-        playerEmoji: e.emoji,
-        score: e.score,
-        rank: e.rank,
-        isWinner: e.rank === 1,
-      }))
+    // Save ALL players: authenticated get userId set, anonymous get userId=null
+    const rows = leaderboard.map((e) => ({
+      gameSessionId: session.id,
+      userId: realUserIds.has(e.id) ? e.id : null,
+      playerName: e.name,
+      playerEmoji: e.emoji,
+      avatarConfig: (e as { avatarConfig?: unknown }).avatarConfig != null
+        ? (e as { avatarConfig?: unknown }).avatarConfig as Prisma.InputJsonValue
+        : Prisma.DbNull,
+      score: e.score,
+      rank: e.rank,
+      isWinner: e.rank === 1,
+    }))
 
     if (rows.length > 0) {
-      await prisma.playerGameResult.createMany({ data: rows })
+      await prisma.playerGameResult.createMany({ data: rows, skipDuplicates: true })
     }
 
     // Update aggregate user stats for all real players
@@ -760,7 +764,8 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           }).catch((err) => console.warn('[pack] playCount increment failed:', err))
         }
 
-        io.to(roomCode).emit('game:podium', { top3, leaderboard })
+        const gameSessionId = createId()
+        io.to(roomCode).emit('game:podium', { top3, leaderboard, gameSessionId })
 
         // Fire-and-forget game history save
         void saveGameHistory(
@@ -769,6 +774,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           leaderboard,
           gameState.categoryId,
           gameState.categoryName,
+          gameSessionId,
         )
 
         console.log(`[INFO] Game: game ended (all questions answered) in ${roomCode}`)
@@ -848,7 +854,8 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         }).catch((err) => console.warn('[pack] playCount increment failed:', err))
       }
 
-      io.to(roomCode).emit('game:podium', { top3, leaderboard })
+      const gameSessionId = createId()
+      io.to(roomCode).emit('game:podium', { top3, leaderboard, gameSessionId })
 
       // Fire-and-forget game history save
       void saveGameHistory(
@@ -857,6 +864,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         leaderboard,
         gameState.categoryId,
         gameState.categoryName,
+        gameSessionId,
       )
 
       console.log(`[INFO] Game: game ended early in ${roomCode}`)
