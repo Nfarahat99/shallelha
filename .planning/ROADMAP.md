@@ -348,7 +348,17 @@ Plans:
 - Bluffing: new `QuestionType.BLUFFING` in Prisma enum; extends existing freetext voting flow with per-player answer hiding
 - Host can select game type mix when starting (e.g., "5 trivia + 2 drawing + 1 bluffing")
 
-**Plans:** TBD (run `/gsd-plan-phase 13` to break down)
+**Plans:** 8 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Schema foundation: DrawingPrompt model + DRAWING/BLUFFING QuestionType enum values, prisma db push
+- [ ] 13-02-PLAN.md — Drawing server handlers: game.types.ts DrawingStroke + GameState extensions, drawing.ts socket module (draw:stroke, draw:guess, draw:reveal)
+- [ ] 13-03-PLAN.md — Bluffing server handlers: game.types.ts BluffingSubmission + GameState extensions, bluffing.ts socket module (bluffing:submit, bluffing:vote, bluffing:reveal)
+- [ ] 13-04-PLAN.md — Drawing frontend: DrawingCanvas.tsx (artist) + DrawingGuesserInput.tsx (non-artist), HostDrawingView.tsx, QuestionDisplay.tsx DRAWING branch
+- [ ] 13-05-PLAN.md — Bluffing frontend: BluffingSubmitScreen.tsx + BluffingVoteScreen.tsx, HostBluffingView.tsx, QuestionDisplay.tsx BLUFFING branch
+- [ ] 13-06-PLAN.md — Game type mix wiring: GameMix Room type + room:create validation, game.ts engine routing (DRAWING/BLUFFING branches), HostNewClient.tsx mix selector UI
+- [ ] 13-07-PLAN.md — Admin DrawingPrompt CRUD + seed: /admin/drawing-prompts page, Server Actions, 50+ Arabic drawing prompts + 50+ BLUFFING questions seeded
+- [ ] 13-08-PLAN.md — End-to-end verification: TypeScript build checks, human verification of Draw & Guess + Bluffing + mixed session
 
 ---
 
