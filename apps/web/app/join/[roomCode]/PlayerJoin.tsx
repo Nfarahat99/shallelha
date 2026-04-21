@@ -22,6 +22,7 @@ import { FrozenPlayerOverlay } from './components/FreezeOpponentOverlay'
 import { PlayerPostGame } from './PlayerPostGame'
 import { AvatarBuilder } from '@/components/avatar/AvatarBuilder'
 import type { AvatarConfig } from '@/components/avatar/avatar-parts'
+import { ReconnectOverlay } from '@/components/pwa/ReconnectOverlay'
 
 interface Player {
   id: string
@@ -98,6 +99,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [playerCount, setPlayerCount] = useState(0)
   const [isFrozen, setIsFrozen] = useState(false)
 
+  // ── Connection state ──────────────────────────────────────────────────────
+  const [isConnected, setIsConnected] = useState(true)
+
   // ── Post-game leaderboard ─────────────────────────────────────────────────
   const [endLeaderboard, setEndLeaderboard] = useState<Array<{ id: string; name: string; emoji: string; score: number; rank: number }>>([])
 
@@ -142,6 +146,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     if (phase === 'form') return
 
     const socket = getSocket()
+
+    socket.on('connect', () => setIsConnected(true))
+    socket.on('disconnect', () => setIsConnected(false))
 
     socket.on('lobby:update', ({ players: updated }: { players: Player[] }) => {
       setPlayers(updated)
@@ -299,6 +306,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     })
 
     return () => {
+      socket.off('connect')
+      socket.off('disconnect')
       socket.off('lobby:update')
       socket.off('game:started')
       socket.off('game:ended')
@@ -497,6 +506,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     const myPlayer = players.find(p => p.id === myToken)
     return (
       <main className="min-h-dvh flex flex-col items-center justify-center gap-6 p-6 bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
+        <ReconnectOverlay isConnected={isConnected} />
         <DisconnectBanner />
 
         <div className="text-center space-y-1">
@@ -534,6 +544,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       if (playerPhase === 'voting') {
         return (
           <PlayerGameScreen>
+            <ReconnectOverlay isConnected={isConnected} />
             <VotingUI
               answers={votingAnswers}
               myPlayerId={myToken ?? ''}
@@ -549,6 +560,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       if (playerPhase === 'waiting') {
         return (
           <PlayerGameScreen>
+            <ReconnectOverlay isConnected={isConnected} />
             <WaitingScreen
               selectedAnswer={submittedText}
               selectedIndex={0}
@@ -562,6 +574,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       if (playerPhase === 'revealed') {
         return (
           <PlayerGameScreen>
+            <ReconnectOverlay isConnected={isConnected} />
             <div className="text-center py-4 space-y-1 px-4">
               <p className="text-lg font-bold text-white">انتهى التصويت</p>
               <p className="text-sm text-white/60">النقاط: {myScore}</p>
@@ -573,6 +586,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       // Answering phase — show FreeTextInput
       return (
         <PlayerGameScreen>
+          <ReconnectOverlay isConnected={isConnected} />
           <PlayerTimerBar
             duration={currentQuestion.timerDuration}
             startedAt={questionStartedAt}
@@ -590,6 +604,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     // MC / MEDIA_GUESSING question flow
     return (
       <PlayerGameScreen>
+        <ReconnectOverlay isConnected={isConnected} />
         {/* Freeze overlay — shown when this player is frozen */}
         {isFrozen && <FrozenPlayerOverlay />}
 

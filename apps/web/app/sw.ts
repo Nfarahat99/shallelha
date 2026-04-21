@@ -1,6 +1,6 @@
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
-import { Serwist } from 'serwist'
+import { NetworkFirst, Serwist } from 'serwist'
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -17,8 +17,16 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [...defaultCache],
-  // Question pre-cache rule added in 12-08
+  runtimeCaching: [
+    {
+      matcher: ({ url }: { url: URL }) => url.pathname.startsWith('/api/questions/'),
+      handler: new NetworkFirst({
+        cacheName: 'questions-cache',
+        networkTimeoutSeconds: 3,
+      }),
+    },
+    ...defaultCache,
+  ],
 })
 
 serwist.addEventListeners()

@@ -4,6 +4,8 @@ import * as m from 'motion/react-m'
 import { useReducedMotion } from 'motion/react'
 import type { AvatarConfig } from '@/components/avatar/avatar-parts'
 import { PlayerAvatar } from '@/components/avatar/PlayerAvatar'
+import { A2HSBanner } from '@/components/pwa/A2HSBanner'
+import { IOSInstallGuide } from '@/components/pwa/IOSInstallGuide'
 
 interface PodiumEntry {
   id: string
@@ -117,6 +119,11 @@ export function PodiumScreen({ top3 }: PodiumScreenProps) {
           )
         })}
       </m.div>
+
+      <div className="px-4">
+        <A2HSBanner />
+        <IOSInstallGuide />
+      </div>
     </div>
   )
 }
