@@ -4,7 +4,9 @@ import { useState, useTransition } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { updateProfile } from './actions'
-import { EmojiPicker } from '@/components/ui/EmojiPicker'
+import type { AvatarConfig } from '@/components/avatar/avatar-parts'
+import { PlayerAvatar } from '@/components/avatar/PlayerAvatar'
+import { AvatarBuilder } from '@/components/avatar/AvatarBuilder'
 import type { GameSession, PlayerGameResult } from '@prisma/client'
 
 interface GameResultWithSession extends PlayerGameResult {
@@ -16,6 +18,7 @@ interface UserProfile {
   name: string | null
   displayName: string | null
   avatarEmoji: string | null
+  avatarConfig: unknown | null
   totalGamesPlayed: number
   winCount: number
   bestStreak: number
@@ -30,7 +33,10 @@ interface Props {
 export function ProfileClient({ user }: Props) {
   const [editing, setEditing] = useState(false)
   const [displayName, setDisplayName] = useState(user.displayName ?? user.name ?? '')
-  const [avatarEmoji, setAvatarEmoji] = useState(user.avatarEmoji ?? '🦁')
+  const [avatarEmoji] = useState(user.avatarEmoji ?? '🦁')
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(
+    user.avatarConfig as AvatarConfig | null ?? null
+  )
   const [isPending, startTransition] = useTransition()
   const { update: updateSession } = useSession()
 
@@ -38,8 +44,8 @@ export function ProfileClient({ user }: Props) {
 
   function handleSave() {
     startTransition(async () => {
-      await updateProfile({ displayName, avatarEmoji })
-      // Trigger JWT refresh so the new displayName/avatarEmoji propagate to the session token
+      await updateProfile({ displayName, avatarConfig })
+      // Trigger JWT refresh so the new displayName/avatarConfig propagate to the session token
       await updateSession()
       setEditing(false)
     })
@@ -56,9 +62,7 @@ export function ProfileClient({ user }: Props) {
         <div className="rounded-2xl bg-white/10 border border-white/10 p-6">
           {!editing ? (
             <div className="flex flex-col items-center gap-3">
-              <span className="text-6xl" role="img" aria-label="الرمز التعبيري">
-                {avatarEmoji}
-              </span>
+              <PlayerAvatar config={avatarConfig} size={96} />
               <h1 className="text-2xl font-bold text-white">{visibleName}</h1>
               <button
                 type="button"
@@ -83,8 +87,8 @@ export function ProfileClient({ user }: Props) {
               </label>
 
               <div className="flex flex-col gap-1.5">
-                <span className="text-sm text-white/70">الرمز التعبيري</span>
-                <EmojiPicker value={avatarEmoji} onChange={setAvatarEmoji} />
+                <span className="text-sm text-white/70">المظهر</span>
+                <AvatarBuilder onConfirm={(c) => setAvatarConfig(c)} />
               </div>
 
               <div className="flex gap-3 justify-end">
@@ -115,6 +119,16 @@ export function ProfileClient({ user }: Props) {
           <StatCell label="أطول سلسلة" value={String(user.bestStreak)} />
           <StatCell label="الفئة المفضلة" value={user.favoriteCategory ?? '—'} />
         </div>
+
+        {/* Profile card share */}
+        <a
+          href={`/api/og/profile?userId=${user.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 rounded-xl bg-green-600/20 border border-green-500/40 hover:bg-green-600/30 py-3 text-green-300 font-semibold text-sm transition-colors"
+        >
+          📤 مشاركة بطاقتي
+        </a>
 
         {/* Game history */}
         <div className="flex flex-col gap-3">
