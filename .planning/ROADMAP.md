@@ -306,7 +306,7 @@ Plans:
 - Anonymous stat claiming — saveGameHistory saves userId=null rows; claimAnonymousStats Server Action + PlayerPostGame UI
 - Profile enhancement — AvatarBuilder in profile edit, WhatsApp-shareable OG profile card (1200x630, Cairo font, stats)
 
-**Plans:** 6/9 plans executed
+**Plans:** 7/9 plans executed
 
 Plans:
 - [x] 12-01-PLAN.md — W1: Prisma schema: avatarConfig on User (Json), PlayerGameResult.userId nullable, migration
@@ -315,7 +315,7 @@ Plans:
 - [x] 12-04-PLAN.md — W3: Avatar display in host UI: HostDashboard Player/LeaderboardEntry interfaces, PlayerCard, PlayerIndicators, PodiumScreen
 - [x] 12-05-PLAN.md — W3: Global leaderboard: /api/leaderboard GET route ($queryRaw, period + category), /leaderboard RSC page + LeaderboardClient period toggle
 - [ ] 12-06-PLAN.md — W4: Anonymous stat claiming: saveGameHistory saves all players (userId=null for anon), claimAnonymousStats Server Action, PlayerPostGame claim button
-- [ ] 12-07-PLAN.md — W4: Profile enhancement: ProfileClient → AvatarBuilder + PlayerAvatar, updateProfile accepts avatarConfig, /api/og/profile edge route (1200x630)
+- [x] 12-07-PLAN.md — W4: Profile enhancement: ProfileClient → AvatarBuilder + PlayerAvatar, updateProfile accepts avatarConfig, /api/og/profile edge route (1200x630)
 - [x] 12-08-PLAN.md — W3: PWA polish: sw.ts question cache rule, A2HSBanner + IOSInstallGuide components, ReconnectOverlay, wired into PodiumScreen + PlayerJoin
 - [ ] 12-09-PLAN.md — W5: Smoke tests + Lighthouse audit: /api/leaderboard API tests, /leaderboard page smoke test, TypeScript build check, human Lighthouse checkpoint
 
