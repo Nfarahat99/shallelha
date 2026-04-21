@@ -20,6 +20,8 @@ import { LifelineBar } from './game/LifelineBar'
 import { FreezeOpponentOverlay } from './game/FreezeOpponentOverlay'
 import { FrozenPlayerOverlay } from './components/FreezeOpponentOverlay'
 import { PlayerPostGame } from './PlayerPostGame'
+import { AvatarBuilder } from '@/components/avatar/AvatarBuilder'
+import type { AvatarConfig } from '@/components/avatar/avatar-parts'
 
 interface Player {
   id: string
@@ -28,7 +30,7 @@ interface Player {
   socketId: string
 }
 
-type JoinPhase = 'form' | 'lobby' | 'playing' | 'ended'
+type JoinPhase = 'form' | 'avatar' | 'lobby' | 'playing' | 'ended'
 
 /** Player phase during a question lifecycle */
 type PlayerPhase = 'answering' | 'waiting' | 'revealed' | 'voting'
@@ -55,6 +57,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [phase, setPhase] = useState<JoinPhase>('form')
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🦁')
+  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(null)
   const [players, setPlayers] = useState<Player[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isJoining, setIsJoining] = useState(false)
@@ -325,15 +328,23 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session])
 
-  // ── Join handler ───────────────────────────────────────────────────────────
+  // ── Join handler — advances to avatar step ────────────────────────────────
   const handleJoin = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault()
       if (!name.trim() || !emoji) return
+      setPhase('avatar')
+    },
+    [name, emoji],
+  )
+
+  // ── Avatar confirm — emits room:join with avatarConfig ────────────────────
+  const handleAvatarConfirm = useCallback(
+    (config: AvatarConfig) => {
+      setAvatarConfig(config)
 
       const socket = getSocket()
       socket.connect()
-
       setIsJoining(true)
 
       socket.once('room:joined', ({ reconnectToken, players: joined }: { reconnectToken: string; players: Player[] }) => {
@@ -347,10 +358,11 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.once('room:error', ({ message }: { message: string }) => {
         setError(message)
         setIsJoining(false)
+        setPhase('form')
         socket.off('room:joined')
       })
 
-      socket.emit('room:join', { roomCode, name: name.trim(), emoji })
+      socket.emit('room:join', { roomCode, name: name.trim(), emoji, avatarConfig: config })
     },
     [roomCode, name, emoji],
   )
@@ -443,6 +455,39 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             انضم إلى الغرفة
           </LoadingButton>
         </form>
+      </main>
+    )
+  }
+
+  // ── Render: avatar ─────────────────────────────────────────────────────────
+  if (phase === 'avatar') {
+    return (
+      <main className="min-h-dvh flex flex-col items-center justify-center gap-6 p-6 bg-gradient-to-b from-gray-950 via-brand-950 to-gray-900">
+        <DisconnectBanner />
+
+        <div className="text-center space-y-1">
+          <h1 className="text-3xl font-bold text-white">شعللها</h1>
+          <p className="text-white/50 text-sm">اختر شخصيتك</p>
+        </div>
+
+        {error && (
+          <div className="w-full max-w-sm">
+            <ErrorBanner
+              type={error === 'Room is full' ? 'full-room' : 'invalid-code'}
+              onDismiss={() => setError(null)}
+            />
+          </div>
+        )}
+
+        <div className="w-full max-w-sm">
+          {isJoining ? (
+            <div className="flex justify-center py-8">
+              <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            </div>
+          ) : (
+            <AvatarBuilder onConfirm={handleAvatarConfirm} />
+          )}
+        </div>
       </main>
     )
   }

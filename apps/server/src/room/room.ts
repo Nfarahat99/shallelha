@@ -1,3 +1,5 @@
+import type { AvatarConfig } from './avatar.types'
+
 export interface Player {
   /** Reconnect token — UUID assigned on join, stored in client sessionStorage */
   id: string
@@ -7,6 +9,8 @@ export interface Player {
   emoji: string
   /** Current socket ID — updated on reconnect */
   socketId: string
+  /** SVG avatar config — AC-008-3: added in Phase 12; optional for backward compat */
+  avatarConfig?: AvatarConfig | null
 }
 
 export interface Room {

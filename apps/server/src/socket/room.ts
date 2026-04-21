@@ -8,6 +8,7 @@ import {
   updateRoomStatus,
   findRoomByHostId,
 } from '../room/room.service'
+import type { AvatarConfig } from '../room/avatar.types'
 import { getAuthUserId } from './auth'
 import { checkRateLimit } from './middleware/rateLimiter'
 
@@ -117,12 +118,12 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
    * Emits: room:joined { reconnectToken, players } | room:error { message }
    * Broadcasts: lobby:update { players } to room
    */
-  socket.on('room:join', async (data: { roomCode: string; name: string; emoji: string }) => {
+  socket.on('room:join', async (data: { roomCode: string; name: string; emoji: string; avatarConfig?: AvatarConfig | null }) => {
     if (!checkRateLimit(socket.id, 'room:join', 10, 60_000)) {
       socket.emit('room:error', { message: 'Rate limit exceeded — try again later' })
       return
     }
-    const { roomCode, name, emoji } = data ?? {}
+    const { roomCode, name, emoji, avatarConfig } = data ?? {}
 
     if (!roomCode || !name || !emoji) {
       socket.emit('room:error', { message: 'roomCode, name, and emoji are required' })
@@ -138,7 +139,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
     }
 
     try {
-      const { room, reconnectToken } = await joinRoom(roomCode, name, emoji, socket.id)
+      const { room, reconnectToken } = await joinRoom(roomCode, name, emoji, socket.id, avatarConfig)
 
       socket.join(roomCode)
       socket.data.roomCode = roomCode

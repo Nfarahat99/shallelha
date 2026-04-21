@@ -1,5 +1,7 @@
 import { redis } from '../redis/client'
 import type { Player, Room } from './room'
+import { validateAvatarConfig } from './avatar.types'
+import type { AvatarConfig } from './avatar.types'
 import { randomUUID } from 'crypto'
 
 const ROOM_TTL = 60 * 60 * 24 // 24 hours
@@ -86,6 +88,7 @@ export async function joinRoom(
   name: string,
   emoji: string,
   socketId: string,
+  avatarConfig?: AvatarConfig | null,
 ): Promise<{ room: Room; reconnectToken: string }> {
   const key = roomKey(code)
   const reconnectToken = randomUUID()
@@ -111,7 +114,9 @@ export async function joinRoom(
       throw new Error('Room is full')
     }
 
-    const newPlayer: Player = { id: reconnectToken, name, emoji, socketId }
+    // T-12-03-01: Validate avatarConfig before storing — reject invalid shapes silently
+    const safeAvatarConfig = avatarConfig ? validateAvatarConfig(avatarConfig) : null
+    const newPlayer: Player = { id: reconnectToken, name, emoji, socketId, avatarConfig: safeAvatarConfig }
     players.push(newPlayer)
 
     // MULTI starts a transaction — exec returns null if WATCH was triggered
