@@ -37,6 +37,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 ## Recent Activity
 
+- 2026-04-21: Phase 12 Plan 06 complete — anonymous players saved to PlayerGameResult with userId=null; claimAnonymousStats Server Action with auth guard + optimistic lock; PlayerPostGame shows claim/sign-in button; gameSessionId pre-generated and emitted in game:podium event; commit e5966e9
 - 2026-04-21: Phase 12 PLANNED — 9 plans approved (12-01 through 12-09); wave structure: W1 schema+PWA, W2 avatar system, W3 avatar display+leaderboard+PWA polish, W4 anon claiming+profile enhancement, W5 smoke tests+Lighthouse; covers REQ-007 (PWA) + REQ-008 (avatars); ready to execute
 - 2026-04-19: Phase 11 COMPLETE — all 8 plans executed; landing page live, player post-game screen with leaderboard+share, profile page with JWT session refresh, game:reset play-again flow, 111/111 server tests green; code review fixes applied (C-01 JWT refresh, H-02 phase guard); ready for Phase 12
 - 2026-04-19: Phase 11 PLANNED — 8 plans approved (11-01 through 11-08); wave structure: W1 schema+landing+sharing+OG, W2 game engine+profile+auth callbacks, W3 post-game player screen, W4 smoke tests; REQ-002 (anonymous rooms) explicitly excluded per user decision; ready to execute
@@ -120,6 +121,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 12-05]: bigint literal 0n avoided in $queryRaw result mapping — Number() conversion used instead to stay compatible with tsconfig target below ES2020
 - [Phase 12-05]: SSR leaderboard fetch uses NEXT_PUBLIC_APP_URL for correct base URL in both dev and production environments
 - [Phase 12]: NetworkFirst imported from serwist (not @serwist/next/worker); ReconnectOverlay wired in PlayerJoin.tsx not page.tsx
+- [Phase 12-06]: gameSessionId pre-generated via @paralleldrive/cuid2 createId() before game:podium emit — allows client to pass it to claimAnonymousStats without a separate DB lookup
+- [Phase 12-06]: Prisma.DbNull used for nullable JSON avatarConfig field in createMany — satisfies NullableJsonNullValueInput type vs InputJsonValue|null which Prisma rejects
 
 ## Open Questions
 
