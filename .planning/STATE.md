@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-21T13:14:32.351Z"
+last_updated: "2026-04-21T15:49:28.351Z"
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 57
-  completed_plans: 51
-  percent: 89
+  completed_plans: 52
+  percent: 91
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -116,6 +116,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 12]: sw.ts uses WorkerGlobalScope cast instead of ServiceWorkerGlobalScope — latter absent from dom lib in app tsconfig context
 - [Phase 12]: SW disabled in development via process.env.NODE_ENV check to prevent dev caching interference
 - [Phase 12]: sharp installed as devDep for icon generation; icons committed to git; sw.js excluded via .gitignore
+- [Phase 12-04]: PlayerCard uses avatarConfig != null guard so existing callers without avatarConfig continue rendering emoji fallback
 
 ## Open Questions
 
@@ -148,6 +149,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | Phase 10-ugc-question-packs-shareable-cards P02 | 45 | 2 tasks | 12 files |
 | Phase 10 P08 | 20 | 2 tasks | 3 files |
 | Phase 12 P02 | 15 | 3 tasks | 9 files |
+| Phase 12-user-profiles-persistent-leaderboards P04 | 5m | 2 tasks | 4 files |
 
 ## Roadmap Evolution
 
