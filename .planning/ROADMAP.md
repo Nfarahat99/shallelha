@@ -295,15 +295,29 @@ Plans:
 
 **Covers:** REQ-007, REQ-008 (from REQUIREMENTS.md v2)
 **Delivers:**
-- Player profile page — display name, avatar (emoji selection), total games played, win count, best streak, favorite category
-- Persistent game history — after each game, session summary (date, category, score, rank, players) saved to PostgreSQL
-- "Join with profile" flow — returning players who previously played anonymously can claim their stats by signing in
-- Global leaderboard — weekly and all-time rankings across all Sha'lelha games; filterable by category
-- Room leaderboard — recurring groups can see their personal history head-to-head (e.g., "you've played 12 games with this group")
-- Profile card shareable to WhatsApp — "لعبت ٢٣ مرة وفزت ٨ مرات على شعللها 🏆"
-- Google OAuth required for persistent profile; anonymous play still works but stats not saved
+- Composable SVG avatar system — AvatarConfig (faceShape, headwear, colorPalette), stored in localStorage + User.avatarConfig in DB
+- AvatarBuilder picker component — 3 face shapes, 4 headwear options, 5 color palettes, live preview
+- Avatar displayed in: host lobby PlayerCard, in-game PlayerIndicators, final PodiumScreen (rank-dependent sizes)
+- PWA installability — @serwist/next service worker, web app manifest, 192px/512px icons, Lighthouse PWA >= 90
+- Question pre-caching — NetworkFirst SW rule for /api/questions/* with 3s network timeout
+- A2HS install prompt — beforeinstallprompt banner on PodiumScreen, 7-day cooldown, iOS guide
+- Reconnect overlay — socket disconnect UX with Arabic "جاري إعادة الاتصال..."
+- Global leaderboard — /leaderboard page with weekly + all-time toggle, category filter, top 50 via $queryRaw
+- Anonymous stat claiming — saveGameHistory saves userId=null rows; claimAnonymousStats Server Action + PlayerPostGame UI
+- Profile enhancement — AvatarBuilder in profile edit, WhatsApp-shareable OG profile card (1200x630, Cairo font, stats)
 
-**Plans:** TBD (run `/gsd-plan-phase 12` to break down)
+**Plans:** 9 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Prisma schema: avatarConfig on User (Json), PlayerGameResult.userId nullable, migration
+- [ ] 12-02-PLAN.md — PWA infrastructure: @serwist/next install, manifest.ts, sw.ts, icon-192/512 generation, next.config.mjs wrap
+- [ ] 12-03-PLAN.md — Avatar system: AvatarConfig type, avatar-parts.ts SVG primitives, PlayerAvatar component, AvatarBuilder picker, localStorage sync, socket emission
+- [ ] 12-04-PLAN.md — Avatar display in host UI: HostDashboard Player/LeaderboardEntry interfaces, PlayerCard, PlayerIndicators, PodiumScreen
+- [ ] 12-05-PLAN.md — Global leaderboard: /api/leaderboard GET route ($queryRaw, period + category), /leaderboard RSC page + LeaderboardClient period toggle
+- [ ] 12-06-PLAN.md — Anonymous stat claiming: saveGameHistory saves all players (userId=null for anon), claimAnonymousStats Server Action, PlayerPostGame claim button
+- [ ] 12-07-PLAN.md — Profile enhancement: ProfileClient → AvatarBuilder + PlayerAvatar, updateProfile accepts avatarConfig, /api/og/profile edge route (1200x630)
+- [ ] 12-08-PLAN.md — PWA polish: sw.ts question cache rule, A2HSBanner + IOSInstallGuide components, ReconnectOverlay, wired into PodiumScreen + PlayerJoin
+- [ ] 12-09-PLAN.md — Smoke tests + Lighthouse audit: /api/leaderboard API tests, /leaderboard page smoke test, TypeScript build check, human Lighthouse checkpoint
 
 ---
 
