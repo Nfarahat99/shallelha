@@ -6,9 +6,9 @@ status: unknown
 last_updated: "2026-04-21T16:14:01.956Z"
 progress:
   total_phases: 14
-  completed_phases: 11
-  total_plans: 57
-  completed_plans: 57
+  completed_phases: 12
+  total_plans: 66
+  completed_plans: 66
   percent: 100
 ---
 
@@ -27,17 +27,21 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
 - **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
-- **Active Phase:** Phase 12 (User Profiles + Persistent Leaderboards) — **PLANNED** — 9 plans ready to execute
+- **Active Phase:** Phase 13 (New Game Types: Drawing + Bluffing) — **NOT PLANNED**
+- **Phase 12:** User Profiles + Persistent Leaderboards — **COMPLETE ✓** — All 9 plans executed 2026-04-21
 - **Phase 11:** Growth Foundation — Landing Page, Sharing, Post-Game Screen — **COMPLETE ✓** — All 8 plans executed 2026-04-19
 - **Phase 10:** UGC Question Packs + Shareable Result Cards — **COMPLETE ✓** — deployed 2026-04-18
-- **Phases complete:** 11 / 14
-- **Plans complete:** 35 / 35 (v1.0 plans) + 8 / 8 (Phase 10) + 8 / 8 (Phase 11) = 51 total plans complete
+- **Phases complete:** 12 / 14
+- **Plans complete:** 35 / 35 (v1.0 plans) + 8 / 8 (Phase 10) + 8 / 8 (Phase 11) + 9 / 9 (Phase 12) = 60 total plans complete
 
 ---
 
 ## Recent Activity
 
-- 2026-04-21: Phase 12 Plan 06 complete — anonymous players saved to PlayerGameResult with userId=null; claimAnonymousStats Server Action with auth guard + optimistic lock; PlayerPostGame shows claim/sign-in button; gameSessionId pre-generated and emitted in game:podium event; commit e5966e9
+- 2026-04-21: Phase 12 COMPLETE — all 9 plans executed across 5 waves; SVG avatar system (AvatarBuilder + PlayerAvatar), PWA infrastructure (@serwist/next, manifest, A2HS), global leaderboard (/api/leaderboard + /leaderboard page), anonymous stat claiming, profile enhancement with OG image, smoke tests; 103/103 server tests green, web TS compiles clean; Lighthouse PWA audit deferred to post-deploy
+- 2026-04-21: Phase 12 Plan 09 complete — smoke tests: leaderboard API tests (4 cases), page smoke tests (8 cases), Playwright config; TS build clean
+- 2026-04-21: Phase 12 Plan 07 complete — ProfileClient: AvatarBuilder replaces EmojiPicker, PlayerAvatar replaces emoji span, /api/og/profile edge OG image route (1200x630, Cairo font)
+- 2026-04-21: Phase 12 Plan 06 complete — anonymous players saved to PlayerGameResult with userId=null; claimAnonymousStats Server Action with auth guard + optimistic lock; PlayerPostGame shows claim/sign-in button; gameSessionId pre-generated and emitted in game:podium event
 - 2026-04-21: Phase 12 PLANNED — 9 plans approved (12-01 through 12-09); wave structure: W1 schema+PWA, W2 avatar system, W3 avatar display+leaderboard+PWA polish, W4 anon claiming+profile enhancement, W5 smoke tests+Lighthouse; covers REQ-007 (PWA) + REQ-008 (avatars); ready to execute
 - 2026-04-19: Phase 11 COMPLETE — all 8 plans executed; landing page live, player post-game screen with leaderboard+share, profile page with JWT session refresh, game:reset play-again flow, 111/111 server tests green; code review fixes applied (C-01 JWT refresh, H-02 phase guard); ready for Phase 12
 - 2026-04-19: Phase 11 PLANNED — 8 plans approved (11-01 through 11-08); wave structure: W1 schema+landing+sharing+OG, W2 game engine+profile+auth callbacks, W3 post-game player screen, W4 smoke tests; REQ-002 (anonymous rooms) explicitly excluded per user decision; ready to execute

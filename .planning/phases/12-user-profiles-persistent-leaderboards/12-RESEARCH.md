@@ -568,22 +568,25 @@ export async function GET(request: NextRequest) {
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Are anonymous players currently saved to PlayerGameResult?**
    - What we know: `saveGameHistory` in game.ts calls `prisma.playerGameResult.create` with `userId`. Non-authenticated players have no userId.
    - What's unclear: Does Phase 11's saveGameHistory skip anonymous players, or does it fail silently?
    - Recommendation: Read saveGameHistory in full; if anonymous players are currently skipped, Phase 12's "join with profile" stat claiming feature needs a guest User creation step added to saveGameHistory first.
+   - **RESOLVED:** Plan 12-06 updates saveGameHistory to save ALL players — anonymous players get `userId: null` in PlayerGameResult. This is enabled by the 12-01 schema migration making `userId` nullable (String?).
 
 2. **Which socket event name is canonical for join — `room:join` or `player:join`?**
    - What we know: CONTEXT.md says "transmitted via `player:join`" but PlayerJoin.tsx emits `room:join`. REQUIREMENTS.md AC-008-3 says `player:join`.
    - What's unclear: Was `room:join` renamed to `player:join` in REQUIREMENTS.md as a design decision, or is it a documentation error?
    - Recommendation: Check server-side socket handler. Keep existing `room:join` event name to avoid breaking change; add avatarConfig to that payload.
+   - **RESOLVED:** Plan 12-03 keeps the existing `room:join` event name (no breaking change) and adds `avatarConfig` to its payload. The REQUIREMENTS.md reference to `player:join` is a documentation error.
 
 3. **App icon assets for PWA manifest — generate from existing brand assets or create new?**
    - What we know: No icons exist in `public/`. Manifest requires 192×192 and 512×512 PNGs.
    - What's unclear: Is there a Cloudinary-hosted brand logo that can be resized?
    - Recommendation: Generate both sizes from a single source SVG (the "شعللها" wordmark or game controller icon) using sharp or imagemagick in a build script.
+   - **RESOLVED:** Plan 12-02 generates both icon sizes at build time using sharp with a purple gradient + "ش" letter. Icons are committed to `public/icons/`.
 
 ---
 
