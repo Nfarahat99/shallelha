@@ -84,6 +84,7 @@ model User {
   sessions           Session[]
   displayName        String?
   avatarEmoji        String?             @db.VarChar(10)
+  avatarConfig       Json?
   totalGamesPlayed   Int                 @default(0)
   winCount           Int                 @default(0)
   bestStreak         Int                 @default(0)
@@ -108,16 +109,18 @@ model PlayerGameResult {
   id            String      @id @default(cuid())
   gameSessionId String
   gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   playerName    String
   playerEmoji   String?
+  avatarConfig  Json?
   score         Int
   rank          Int
   isWinner      Boolean     @default(false)
   createdAt     DateTime    @default(now())
 
-  @@unique([gameSessionId, userId])
+  @@index([userId, createdAt])
+  @@index([isWinner, createdAt])
 }
 
 model VerificationToken {
