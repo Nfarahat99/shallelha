@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-04-21T16:05:01.040Z"
+last_updated: "2026-04-21T16:14:01.956Z"
 progress:
   total_phases: 14
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 57
-  completed_plans: 55
-  percent: 96
+  completed_plans: 57
+  percent: 100
 ---
 
 # Project State: Sha'lelha (شعللها)
@@ -123,6 +123,8 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 - [Phase 12]: NetworkFirst imported from serwist (not @serwist/next/worker); ReconnectOverlay wired in PlayerJoin.tsx not page.tsx
 - [Phase 12-06]: gameSessionId pre-generated via @paralleldrive/cuid2 createId() before game:podium emit — allows client to pass it to claimAnonymousStats without a separate DB lookup
 - [Phase 12-06]: Prisma.DbNull used for nullable JSON avatarConfig field in createMany — satisfies NullableJsonNullValueInput type vs InputJsonValue|null which Prisma rejects
+- [Phase 12]: Playwright installed at monorepo root — web app tests reference @playwright/test without a separate install
+- [Phase 12]: SKIP_LIVE_SERVER=1 guard pattern applied to all Phase 12 smoke tests — enables CI import/type-check without a live server
 
 ## Open Questions
 
@@ -158,6 +160,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 | Phase 12-user-profiles-persistent-leaderboards P04 | 5m | 2 tasks | 4 files |
 | Phase 12-user-profiles-persistent-leaderboards P05 | 8m | 3 tasks | 4 files |
 | Phase 12 P08 | 8m | 2 tasks | 6 files |
+| Phase 12 P09 | 8m | 3 tasks | 3 files |
 
 ## Roadmap Evolution
 
