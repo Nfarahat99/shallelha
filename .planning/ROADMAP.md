@@ -306,12 +306,12 @@ Plans:
 - Anonymous stat claiming — saveGameHistory saves userId=null rows; claimAnonymousStats Server Action + PlayerPostGame UI
 - Profile enhancement — AvatarBuilder in profile edit, WhatsApp-shareable OG profile card (1200x630, Cairo font, stats)
 
-**Plans:** 2/9 plans executed
+**Plans:** 3/9 plans executed
 
 Plans:
 - [x] 12-01-PLAN.md — W1: Prisma schema: avatarConfig on User (Json), PlayerGameResult.userId nullable, migration
 - [x] 12-02-PLAN.md — W1: PWA infrastructure: @serwist/next install, manifest.ts, sw.ts, icon-192/512 generation, next.config.mjs wrap
-- [ ] 12-03-PLAN.md — W2: Avatar system: AvatarConfig type, avatar-parts.ts SVG primitives, PlayerAvatar component, AvatarBuilder picker, localStorage sync, socket emission
+- [x] 12-03-PLAN.md — W2: Avatar system: AvatarConfig type, avatar-parts.ts SVG primitives, PlayerAvatar component, AvatarBuilder picker, localStorage sync, socket emission
 - [ ] 12-04-PLAN.md — W3: Avatar display in host UI: HostDashboard Player/LeaderboardEntry interfaces, PlayerCard, PlayerIndicators, PodiumScreen
 - [ ] 12-05-PLAN.md — W3: Global leaderboard: /api/leaderboard GET route ($queryRaw, period + category), /leaderboard RSC page + LeaderboardClient period toggle
 - [ ] 12-06-PLAN.md — W4: Anonymous stat claiming: saveGameHistory saves all players (userId=null for anon), claimAnonymousStats Server Action, PlayerPostGame claim button
