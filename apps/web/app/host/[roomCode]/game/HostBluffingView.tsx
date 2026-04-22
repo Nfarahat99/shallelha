@@ -10,11 +10,11 @@ interface HostBluffingViewProps {
 type BluffingPhase = 'submit' | 'vote' | 'results'
 
 interface BluffingResult {
-  id: string
+  playerId: string
   text: string
   playerName: string
   playerEmoji: string
-  voteCount: number
+  votes: string[]
   isReal: boolean
 }
 
@@ -39,8 +39,8 @@ export function HostBluffingView({ question }: HostBluffingViewProps) {
       setVoteProgress({ voted, total })
     })
 
-    socket.on('bluffing:results', (data: { answers: BluffingResult[] }) => {
-      setResults(data.answers)
+    socket.on('bluffing:results', (data: { submissions: BluffingResult[] }) => {
+      setResults(data.submissions)
       setBluffingPhase('results')
     })
 
@@ -59,7 +59,7 @@ export function HostBluffingView({ question }: HostBluffingViewProps) {
 
   // Results phase
   if (bluffingPhase === 'results' && results) {
-    const sortedResults = [...results].sort((a, b) => b.voteCount - a.voteCount)
+    const sortedResults = [...results].sort((a, b) => b.votes.length - a.votes.length)
     const majorityWinner = sortedResults[0]
 
     return (
@@ -83,7 +83,7 @@ export function HostBluffingView({ question }: HostBluffingViewProps) {
         <div className="space-y-3 overflow-y-auto">
           {sortedResults.map((answer) => (
             <div
-              key={answer.id}
+              key={answer.playerId}
               className={`bg-white/5 border backdrop-blur-xl rounded-2xl p-4 flex items-start justify-between gap-4 ${
                 answer.isReal ? 'border-green-400/40' : 'border-white/10'
               }`}
@@ -101,7 +101,7 @@ export function HostBluffingView({ question }: HostBluffingViewProps) {
                     حقيقية
                   </span>
                 )}
-                <span className="text-sm font-bold text-white/60">{answer.voteCount} ✓</span>
+                <span className="text-sm font-bold text-white/60">{answer.votes.length} ✓</span>
               </div>
             </div>
           ))}

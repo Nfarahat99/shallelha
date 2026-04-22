@@ -17,7 +17,7 @@ export function BluffingSubmitScreen({ question }: BluffingSubmitScreenProps) {
   useEffect(() => {
     const socket = getSocket()
 
-    socket.on('bluffing:role', ({ role: r, realAnswer: ra }: { role: 'truth' | 'bluffer'; realAnswer?: string }) => {
+    socket.on('bluffing:role', ({ role: r, answer: ra }: { role: 'truth' | 'bluffer'; answer?: string }) => {
       setRole(r)
       if (r === 'truth' && ra) setRealAnswer(ra)
     })

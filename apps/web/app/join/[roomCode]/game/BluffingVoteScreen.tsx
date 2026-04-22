@@ -9,11 +9,11 @@ interface BluffingAnswer {
 }
 
 interface BluffingResult {
-  id: string
+  playerId: string
   text: string
   playerName: string
   playerEmoji: string
-  voteCount: number
+  votes: string[]
   isReal: boolean
 }
 
@@ -39,8 +39,8 @@ export function BluffingVoteScreen() {
       setVoteProgress({ voted, total })
     })
 
-    socket.on('bluffing:results', (data: { answers: BluffingResult[] }) => {
-      setResults(data.answers)
+    socket.on('bluffing:results', (data: { submissions: BluffingResult[] }) => {
+      setResults(data.submissions)
     })
 
     return () => {
@@ -71,7 +71,7 @@ export function BluffingVoteScreen() {
 
   // Results view
   if (results) {
-    const sortedResults = [...results].sort((a, b) => b.voteCount - a.voteCount)
+    const sortedResults = [...results].sort((a, b) => b.votes.length - a.votes.length)
     const majorityWinner = sortedResults[0]
 
     return (
@@ -99,7 +99,7 @@ export function BluffingVoteScreen() {
         <div className="space-y-3">
           {sortedResults.map((answer) => (
             <div
-              key={answer.id}
+              key={answer.playerId}
               className={`bg-white/5 border backdrop-blur-xl rounded-2xl p-4 space-y-2 ${
                 answer.isReal ? 'border-green-400/40' : 'border-white/10'
               }`}
@@ -115,7 +115,7 @@ export function BluffingVoteScreen() {
                       إجابة حقيقية
                     </span>
                   )}
-                  <span className="text-xs text-white/50">{answer.voteCount} صوت</span>
+                  <span className="text-xs text-white/50">{answer.votes.length} صوت</span>
                 </div>
               </div>
               <p className="text-base text-white leading-relaxed">{answer.text}</p>

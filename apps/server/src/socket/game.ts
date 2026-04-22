@@ -13,7 +13,7 @@ import {
 import type { GameState, HostSettings, LeaderboardEntry } from '../game/game.types'
 import { prisma } from '../db/prisma'
 import { QuestionStatus, Prisma } from '@prisma/client'
-import { startBluffingRound } from './bluffing'
+import { startBluffingRound, clearBluffingTimers } from './bluffing'
 import { clearDrawingTimer } from './drawing'
 
 // ---------------------------------------------------------------------------
@@ -907,6 +907,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
         clearAutoRevealTimer(roomCode)
         clearVotingTimer(roomCode)
         clearDrawingTimer(roomCode)
+        clearBluffingTimers(roomCode)
         questionCache.delete(roomCode)
         previousRankings.delete(roomCode)
 
@@ -937,6 +938,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
 
       // Clear any voting timer before advancing (T-05-14: no orphaned timers)
       clearVotingTimer(roomCode)
+      clearBluffingTimers(roomCode)
 
       // Advance to next question
       const questions = questionCache.get(roomCode)
@@ -952,9 +954,10 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       gameState.questionStartedAt = Date.now()
       gameState.timerDuration = nextQuestion.timerDuration * 1000
 
-      // Reset answeredCurrentQ flags for all players
+      // Reset per-question flags for all players
       for (const id of Object.keys(gameState.playerStates)) {
         gameState.playerStates[id].answeredCurrentQ = false
+        gameState.playerStates[id].votedCurrentQ = false
       }
 
       await saveGameState(roomCode, gameState)
@@ -1002,6 +1005,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       clearAutoRevealTimer(roomCode)
       clearVotingTimer(roomCode)      // internally calls votingTimers.delete(roomCode)
       clearDrawingTimer(roomCode)
+      clearBluffingTimers(roomCode)
       questionCache.delete(roomCode)
       previousRankings.delete(roomCode)
 
