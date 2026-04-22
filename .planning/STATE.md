@@ -6,9 +6,9 @@ status: unknown
 last_updated: "2026-04-21T16:14:01.956Z"
 progress:
   total_phases: 14
-  completed_phases: 12
-  total_plans: 66
-  completed_plans: 66
+  completed_phases: 13
+  total_plans: 74
+  completed_plans: 74
   percent: 100
 ---
 
@@ -27,17 +27,20 @@ See: `.planning/PROJECT.md` (updated 2026-04-09)
 
 - **Milestone:** v1.0 — MVP Public Launch — **COMPLETE** ✓
 - **Milestone:** v2.0 — Growth + Engagement Engine — **ACTIVE**
-- **Active Phase:** Phase 13 (New Game Types: Drawing + Bluffing) — **NOT PLANNED**
+- **Active Phase:** Phase 14 (Spectator Mode) — **NOT STARTED**
+- **Phase 13:** New Game Types: Drawing + Bluffing — **COMPLETE ✓** — All 8 plans executed 2026-04-22
 - **Phase 12:** User Profiles + Persistent Leaderboards — **COMPLETE ✓** — All 9 plans executed 2026-04-21
 - **Phase 11:** Growth Foundation — Landing Page, Sharing, Post-Game Screen — **COMPLETE ✓** — All 8 plans executed 2026-04-19
 - **Phase 10:** UGC Question Packs + Shareable Result Cards — **COMPLETE ✓** — deployed 2026-04-18
-- **Phases complete:** 12 / 14
-- **Plans complete:** 35 / 35 (v1.0 plans) + 8 / 8 (Phase 10) + 8 / 8 (Phase 11) + 9 / 9 (Phase 12) = 60 total plans complete
+- **Phases complete:** 13 / 14
+- **Plans complete:** 35 / 35 (v1.0 plans) + 8 / 8 (Phase 10) + 8 / 8 (Phase 11) + 9 / 9 (Phase 12) + 8 / 8 (Phase 13) = 68 total plans complete
 
 ---
 
 ## Recent Activity
 
+- 2026-04-22: Phase 13 COMPLETE — all 8 plans executed across 5 waves; Drawing game (canvas stroke relay, speed-based scoring, artist bonus), Bluffing game (submit/vote/reveal phases, truth-holder + bluffer roles), mixed game type sessions (GameMix selector, heterogeneous question routing), admin DrawingPrompt CRUD, 50 drawing prompts + 50 bluffing questions seeded; event name mismatch fixed (bluffing:answer→bluffing:submit); pre-existing profile TS errors fixed; Next.js production build passes
+- 2026-04-21: Phase 13 PLANNED — 8 plans approved (13-01 through 13-08); wave structure: W1 schema, W2 drawing server, W3 bluffing server+drawing UI, W4 bluffing UI+game mix wiring+admin/seed, W5 build verification+human checkpoint; covers REQ-009+REQ-010; ready to execute
 - 2026-04-21: Phase 12 COMPLETE — all 9 plans executed across 5 waves; SVG avatar system (AvatarBuilder + PlayerAvatar), PWA infrastructure (@serwist/next, manifest, A2HS), global leaderboard (/api/leaderboard + /leaderboard page), anonymous stat claiming, profile enhancement with OG image, smoke tests; 103/103 server tests green, web TS compiles clean; Lighthouse PWA audit deferred to post-deploy
 - 2026-04-21: Phase 12 Plan 09 complete — smoke tests: leaderboard API tests (4 cases), page smoke tests (8 cases), Playwright config; TS build clean
 - 2026-04-21: Phase 12 Plan 07 complete — ProfileClient: AvatarBuilder replaces EmojiPicker, PlayerAvatar replaces emoji span, /api/og/profile edge OG image route (1200x630, Cairo font)
