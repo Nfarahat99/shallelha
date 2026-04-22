@@ -5,7 +5,15 @@ export interface HostSettings {
 }
 
 /** Mirrors the Prisma QuestionType enum for use in frontend/shared code without Prisma client dependency. */
-export type QuestionType = 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+export type QuestionType = 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT' | 'DRAWING' | 'BLUFFING'
+
+export interface DrawingStroke {
+  x: number
+  y: number
+  color: string
+  size: number
+  type: 'start' | 'move' | 'end'
+}
 
 /** A single player's free text answer with the list of voters who voted for it. */
 export interface FreeTextAnswer {
@@ -55,6 +63,12 @@ export interface GameState {
   freeTextAnswers?: Record<string, FreeTextAnswer>
   /** Unix timestamp (ms) when the voting phase closes. */
   votingDeadline?: number
+  /** ID of the player who is currently the artist for DRAWING questions */
+  artistPlayerId?: string
+  /** Map of correct-guesser playerIds for the current DRAWING question */
+  drawingGuessers?: Record<string, boolean>
+  /** Stroke buffer for replay: array of strokes emitted so far this round */
+  drawingStrokes?: DrawingStroke[]
 }
 
 export interface LeaderboardEntry {
@@ -74,4 +88,6 @@ export interface QuestionPayload {
   timerDuration: number
   type: QuestionType
   mediaUrl?: string
+  /** For DRAWING questions: the DrawingPrompt id being drawn */
+  drawingPromptId?: string
 }
