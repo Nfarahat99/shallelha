@@ -15,6 +15,14 @@ export interface DrawingStroke {
   type: 'start' | 'move' | 'end'
 }
 
+export interface BluffingSubmission {
+  text: string
+  /** playerIds that voted for this submission as the real answer */
+  votes: string[]
+  /** true only for the realAnswerHolder's submission */
+  isReal: boolean
+}
+
 /** A single player's free text answer with the list of voters who voted for it. */
 export interface FreeTextAnswer {
   text: string
@@ -44,7 +52,7 @@ export interface PlayerGameState {
 export interface GameState {
   questionIds: string[]
   currentQuestionIndex: number
-  phase: 'pre-game' | 'question' | 'reveal' | 'leaderboard' | 'ended' | 'voting'
+  phase: 'pre-game' | 'question' | 'reveal' | 'leaderboard' | 'ended' | 'voting' | 'bluffing:submit' | 'bluffing:vote'
   questionStartedAt: number
   timerDuration: number
   playerStates: Record<string, PlayerGameState>
@@ -69,6 +77,12 @@ export interface GameState {
   drawingGuessers?: Record<string, boolean>
   /** Stroke buffer for replay: array of strokes emitted so far this round */
   drawingStrokes?: DrawingStroke[]
+  /** Bluffing: keyed by playerId → their submitted answer */
+  bluffingSubmissions?: Record<string, BluffingSubmission>
+  /** Bluffing: playerId who holds the real answer for this round */
+  bluffingRealAnswerHolderId?: string
+  /** Bluffing: unix ms when voting phase closes */
+  bluffingVotingDeadline?: number
 }
 
 export interface LeaderboardEntry {

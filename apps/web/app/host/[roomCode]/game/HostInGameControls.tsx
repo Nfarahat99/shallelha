@@ -11,7 +11,7 @@ interface HostInGameControlsProps {
   onLeaderboard: () => void
   onEnd: () => void
   onLockFreeText?: () => void
-  currentQuestionType?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+  currentQuestionType?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT' | 'DRAWING' | 'BLUFFING'
 }
 
 export function HostInGameControls({

@@ -4,6 +4,7 @@ import * as m from 'motion/react-m'
 import { useReducedMotion } from 'motion/react'
 import { MediaQuestion } from './MediaQuestion'
 import { FreeTextFeed } from './FreeTextFeed'
+import { HostDrawingView } from './HostDrawingView'
 
 interface QuestionDisplayProps {
   text: string
@@ -13,7 +14,7 @@ interface QuestionDisplayProps {
   correctIndex: number | null
   questionIndex: number
   total: number
-  type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+  type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT' | 'DRAWING' | 'BLUFFING'
   mediaUrl?: string
   timerDuration?: number
   freeTextAnswers?: Array<{ playerId: string; emoji: string; text: string }>
@@ -21,6 +22,10 @@ interface QuestionDisplayProps {
   answerCount?: number
   /** Total active player count for progress display */
   playerCount?: number
+  /** Room code — needed for Drawing game socket events */
+  roomCode?: string
+  /** Drawing prompt text shown to host */
+  drawingPromptText?: string
 }
 
 const OPTION_COLORS = [
@@ -64,6 +69,8 @@ export function QuestionDisplay({
   freeTextAnswers,
   answerCount,
   playerCount,
+  roomCode,
+  drawingPromptText,
 }: QuestionDisplayProps) {
   const reducedMotion = useReducedMotion() ?? false
 
@@ -113,6 +120,26 @@ export function QuestionDisplay({
           </div>
         )}
       </m.div>
+    )
+  }
+
+  // DRAWING branch — host sees live canvas + prompt
+  if (type === 'DRAWING' && roomCode) {
+    return (
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="px-8 pt-4 pb-2 shrink-0">
+          <span className="text-2xl font-semibold text-gray-300">
+            سؤال {questionIndex + 1} من {total}
+          </span>
+        </div>
+        <div className="flex-1 px-8 pb-4 min-h-0">
+          <HostDrawingView
+            promptText={drawingPromptText ?? text}
+            roomCode={roomCode}
+            onReveal={() => {}}
+          />
+        </div>
+      </div>
     )
   }
 

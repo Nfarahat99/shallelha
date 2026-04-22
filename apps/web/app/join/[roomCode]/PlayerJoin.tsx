@@ -15,6 +15,8 @@ import { PlayerTimerBar } from './game/PlayerTimerBar'
 import { WaitingScreen } from './game/WaitingScreen'
 import { MediaQuestion } from '@/app/host/[roomCode]/game/MediaQuestion'
 import { FreeTextInput } from './game/FreeTextInput'
+import { DrawingCanvas } from './game/DrawingCanvas'
+import { DrawingGuesserInput } from './game/DrawingGuesserInput'
 import { VotingUI } from './game/VotingUI'
 import { LifelineBar } from './game/LifelineBar'
 import { FreezeOpponentOverlay } from './game/FreezeOpponentOverlay'
@@ -69,8 +71,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
     text: string
     options: string[]
     timerDuration: number
-    type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+    type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT' | 'DRAWING' | 'BLUFFING'
     mediaUrl?: string
+    artistPlayerId?: string
   } | null>(null)
   const [questionIndex, setQuestionIndex] = useState(0)
   const [hostSettings, setHostSettings] = useState<{
@@ -91,6 +94,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
   const [votingAnswers, setVotingAnswers] = useState<Array<{ id: string; emoji: string; text: string }>>([])
   const [votedAnswerId, setVotedAnswerId] = useState<string | null>(null)
   const [votingDeadline, setVotingDeadline] = useState(0)
+
+  // ── Drawing state ─────────────────────────────────────────────────────────
+  const [artistPlayerId, setArtistPlayerId] = useState<string | null>(null)
 
   // ── UX wins (Phase 10, Plan 07) ───────────────────────────────────────────
   const [myRank, setMyRank] = useState<number | null>(null)
@@ -163,7 +169,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       questionIndex: qi,
       hostSettings: hs,
     }: {
-      question: { text: string; options: string[]; timerDuration: number; type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'; mediaUrl?: string }
+      question: { text: string; options: string[]; timerDuration: number; type?: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT' | 'DRAWING' | 'BLUFFING'; mediaUrl?: string; artistPlayerId?: string }
       questionIndex: number
       total: number
       hostSettings: { layout: '2x2' | '4-column' | 'vertical'; timerStyle: 'bar' | 'circle' | 'number'; revealMode: 'auto' | 'manual' }
@@ -171,6 +177,7 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setCurrentQuestion(question)
       setQuestionIndex(qi)
       setHostSettings(hs)
+      setArtistPlayerId(question.artistPlayerId ?? null)
       setMyAnswer(null)
       setCorrectIndex(null)
       setPlayerPhase('answering')
@@ -599,6 +606,34 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             onSubmit={handleFreeTextSubmit}
             disabled={freeTextSubmitted}
           />
+        </PlayerGameScreen>
+      )
+    }
+
+    // DRAWING question flow — artist draws, others guess
+    if (currentQuestion.type === 'DRAWING') {
+      const isArtist = artistPlayerId === myToken
+      return (
+        <PlayerGameScreen>
+          <ReconnectOverlay isConnected={isConnected} />
+          <PlayerTimerBar
+            duration={currentQuestion.timerDuration}
+            startedAt={questionStartedAt}
+            active={playerPhase === 'answering'}
+          />
+          <div className="px-4 pt-2 pb-1">
+            <p className="text-xs text-white/50">سؤال {questionIndex + 1}</p>
+            {isArtist && (
+              <h2 className="text-xl font-bold text-white text-start leading-relaxed mt-1">
+                ارسم: {currentQuestion.text}
+              </h2>
+            )}
+          </div>
+          {isArtist ? (
+            <DrawingCanvas roomCode={roomCode} />
+          ) : (
+            <DrawingGuesserInput roomCode={roomCode} />
+          )}
         </PlayerGameScreen>
       )
     }

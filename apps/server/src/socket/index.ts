@@ -2,6 +2,7 @@ import type { Server } from 'socket.io'
 import { registerRoomHandlers } from './room'
 import { registerGameHandlers, clearAutoRevealTimer, clearVotingTimer } from './game'
 import { registerDrawingHandlers, clearDrawingTimer } from './drawing'
+import { registerBluffingHandlers, clearBluffingTimers } from './bluffing'
 import { clearSocketRateLimits } from './middleware/rateLimiter'
 
 export function setupSocketHandlers(io: Server): void {
@@ -11,6 +12,7 @@ export function setupSocketHandlers(io: Server): void {
     registerRoomHandlers(io, socket)
     registerGameHandlers(io, socket)
     registerDrawingHandlers(io, socket)
+    registerBluffingHandlers(io, socket)
 
     socket.on('disconnect', (reason) => {
       console.log(`[INFO] Socket disconnected: ${socket.id} — ${reason}`)
@@ -19,6 +21,7 @@ export function setupSocketHandlers(io: Server): void {
         clearAutoRevealTimer(socket.data.roomCode)
         clearVotingTimer(socket.data.roomCode)
         clearDrawingTimer(socket.data.roomCode)
+        clearBluffingTimers(socket.data.roomCode)
       }
     })
   })
