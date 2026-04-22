@@ -48,7 +48,7 @@ export async function claimAnonymousStats(data: {
   const candidates = await prisma.playerGameResult.findMany({
     where: {
       gameSessionId: sessionId,
-      userId: null,
+      userId: null as unknown as undefined,
       playerName: { equals: playerName, mode: 'insensitive' },
       createdAt: { gte: sevenDaysAgo },
     },
@@ -60,7 +60,7 @@ export async function claimAnonymousStats(data: {
   const result = await prisma.playerGameResult.updateMany({
     where: {
       id: { in: candidates.map((r) => r.id) },
-      userId: null,
+      userId: null as unknown as undefined,
     },
     data: { userId: session.user.id },
   })

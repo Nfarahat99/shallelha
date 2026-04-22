@@ -27,5 +27,5 @@ export default async function ProfilePage() {
     },
   })
 
-  return <ProfileClient user={user} />
+  return <ProfileClient user={user as any} />
 }
