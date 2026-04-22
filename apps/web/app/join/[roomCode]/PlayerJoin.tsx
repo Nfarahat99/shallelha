@@ -17,6 +17,8 @@ import { MediaQuestion } from '@/app/host/[roomCode]/game/MediaQuestion'
 import { FreeTextInput } from './game/FreeTextInput'
 import { DrawingCanvas } from './game/DrawingCanvas'
 import { DrawingGuesserInput } from './game/DrawingGuesserInput'
+import { BluffingSubmitScreen } from './game/BluffingSubmitScreen'
+import { BluffingVoteScreen } from './game/BluffingVoteScreen'
 import { VotingUI } from './game/VotingUI'
 import { LifelineBar } from './game/LifelineBar'
 import { FreezeOpponentOverlay } from './game/FreezeOpponentOverlay'
@@ -97,6 +99,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
 
   // ── Drawing state ─────────────────────────────────────────────────────────
   const [artistPlayerId, setArtistPlayerId] = useState<string | null>(null)
+
+  // ── Bluffing state ────────────────────────────────────────────────────────
+  const [bluffingPhase, setBluffingPhase] = useState<'submit' | 'vote' | null>(null)
 
   // ── UX wins (Phase 10, Plan 07) ───────────────────────────────────────────
   const [myRank, setMyRank] = useState<number | null>(null)
@@ -189,6 +194,8 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setVotingAnswers([])
       setVotedAnswerId(null)
       setVotingDeadline(0)
+      // Reset bluffing state for new question
+      setBluffingPhase(null)
       // Reset lifeline per-question state
       setDoublePointsActive(false)
       setEliminatedIndices([])
@@ -198,6 +205,13 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       setAnswerCount(0)
       setPlayerCount(0)
       setIsFrozen(false)
+    })
+
+    // bluffing phase transitions
+    socket.on('bluffing:start', () => setBluffingPhase('submit'))
+    socket.on('bluffing:vote_start', () => setBluffingPhase('vote'))
+    socket.on('bluffing:results', () => {
+      // optionally transition; BluffingVoteScreen handles results internally
     })
 
     // freetext:lock — voting phase starts
@@ -324,6 +338,9 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
       socket.off('question:revealed')
       socket.off('game:podium')
       socket.off('room:reset')
+      socket.off('bluffing:start')
+      socket.off('bluffing:vote_start')
+      socket.off('bluffing:results')
       socket.off('freetext:lock')
       socket.off('freetext:results')
       socket.off('lifeline:double_points_ack')
@@ -606,6 +623,24 @@ export function PlayerJoin({ roomCode }: PlayerJoinProps) {
             onSubmit={handleFreeTextSubmit}
             disabled={freeTextSubmitted}
           />
+        </PlayerGameScreen>
+      )
+    }
+
+    // BLUFFING question flow
+    if (currentQuestion.type === 'BLUFFING') {
+      if (bluffingPhase === 'vote') {
+        return (
+          <PlayerGameScreen>
+            <ReconnectOverlay isConnected={isConnected} />
+            <BluffingVoteScreen />
+          </PlayerGameScreen>
+        )
+      }
+      return (
+        <PlayerGameScreen>
+          <ReconnectOverlay isConnected={isConnected} />
+          <BluffingSubmitScreen question={{ text: currentQuestion.text }} />
         </PlayerGameScreen>
       )
     }

@@ -13,6 +13,8 @@ import {
 import type { GameState, HostSettings, LeaderboardEntry } from '../game/game.types'
 import { prisma } from '../db/prisma'
 import { QuestionStatus, Prisma } from '@prisma/client'
+import { startBluffingRound } from './bluffing'
+import { clearDrawingTimer } from './drawing'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,7 +26,7 @@ interface QuestionData {
   options: string[]
   correctIndex: number
   timerDuration: number
-  type: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT'
+  type: 'MULTIPLE_CHOICE' | 'MEDIA_GUESSING' | 'FREE_TEXT' | 'DRAWING' | 'BLUFFING'
   mediaUrl?: string
 }
 
@@ -124,9 +126,40 @@ function sendQuestion(
   gameState: GameState,
   question: QuestionData,
 ): void {
-  const payload = {
+  // DRAWING-specific state reset
+  if (question.type === 'DRAWING') {
+    gameState.drawingStrokes = []
+    gameState.drawingGuessers = {}
+    // Rotate artist through players based on question index
+    const playerIds = Object.keys(gameState.playerStates)
+    gameState.artistPlayerId = playerIds[gameState.currentQuestionIndex % playerIds.length]
+  }
+
+  // BLUFFING-specific state reset
+  if (question.type === 'BLUFFING') {
+    gameState.bluffingSubmissions = {}
+    gameState.bluffingRealAnswerHolderId = undefined
+    gameState.bluffingVotingDeadline = undefined
+  }
+
+  // Build base payload; hide prompt text from guessers for DRAWING questions
+  const questionText = question.type === 'DRAWING' ? '🎨 ارسم وخمّن' : question.text
+
+  const payload: {
     question: {
-      text: question.text,
+      text: string
+      options: string[]
+      timerDuration: number
+      type: QuestionData['type']
+      mediaUrl?: string
+    }
+    questionIndex: number
+    total: number
+    hostSettings: GameState['hostSettings']
+    artistPlayerId?: string
+  } = {
+    question: {
+      text: questionText,
       options: question.options,
       timerDuration: question.timerDuration,
       type: question.type,
@@ -135,6 +168,10 @@ function sendQuestion(
     questionIndex: gameState.currentQuestionIndex,
     total: gameState.questionIds.length,
     hostSettings: gameState.hostSettings,
+  }
+
+  if (question.type === 'DRAWING' && gameState.artistPlayerId) {
+    payload.artistPlayerId = gameState.artistPlayerId
   }
 
   io.to(roomCode).emit('question:start', payload)
@@ -252,6 +289,11 @@ async function handleReveal(io: Server, roomCode: string): Promise<void> {
   const questionData = questionCache.get(roomCode)?.[gameState.currentQuestionIndex]
   if (questionData?.type === 'FREE_TEXT') {
     await startVotingPhase(io, roomCode)
+    return
+  }
+
+  // DRAWING and BLUFFING manage their own reveal lifecycle — skip generic reveal
+  if (questionData?.type === 'DRAWING' || questionData?.type === 'BLUFFING') {
     return
   }
 
@@ -504,6 +546,112 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
           type: pq.type as QuestionData['type'],
           mediaUrl: undefined,
         }))
+      } else if (room.gameMix) {
+        // --- Mixed mode: trivia + drawing + bluffing ---
+        const mix = room.gameMix
+        const mixedQuestions: QuestionData[] = []
+
+        // Load trivia questions
+        if (mix.trivia > 0) {
+          const where: { status: QuestionStatus; categoryId?: string } = {
+            status: QuestionStatus.approved,
+          }
+          if (data?.categoryId) where.categoryId = data.categoryId
+
+          const triviaRaw = await prisma.question.findMany({
+            where,
+            select: {
+              id: true,
+              text: true,
+              options: true,
+              correctIndex: true,
+              timerDuration: true,
+              type: true,
+              mediaUrl: true,
+            },
+          })
+
+          const triviaQuestions = shuffle(
+            triviaRaw.map((q) => ({
+              id: q.id,
+              text: q.text,
+              options: q.options as string[],
+              correctIndex: q.correctIndex,
+              timerDuration: q.timerDuration,
+              type: q.type as QuestionData['type'],
+              mediaUrl: q.mediaUrl ?? undefined,
+            })),
+          ).slice(0, mix.trivia)
+
+          mixedQuestions.push(...triviaQuestions)
+        }
+
+        // Load drawing prompts
+        if (mix.drawing > 0) {
+          const drawingPrompts = await prisma.drawingPrompt.findMany({
+            where: { archived: false },
+            orderBy: { timesUsed: 'asc' },
+            take: mix.drawing * 3, // over-fetch so we can shuffle
+          })
+
+          const selectedPrompts = shuffle([...drawingPrompts]).slice(0, mix.drawing)
+
+          // Fire-and-forget timesUsed increment
+          const promptIds = selectedPrompts.map((p) => p.id)
+          prisma.drawingPrompt.updateMany({
+            where: { id: { in: promptIds } },
+            data: { timesUsed: { increment: 1 } },
+          }).catch((err) => console.warn('[WARN] drawingPrompt timesUsed increment failed:', err))
+
+          const drawingQuestions: QuestionData[] = selectedPrompts.map((p) => ({
+            id: p.id,
+            text: p.text,
+            options: [],
+            correctIndex: -1,
+            timerDuration: 60,
+            type: 'DRAWING' as const,
+          }))
+
+          mixedQuestions.push(...drawingQuestions)
+        }
+
+        // Load bluffing questions
+        if (mix.bluffing > 0) {
+          const bluffingRaw = await prisma.question.findMany({
+            where: { status: QuestionStatus.approved, type: 'BLUFFING' },
+            select: {
+              id: true,
+              text: true,
+              options: true,
+              correctIndex: true,
+              timerDuration: true,
+              type: true,
+              mediaUrl: true,
+            },
+            take: mix.bluffing * 3,
+          })
+
+          const bluffingQuestions = shuffle(
+            bluffingRaw.map((q) => ({
+              id: q.id,
+              text: q.text,
+              options: q.options as string[],
+              correctIndex: q.correctIndex,
+              timerDuration: q.timerDuration,
+              type: q.type as QuestionData['type'],
+              mediaUrl: q.mediaUrl ?? undefined,
+            })),
+          ).slice(0, mix.bluffing)
+
+          mixedQuestions.push(...bluffingQuestions)
+        }
+
+        if (mixedQuestions.length === 0) {
+          socket.emit('room:error', { message: 'لا توجد أسئلة متاحة' })
+          return
+        }
+
+        questions = shuffle(mixedQuestions)
       } else {
         // --- Existing behavior: load from Question table by categoryId ---
         const where: { status: QuestionStatus; categoryId?: string } = {
@@ -587,12 +735,17 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
       await updateRoomStatus(roomCode, 'playing')
 
       io.to(roomCode).emit('game:started', { roomCode })
-      sendQuestion(io, roomCode, gameState, questions[0])
+
+      if (questions[0].type === 'BLUFFING') {
+        await startBluffingRound(io, roomCode)
+      } else {
+        sendQuestion(io, roomCode, gameState, questions[0])
+      }
 
       // Persist the reset answeredCurrentQ flags
       await saveGameState(roomCode, gameState)
 
-      console.log(`[INFO] Game: started ${roomCode} — ${questions.length} questions${room.packId ? ` (pack: ${room.packId})` : ''}`)
+      console.log(`[INFO] Game: started ${roomCode} — ${questions.length} questions${room.packId ? ` (pack: ${room.packId})` : ''}${room.gameMix ? ` (mix: ${JSON.stringify(room.gameMix)})` : ''}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start game'
       socket.emit('room:error', { message })
@@ -753,6 +906,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
 
         clearAutoRevealTimer(roomCode)
         clearVotingTimer(roomCode)
+        clearDrawingTimer(roomCode)
         questionCache.delete(roomCode)
         previousRankings.delete(roomCode)
 
@@ -805,7 +959,11 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
 
       await saveGameState(roomCode, gameState)
 
-      sendQuestion(io, roomCode, gameState, nextQuestion)
+      if (nextQuestion.type === 'BLUFFING') {
+        await startBluffingRound(io, roomCode)
+      } else {
+        sendQuestion(io, roomCode, gameState, nextQuestion)
+      }
 
       // Persist updated state after sendQuestion resets answeredCurrentQ
       await saveGameState(roomCode, gameState)
@@ -843,6 +1001,7 @@ export function registerGameHandlers(io: Server, socket: Socket): void {
 
       clearAutoRevealTimer(roomCode)
       clearVotingTimer(roomCode)      // internally calls votingTimers.delete(roomCode)
+      clearDrawingTimer(roomCode)
       questionCache.delete(roomCode)
       previousRankings.delete(roomCode)
 

@@ -1,5 +1,11 @@
 import type { AvatarConfig } from './avatar.types'
 
+export interface GameMix {
+  trivia: number
+  drawing: number
+  bluffing: number
+}
+
 export interface Player {
   /** Reconnect token — UUID assigned on join, stored in client sessionStorage */
   id: string
@@ -22,4 +28,6 @@ export interface Room {
   createdAt: number
   /** Optional: ID of the pre-selected question pack. Only set for APPROVED packs. */
   packId?: string
+  /** Optional: mix of question types for a mixed-mode game (no packId required). */
+  gameMix?: GameMix
 }

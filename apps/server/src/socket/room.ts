@@ -9,6 +9,7 @@ import {
   findRoomByHostId,
 } from '../room/room.service'
 import type { AvatarConfig } from '../room/avatar.types'
+import type { GameMix } from '../room/room'
 import { getAuthUserId } from './auth'
 import { checkRateLimit } from './middleware/rateLimiter'
 
@@ -18,7 +19,7 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
    * Requires auth (userId in handshake.auth).
    * Emits: room:created { roomCode } | room:error { message }
    */
-  socket.on('room:create', async (data?: { packId?: string }) => {
+  socket.on('room:create', async (data?: { packId?: string; gameMix?: GameMix }) => {
     if (!checkRateLimit(socket.id, 'room:create', 5, 60_000)) {
       socket.emit('room:error', { message: 'Rate limit exceeded — try again later' })
       return
@@ -57,15 +58,30 @@ export function registerRoomHandlers(io: Server, socket: Socket): void {
       }
     }
 
+    // Validate and clamp gameMix (only used when no packId)
+    let validatedGameMix: GameMix | undefined
+    if (!validatedPackId && data?.gameMix && typeof data.gameMix === 'object') {
+      const raw = data.gameMix
+      const trivia = Math.min(20, Math.max(0, Math.floor(Number(raw.trivia) || 0)))
+      const drawing = Math.min(10, Math.max(0, Math.floor(Number(raw.drawing) || 0)))
+      const bluffing = Math.min(10, Math.max(0, Math.floor(Number(raw.bluffing) || 0)))
+      const total = trivia + drawing + bluffing
+      if (total < 1 || total > 20) {
+        socket.emit('room:error', { message: 'مجموع الأسئلة يجب أن يكون بين 1 و 20' })
+        return
+      }
+      validatedGameMix = { trivia, drawing, bluffing }
+    }
+
     try {
-      const room = await createRoom(userId, socket.id, validatedPackId)
+      const room = await createRoom(userId, socket.id, validatedPackId, validatedGameMix)
       socket.join(room.code)
       socket.data.userId = userId
       socket.data.roomCode = room.code
       socket.data.isHost = true
       // TODO: game server reads pack questions via packId in room config — see apps/server game.ts
       socket.emit('room:created', { roomCode: room.code })
-      console.log(`[INFO] Room: created ${room.code} by ${userId}${validatedPackId ? ` with pack ${validatedPackId}` : ''}`)
+      console.log(`[INFO] Room: created ${room.code} by ${userId}${validatedPackId ? ` with pack ${validatedPackId}` : ''}${validatedGameMix ? ` with mix ${JSON.stringify(validatedGameMix)}` : ''}`)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create room'
       socket.emit('room:error', { message })

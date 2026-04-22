@@ -1,5 +1,5 @@
 import { redis } from '../redis/client'
-import type { Player, Room } from './room'
+import type { Player, Room, GameMix } from './room'
 import { validateAvatarConfig } from './avatar.types'
 import type { AvatarConfig } from './avatar.types'
 import { randomUUID } from 'crypto'
@@ -20,6 +20,7 @@ export async function createRoom(
   hostId: string,
   hostSocketId: string,
   packId?: string,
+  gameMix?: GameMix,
 ): Promise<Room> {
   let code: string
   let attempts = 0
@@ -39,6 +40,7 @@ export async function createRoom(
     status: 'lobby',
     createdAt: Date.now(),
     ...(packId ? { packId } : {}),
+    ...(gameMix ? { gameMix } : {}),
   }
 
   const redisPayload: Record<string, string> = {
@@ -49,6 +51,7 @@ export async function createRoom(
     createdAt: String(room.createdAt),
   }
   if (packId) redisPayload.packId = packId
+  if (gameMix) redisPayload.gameMix = JSON.stringify(gameMix)
 
   await redis.hset(roomKey(code), redisPayload)
   await redis.expire(roomKey(code), ROOM_TTL)
@@ -61,6 +64,11 @@ export async function getRoom(code: string): Promise<Room | null> {
   const raw = await redis.hgetall(roomKey(code))
   if (!raw || !raw.hostId) return null
 
+  let gameMix: GameMix | undefined
+  if (raw.gameMix) {
+    try { gameMix = JSON.parse(raw.gameMix) as GameMix } catch { /* ignore */ }
+  }
+
   return {
     code,
     hostId: raw.hostId,
@@ -69,6 +77,7 @@ export async function getRoom(code: string): Promise<Room | null> {
     status: raw.status as Room['status'],
     createdAt: parseInt(raw.createdAt),
     ...(raw.packId ? { packId: raw.packId } : {}),
+    ...(gameMix ? { gameMix } : {}),
   }
 }
 

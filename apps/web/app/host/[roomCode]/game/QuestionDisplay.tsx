@@ -5,6 +5,7 @@ import { useReducedMotion } from 'motion/react'
 import { MediaQuestion } from './MediaQuestion'
 import { FreeTextFeed } from './FreeTextFeed'
 import { HostDrawingView } from './HostDrawingView'
+import { HostBluffingView } from './HostBluffingView'
 
 interface QuestionDisplayProps {
   text: string
@@ -138,6 +139,22 @@ export function QuestionDisplay({
             roomCode={roomCode}
             onReveal={() => {}}
           />
+        </div>
+      </div>
+    )
+  }
+
+  // BLUFFING branch — host sees submission progress + lock button + results
+  if (type === 'BLUFFING') {
+    return (
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="px-8 pt-4 pb-2 shrink-0">
+          <span className="text-2xl font-semibold text-gray-300">
+            سؤال {questionIndex + 1} من {total}
+          </span>
+        </div>
+        <div className="flex-1 px-8 pb-4 min-h-0">
+          <HostBluffingView question={{ text }} />
         </div>
       </div>
     )
