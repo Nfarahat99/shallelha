@@ -17,6 +17,8 @@ enum QuestionType {
   MULTIPLE_CHOICE
   MEDIA_GUESSING
   FREE_TEXT
+  DRAWING
+  BLUFFING
 }
 
 // Phase 1 skeleton — just enough to confirm connection via health check.
@@ -165,4 +167,16 @@ model PackQuestion {
   options      String[]
   correctIndex Int?
   order        Int
+}
+
+model DrawingPrompt {
+  id         String   @id @default(cuid())
+  text       String
+  category   String
+  difficulty String   @default("medium")
+  language   String   @default("ar")
+  archived   Boolean  @default(false)
+  timesUsed  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
